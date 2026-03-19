@@ -1,0 +1,324 @@
+[
+  {
+    "id": "ref_001",
+    "label": "J2000.0 reference — Jan 1 2000 12:00 UT, Greenwich",
+    "birthDate": "2000-01-01",
+    "birthTime": "12:00:00",
+    "lat": 51.477,
+    "lng": 0.0,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "jd": 2451545.0,
+      "ayanamsha": 23.853,
+      "sun": { "tropLon": 280.46, "sidLon": 256.61, "rashi": 9, "nak": 19, "nakName": "Purva Ashadha" },
+      "moon": { "tropLon": 223.32, "sidLon": 199.47, "rashi": 7, "nak": 14, "nakName": "Swati" },
+      "mars": { "rashi": 1 },
+      "vara": "Saturday",
+      "varaLord": "Sa",
+      "tithi": { "paksha": "krishna" }
+    }
+  },
+  {
+    "id": "ref_002",
+    "label": "Mahatma Gandhi — Oct 2 1869 07:45 LMT, Porbandar (India)",
+    "birthDate": "1869-10-02",
+    "birthTime": "02:22:00",
+    "lat": 21.6417,
+    "lng": 69.6293,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 6, "nakName": "Hasta" },
+      "moon": { "rashi": 8, "nakName": "Anuradha" },
+      "vara": "Saturday",
+      "varaLord": "Sa",
+      "tithi": { "paksha": "shukla" }
+    }
+  },
+  {
+    "id": "ref_003",
+    "label": "Swami Vivekananda — Jan 12 1863 06:33 LMT, Kolkata",
+    "birthDate": "1863-01-12",
+    "birthTime": "00:55:00",
+    "lat": 22.5726,
+    "lng": 88.3639,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 9, "nakName": "Purva Ashadha" },
+      "moon": { "rashi": 9, "nakName": "Uttara Ashadha" },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_004",
+    "label": "Indira Gandhi — Nov 19 1917 23:11 IST, Prayagraj",
+    "birthDate": "1917-11-19",
+    "birthTime": "17:41:00",
+    "lat": 25.4358,
+    "lng": 81.8463,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 8, "nakName": "Jyeshtha" },
+      "moon": { "rashi": 7, "nakName": "Vishakha" },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_005",
+    "label": "Jawaharlal Nehru — Nov 14 1889 23:00 LMT, Prayagraj",
+    "birthDate": "1889-11-14",
+    "birthTime": "17:27:00",
+    "lat": 25.4358,
+    "lng": 81.8463,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 8, "nakName": "Jyeshtha" },
+      "moon": { "rashi": 6, "nakName": "Chitra" },
+      "vara": "Thursday",
+      "varaLord": "Ju"
+    }
+  },
+  {
+    "id": "ref_006",
+    "label": "APJ Abdul Kalam — Oct 15 1931 01:15 IST, Rameswaram",
+    "birthDate": "1931-10-14",
+    "birthTime": "19:45:00",
+    "lat": 9.2881,
+    "lng": 79.3129,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 6, "nakName": "Chitra" },
+      "moon": { "rashi": 1, "nakName": "Ashwini" },
+      "vara": "Thursday",
+      "varaLord": "Ju"
+    }
+  },
+  {
+    "id": "ref_007",
+    "label": "Srinivasa Ramanujan — Dec 22 1887 18:30 LMT, Erode",
+    "birthDate": "1887-12-22",
+    "birthTime": "12:58:00",
+    "lat": 11.341,
+    "lng": 77.7172,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 9, "nakName": "Purva Ashadha" },
+      "moon": { "rashi": 4, "nakName": "Punarvasu" },
+      "vara": "Thursday",
+      "varaLord": "Ju"
+    }
+  },
+  {
+    "id": "ref_008",
+    "label": "Amitabh Bachchan — Oct 11 1942 16:00 IST, Prayagraj",
+    "birthDate": "1942-10-11",
+    "birthTime": "10:30:00",
+    "lat": 25.4358,
+    "lng": 81.8463,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 6, "nakName": "Chitra" },
+      "moon": { "rashi": 9, "nakName": "Mula" },
+      "vara": "Sunday",
+      "varaLord": "Su"
+    }
+  },
+  {
+    "id": "ref_009",
+    "label": "Narendra Modi — Sep 17 1950 11:00 IST, Vadnagar",
+    "birthDate": "1950-09-17",
+    "birthTime": "05:30:00",
+    "lat": 23.7847,
+    "lng": 72.6396,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 5, "nakName": "Purva Phalguni" },
+      "moon": { "rashi": 8, "nakName": "Jyeshtha" },
+      "vara": "Sunday",
+      "varaLord": "Su"
+    }
+  },
+  {
+    "id": "ref_010",
+    "label": "Sachin Tendulkar — Apr 24 1973 00:30 IST, Mumbai",
+    "birthDate": "1973-04-23",
+    "birthTime": "19:00:00",
+    "lat": 19.076,
+    "lng": 72.8777,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 1, "nakName": "Bharani" },
+      "moon": { "rashi": 8, "nakName": "Anuradha" },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_011",
+    "label": "Summer Solstice 2010 — Jun 21 2010 11:28 UT, London",
+    "birthDate": "2010-06-21",
+    "birthTime": "11:28:00",
+    "lat": 51.5074,
+    "lng": -0.1278,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "tropLon": 90.0, "rashi": 3, "nakName": "Ardra" },
+      "vara": "Monday",
+      "varaLord": "Mo",
+      "tithi": { "paksha": "shukla" }
+    }
+  },
+  {
+    "id": "ref_012",
+    "label": "Vernal Equinox 2000 — Mar 20 2000 07:35 UT, Greenwich",
+    "birthDate": "2000-03-20",
+    "birthTime": "07:35:00",
+    "lat": 51.477,
+    "lng": 0.0,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "tropLon": 0.0, "rashi": 12, "nakName": "Revati" },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_013",
+    "label": "Full Moon Jan 2023 — Jan 6 2023 23:08 UT",
+    "birthDate": "2023-01-06",
+    "birthTime": "23:08:00",
+    "lat": 28.6139,
+    "lng": 77.209,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 9 },
+      "moon": { "rashi": 3 },
+      "tithi": { "number": 15, "name": "Purnima", "paksha": "shukla" },
+      "vara": "Friday",
+      "varaLord": "Ve"
+    }
+  },
+  {
+    "id": "ref_014",
+    "label": "New Moon Apr 2023 — Apr 20 2023 04:12 UT",
+    "birthDate": "2023-04-20",
+    "birthTime": "04:12:00",
+    "lat": 28.6139,
+    "lng": 77.209,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 1 },
+      "moon": { "rashi": 1 },
+      "tithi": { "number": 30, "name": "Amavasya", "paksha": "krishna" },
+      "vara": "Thursday",
+      "varaLord": "Ju"
+    }
+  },
+  {
+    "id": "ref_015",
+    "label": "BCEdate — Julius Caesar — Jul 13 100 BCE, Rome",
+    "birthDate": "-0099-07-13",
+    "birthTime": "12:00:00",
+    "lat": 41.9028,
+    "lng": 12.4964,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 4 },
+      "vara": "Friday",
+      "varaLord": "Ve"
+    }
+  },
+  {
+    "id": "ref_016",
+    "label": "Southern hemisphere — Sydney, Australia midnight",
+    "birthDate": "1990-06-15",
+    "birthTime": "14:00:00",
+    "lat": -33.8688,
+    "lng": 151.2093,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 3, "nakName": "Ardra" },
+      "vara": "Friday",
+      "varaLord": "Ve"
+    }
+  },
+  {
+    "id": "ref_017",
+    "label": "Midnight birth — Jan 1 1990 00:00 UT, Mumbai",
+    "birthDate": "1990-01-01",
+    "birthTime": "00:00:00",
+    "lat": 19.076,
+    "lng": 72.8777,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 9 },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_018",
+    "label": "Rahu exaltation chart — Taurus ascendant check",
+    "birthDate": "1985-04-15",
+    "birthTime": "06:00:00",
+    "lat": 28.6139,
+    "lng": 77.209,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 1, "nakName": "Ashwini" },
+      "vara": "Monday",
+      "varaLord": "Mo"
+    }
+  },
+  {
+    "id": "ref_019",
+    "label": "Saturn retrograde — Apr 17 2021 12:00 UT",
+    "birthDate": "2021-04-17",
+    "birthTime": "12:00:00",
+    "lat": 0.0,
+    "lng": 0.0,
+    "tz": "UTC",
+    "ayanamsha": "lahiri",
+    "expected": {
+      "sun": { "rashi": 1 },
+      "saturn": { "isRetro": false },
+      "vara": "Saturday",
+      "varaLord": "Sa"
+    }
+  },
+  {
+    "id": "ref_020",
+    "label": "True Chitra ayanamsha crosscheck — J2000",
+    "birthDate": "2000-01-01",
+    "birthTime": "12:00:00",
+    "lat": 51.477,
+    "lng": 0.0,
+    "tz": "UTC",
+    "ayanamsha": "true_chitra",
+    "expected": {
+      "jd": 2451545.0,
+      "ayanamsha_min": 23.7,
+      "ayanamsha_max": 24.0,
+      "sun": { "rashi": 9 }
+    }
+  }
+]

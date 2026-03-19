@@ -1,15 +1,36 @@
+// ─────────────────────────────────────────────────────────────
+//  src/lib/engine/calculator.ts
+//  High-level chart orchestrator — Phase 1 complete
+//  Wires: ephemeris → ayanamsha → houses → nakshatra
+//         → vargas → arudhas → karakas → dignity → dasha → panchang
+// ─────────────────────────────────────────────────────────────
+
 import {
   SWISSEPH_IDS,
   dateToJD,
   degreeInSign,
   getAyanamsha,
   getPlanetPosition,
+  isCombust,
   ketuLongitude,
   signOf,
   toSidereal,
 } from '@/lib/engine/ephemeris'
-import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
-import { getKarana, getNakshatra, getTithi, getVara, getYoga } from '@/lib/engine/nakshatra'
+import { calcHouses }                    from '@/lib/engine/houses'
+import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
+import { calcCharaKarakas }              from '@/lib/engine/karakas'
+import { getDignity }                    from '@/lib/engine/dignity'
+import {
+  VARGA_FUNCTIONS,
+  KALA_VARGAS, VELA_VARGAS, ALL_VARGAS,
+  type VargaName,
+} from '@/lib/engine/vargas'
+import { calcVimshottari }               from '@/lib/engine/dasha/vimshottari'
+import {
+  getKarana, getNakshatra, getTithi,
+  getVara, getYoga,
+  getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
+} from '@/lib/engine/nakshatra'
 import {
   DEFAULT_SETTINGS,
   GRAHA_NAMES,
@@ -18,209 +39,213 @@ import {
   type ChartSettings,
   type GrahaData,
   type GrahaId,
+  type Rashi,
+  type UserPlan,
 } from '@/types/astrology'
 
+// ── Input ─────────────────────────────────────────────────────
+
 export interface CalculateChartInput {
-  name: string
-  birthDate: string
-  birthTime: string
+  name:       string
+  birthDate:  string   // 'YYYY-MM-DD'
+  birthTime:  string   // 'HH:MM:SS' (in UTC — convert before calling)
   birthPlace: string
-  latitude: number
-  longitude: number
-  timezone: string
-  settings?: ChartSettings
+  latitude:   number
+  longitude:  number
+  timezone:   string
+  settings?:  ChartSettings
 }
 
-function parseUtcDateTime(date: string, time: string): Date {
+// ── Helpers ───────────────────────────────────────────────────
+
+function parseBirthUtc(date: string, time: string): Date {
   const safeTime = /^\d{2}:\d{2}:\d{2}$/.test(time) ? time : `${time}:00`
   return new Date(`${date}T${safeTime}Z`)
 }
 
-function buildGrahas(jd: number, ayanamsha: number): GrahaData[] {
-  const grahaOrder: Array<Exclude<GrahaId, 'Ke'>> = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra']
+function buildGrahas(
+  jd:        number,
+  ayanamsha: number,
+  sunTropLon: number,
+): GrahaData[] {
+  const order: Array<Exclude<GrahaId, 'Ke'>> = [
+    'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra',
+  ]
 
-  const grahas: GrahaData[] = grahaOrder.map((id): GrahaData => {
-    const pos = getPlanetPosition(jd, SWISSEPH_IDS[id])
+  const grahas: GrahaData[] = order.map((id): GrahaData => {
+    const pos         = getPlanetPosition(jd, SWISSEPH_IDS[id])
     const lonSidereal = toSidereal(pos.longitude, ayanamsha)
-    const nak = getNakshatra(lonSidereal)
-    const rashi = signOf(lonSidereal) as GrahaData['rashi']
+    const nak         = getNakshatra(lonSidereal)
+    const rashi       = signOf(lonSidereal) as Rashi
+    const deg         = degreeInSign(lonSidereal)
 
     return {
       id,
-      name: GRAHA_NAMES[id],
-      lonTropical: pos.longitude,
+      name:           GRAHA_NAMES[id],
+      lonTropical:    pos.longitude,
       lonSidereal,
-      latitude: pos.latitude,
-      speed: pos.speed,
-      isRetro: pos.isRetro,
-      isCombust: false,
+      latitude:       pos.latitude,
+      speed:          pos.speed,
+      isRetro:        pos.isRetro,
+      isCombust:      id !== 'Su' ? isCombust(pos.longitude, sunTropLon, id) : false,
       rashi,
-      rashiName: RASHI_NAMES[rashi],
-      degree: degreeInSign(lonSidereal),
-      totalDegree: lonSidereal,
+      rashiName:      RASHI_NAMES[rashi],
+      degree:         deg,
+      totalDegree:    lonSidereal,
       nakshatraIndex: nak.index,
-      nakshatraName: nak.name,
-      pada: nak.pada,
-      dignity: 'neutral',
-      charaKaraka: null,
+      nakshatraName:  nak.name,
+      pada:           nak.pada,
+      dignity:        getDignity(id, rashi, deg),
+      charaKaraka:    null,
     }
   })
 
-  const rahu = grahas.find((g) => g.id === 'Ra')
-  if (rahu) {
-    const ketuLonSidereal = ketuLongitude(rahu.lonSidereal)
-    const ketuNak = getNakshatra(ketuLonSidereal)
-    const ketuRashi = signOf(ketuLonSidereal) as GrahaData['rashi']
+  // Ketu
+  const rahu       = grahas.find((g) => g.id === 'Ra')!
+  const ketuLonSid = ketuLongitude(rahu.lonSidereal)
+  const ketuNak    = getNakshatra(ketuLonSid)
+  const ketuRashi  = signOf(ketuLonSid) as Rashi
+  const ketuDeg    = degreeInSign(ketuLonSid)
 
-    grahas.push({
-      id: 'Ke',
-      name: GRAHA_NAMES.Ke,
-      lonTropical: ketuLongitude(rahu.lonTropical),
-      lonSidereal: ketuLonSidereal,
-      latitude: -rahu.latitude,
-      speed: rahu.speed,
-      isRetro: rahu.isRetro,
-      isCombust: false,
-      rashi: ketuRashi,
-      rashiName: RASHI_NAMES[ketuRashi],
-      degree: degreeInSign(ketuLonSidereal),
-      totalDegree: ketuLonSidereal,
-      nakshatraIndex: ketuNak.index,
-      nakshatraName: ketuNak.name,
-      pada: ketuNak.pada,
-      dignity: 'neutral',
-      charaKaraka: null,
-    })
-  }
+  grahas.push({
+    id: 'Ke', name: GRAHA_NAMES.Ke,
+    lonTropical:    ketuLongitude(rahu.lonTropical),
+    lonSidereal:    ketuLonSid,
+    latitude:       -rahu.latitude,
+    speed:          rahu.speed,
+    isRetro:        rahu.isRetro,
+    isCombust:      false,
+    rashi:          ketuRashi,
+    rashiName:      RASHI_NAMES[ketuRashi],
+    degree:         ketuDeg,
+    totalDegree:    ketuLonSid,
+    nakshatraIndex: ketuNak.index,
+    nakshatraName:  ketuNak.name,
+    pada:           ketuNak.pada,
+    dignity:        getDignity('Ke', ketuRashi, ketuDeg),
+    charaKaraka:    null,
+  })
 
   return grahas
 }
 
-export async function calculateChart(input: CalculateChartInput): Promise<ChartOutput> {
-  const settings = input.settings ?? DEFAULT_SETTINGS
-  const birthDateTime = parseUtcDateTime(input.birthDate, input.birthTime)
-  const jd = dateToJD(birthDateTime)
-  const ayanamshaValue = getAyanamsha(jd, settings.ayanamsha)
+function vargaNamesForPlan(plan: UserPlan): VargaName[] {
+  if (plan === 'hora') return ALL_VARGAS
+  if (plan === 'vela') return VELA_VARGAS
+  return KALA_VARGAS
+}
 
-  const grahas = buildGrahas(jd, ayanamshaValue)
-  const moon = grahas.find((g) => g.id === 'Mo')
-  const sun = grahas.find((g) => g.id === 'Su')
+// ── Main export ───────────────────────────────────────────────
 
-  if (!moon || !sun) {
-    throw new Error('Failed to calculate Sun/Moon positions')
+export async function calculateChart(
+  input: CalculateChartInput,
+  plan:  UserPlan = 'kala',
+): Promise<ChartOutput> {
+  const settings     = input.settings ?? DEFAULT_SETTINGS
+  const birthUtc     = parseBirthUtc(input.birthDate, input.birthTime)
+  const jd           = dateToJD(birthUtc)
+  const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
+
+  // Grahas
+  const sunTropLon = getPlanetPosition(jd, SWISSEPH_IDS.Su).longitude
+  const grahas     = buildGrahas(jd, ayanamshaVal, sunTropLon)
+  const moon       = grahas.find((g) => g.id === 'Mo')!
+  const sun        = grahas.find((g) => g.id === 'Su')!
+
+  // Houses
+  const houses = calcHouses(jd, input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
+
+  // Karakas — stamp roles onto grahas
+  const karakas = calcCharaKarakas(
+    grahas.map((g) => ({ id: g.id, lonSidereal: g.lonSidereal, degree: g.degree })),
+    settings.karakaScheme,
+  )
+  for (const g of grahas) {
+    g.charaKaraka = karakas.roleOf[g.id] ?? null
   }
 
+  // Arudhas
+  const ascRashi     = houses.ascRashi
+  const grahaSlim    = grahas.map((g) => ({ id: g.id, rashi: g.rashi }))
+  const bhavaArudhas = calcAllBhavaArudhas(ascRashi, grahaSlim)
+  const grahaArudhas = calcGrahaArudhas(ascRashi, grahaSlim)
+
+  // Vargas
+  const vargaNames = vargaNamesForPlan(plan)
+  const vargas: Record<string, GrahaData[]> = { D1: grahas }
+  for (const vname of vargaNames) {
+    if (vname === 'D1') continue
+    const fn = VARGA_FUNCTIONS[vname]
+    if (!fn) continue
+    vargas[vname] = grahas.map((g) => {
+      const vRashi = fn(g.lonSidereal) as Rashi
+      return { ...g, rashi: vRashi, rashiName: RASHI_NAMES[vRashi] }
+    })
+  }
+
+  // Dashas
+  const dashaDepth  = plan === 'kala' ? 4 : 6
+  const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
+
+  // Panchang
+  const tithi   = getTithi(moon.lonSidereal, sun.lonSidereal)
+  const yoga    = getYoga(sun.lonSidereal, moon.lonSidereal)
+  const karana  = getKarana(moon.lonSidereal, sun.lonSidereal)
+  const vara    = getVara(jd)
   const moonNak = getNakshatra(moon.lonSidereal)
-  const tithi = getTithi(moon.lonSidereal, sun.lonSidereal)
-  const yoga = getYoga(sun.lonSidereal, moon.lonSidereal)
-  const karana = getKarana(moon.lonSidereal, sun.lonSidereal)
-  const vara = getVara(jd)
-  const vimshottari = calcVimshottari(moon.lonSidereal, birthDateTime, 4)
+
+  // Rahu/Gulika/Yamaganda use sunrise placeholder — Phase 4 fixes with real rise_trans
+  const rahuKalam   = getRahuKalam(birthUtc, birthUtc, vara.number)
+  const gulikaKalam = getGulikaKalam(birthUtc, birthUtc, vara.number)
+  const yamaganda   = getYamaganda(birthUtc, birthUtc, vara.number)
+  const abhijit     = getAbhijitMuhurta(birthUtc, birthUtc)
 
   return {
     meta: {
-      name: input.name,
-      birthDate: input.birthDate,
-      birthTime: input.birthTime,
-      birthPlace: input.birthPlace,
-      latitude: input.latitude,
-      longitude: input.longitude,
-      timezone: input.timezone,
-      settings,
-      calculatedAt: new Date(),
-      ayanamshaValue,
-      julianDay: jd,
+      name: input.name, birthDate: input.birthDate, birthTime: input.birthTime,
+      birthPlace: input.birthPlace, latitude: input.latitude, longitude: input.longitude,
+      timezone: input.timezone, settings, calculatedAt: new Date(),
+      ayanamshaValue: ayanamshaVal, julianDay: jd,
     },
     grahas,
     lagnas: {
-      ascDegree: 0,
-      ascRashi: 1,
-      ascDegreeInRashi: 0,
-      horaLagna: 0,
-      ghatiLagna: 0,
-      bhavaLagna: 0,
-      pranapada: 0,
-      sriLagna: 0,
-      varnadaLagna: 0,
-      cusps: [],
-      bhavalCusps: [],
+      ascDegree:        houses.ascendantSidereal,
+      ascRashi:         houses.ascRashi,
+      ascDegreeInRashi: houses.ascDegreeInRashi,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      cusps:       houses.cuspsSidereal,
+      bhavalCusps: houses.bhavasidereal,
     },
     arudhas: {
-      AL: 1,
-      A2: 1,
-      A3: 1,
-      A4: 1,
-      A5: 1,
-      A6: 1,
-      A7: 1,
-      A8: 1,
-      A9: 1,
-      A10: 1,
-      A11: 1,
-      A12: 1,
-      grahaArudhas: { Su: 1, Mo: 1, Ma: 1, Me: 1, Ju: 1, Ve: 1, Sa: 1, Ra: 1, Ke: 1 },
-      suryaArudhas: {},
-      chandraArudhas: {},
+      AL: bhavaArudhas.AL,   A2: bhavaArudhas.A2,
+      A3: bhavaArudhas.A3,   A4: bhavaArudhas.A4,
+      A5: bhavaArudhas.A5,   A6: bhavaArudhas.A6,
+      A7: bhavaArudhas.A7,   A8: bhavaArudhas.A8,
+      A9: bhavaArudhas.A9,   A10: bhavaArudhas.A10,
+      A11: bhavaArudhas.A11, A12: bhavaArudhas.A12,
+      grahaArudhas, suryaArudhas: {}, chandraArudhas: {},
     },
     karakas: {
-      scheme: settings.karakaScheme,
-      AK: 'Su',
-      AmK: 'Mo',
-      BK: 'Ma',
-      MK: 'Me',
-      PK: 'Ju',
-      GK: 'Ve',
-      DK: 'Sa',
-      PiK: settings.karakaScheme === 8 ? 'Ra' : null,
+      scheme: karakas.scheme,
+      AK: karakas.AK, AmK: karakas.AmK, BK: karakas.BK, MK: karakas.MK,
+      PK: karakas.PK, GK: karakas.GK,   DK: karakas.DK, PiK: karakas.PiK,
     },
-    vargas: { D1: grahas },
+    vargas,
     dashas: {
-      vimshottari,
-      yogini: [],
-      ashtottari: [],
-      chara: [],
-      narayana: [],
-      tithi_ashtottari: [],
-      naisargika: [],
+      vimshottari, yogini: [], ashtottari: [],
+      chara: [], narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
       date: input.birthDate,
       location: { lat: input.latitude, lng: input.longitude, tz: input.timezone },
       vara: { number: vara.number, name: vara.name, lord: vara.lord },
-      tithi: {
-        number: tithi.number,
-        name: tithi.name,
-        paksha: tithi.paksha,
-        lord: tithi.lord,
-        endTime: new Date(birthDateTime.getTime() + 60 * 60 * 1000),
-      },
-      nakshatra: {
-        index: moonNak.index,
-        name: moonNak.name,
-        pada: moonNak.pada,
-        lord: moonNak.lord,
-        degree: moonNak.degreeInNak,
-        moonNakshatra: moonNak.name,
-      },
-      yoga: {
-        number: yoga.number,
-        name: yoga.name,
-        endTime: new Date(birthDateTime.getTime() + 60 * 60 * 1000),
-      },
-      karana: {
-        number: karana.number,
-        name: karana.name,
-        endTime: new Date(birthDateTime.getTime() + 30 * 60 * 1000),
-      },
-      sunrise: birthDateTime,
-      sunset: birthDateTime,
-      moonrise: null,
-      moonset: null,
-      rahuKalam: { start: birthDateTime, end: birthDateTime },
-      gulikaKalam: { start: birthDateTime, end: birthDateTime },
-      yamaganda: { start: birthDateTime, end: birthDateTime },
-      abhijitMuhurta: null,
-      horaTable: [],
+      tithi: { number: tithi.number, name: tithi.name, paksha: tithi.paksha, lord: tithi.lord, endTime: new Date(birthUtc.getTime() + 3600000) },
+      nakshatra: { index: moonNak.index, name: moonNak.name, pada: moonNak.pada, lord: moonNak.lord, degree: moonNak.degreeInNak, moonNakshatra: moonNak.name },
+      yoga:   { number: yoga.number,   name: yoga.name,   endTime: new Date(birthUtc.getTime() + 3600000) },
+      karana: { number: karana.number, name: karana.name, endTime: new Date(birthUtc.getTime() + 1800000) },
+      sunrise: birthUtc, sunset: birthUtc, moonrise: null, moonset: null,
+      rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: {},
   }
