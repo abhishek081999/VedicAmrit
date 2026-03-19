@@ -127,7 +127,7 @@ export type Dignity =
 
 // ── Chart Settings ───────────────────────────────────────────
 
-export type ChartStyle = 'south' | 'north' | 'east' | 'circle' | 'bhava' | 'bhava_chalita'
+export type ChartStyle = 'south' | 'north' | 'east' | 'circle' | 'bhava' | 'bhava_chalita' | 'sarvatobhadra'
 
 export interface ChartSettings {
   ayanamsha:    AyanamshaMode

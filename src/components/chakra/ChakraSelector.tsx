@@ -1,68 +1,123 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/chakra/ChakraSelector.tsx
-//  Unified chart container: style picker + config toggles
+//  Unified chart container — style picker + config toggles
+//  Supports all 4 Kāla-tier styles:
+//    South Indian  |  North Indian  |  East Indian  |  Sarvatobhadra
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import { useState } from 'react'
-import { SouthIndianChakra }  from './SouthIndianChakra'
-import { NorthIndianChakra }  from './NorthIndianChakra'
+import React, { useState } from 'react'
+import { SouthIndianChakra }     from './SouthIndianChakra'
+import { NorthIndianChakra }     from './NorthIndianChakra'
+import { EastIndianChakra }      from './EastIndianChakra'
+import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
 import type { GrahaData, Rashi, ChartStyle } from '@/types/astrology'
 
+// ── Props ─────────────────────────────────────────────────────
+
 interface ChakraSelectorProps {
-  ascRashi:   Rashi
-  grahas:     GrahaData[]
+  ascRashi:     Rashi
+  grahas:       GrahaData[]
+  // Panchang data — needed for Sarvatobhadra
+  moonNakIndex?: number    // 0–26
+  tithiNumber?:  number    // 1–30
+  varaNumber?:   number    // 0=Sun … 6=Sat
   defaultStyle?: ChartStyle
-  size?:      number
+  size?:         number
+  userPlan?:     'kala' | 'vela' | 'hora'
 }
 
-const STYLES: { id: ChartStyle; label: string; description: string }[] = [
-  { id: 'south', label: 'South Indian', description: 'Fixed signs grid' },
-  { id: 'north', label: 'North Indian', description: 'Diamond layout' },
+// ── Style definitions ─────────────────────────────────────────
+
+const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string }[] = [
+  { id: 'south',          label: 'South Indian',  shortLabel: 'South', description: '4×3 fixed sign grid' },
+  { id: 'north',          label: 'North Indian',  shortLabel: 'North', description: 'Diamond kite layout' },
+  { id: 'east',           label: 'East Indian',   shortLabel: 'East',  description: 'Bengali square grid' },
+  { id: 'sarvatobhadra',  label: 'Sarvatobhadra', shortLabel: 'SBC',   description: '9×9 nakshatra wheel' },
 ]
+
+
+
+// ── Component ─────────────────────────────────────────────────
 
 export function ChakraSelector({
   ascRashi,
   grahas,
+  moonNakIndex = 0,
+  tithiNumber  = 1,
+  varaNumber   = 0,
   defaultStyle = 'south',
-  size = 480,
+  size         = 480,
+  userPlan     = 'kala',
 }: ChakraSelectorProps) {
-  const [style,        setStyle]        = useState<ChartStyle>(defaultStyle)
-  const [showDegrees,  setShowDegrees]  = useState(true)
-  const [showNakshatra,setShowNakshatra]= useState(false)
-  const [showKaraka,   setShowKaraka]   = useState(false)
+  const [style,         setStyle]         = useState<ChartStyle>(defaultStyle)
+  const [showDegrees,   setShowDegrees]   = useState(true)
+  const [showNakshatra, setShowNakshatra] = useState(false)
+  const [showKaraka,    setShowKaraka]    = useState(false)
+  const [showTithi,     setShowTithi]     = useState(true)
+  const [showVara,      setShowVara]      = useState(true)
+
+  const isSBC = style === 'sarvatobhadra'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
 
-      {/* Style switcher */}
+      {/* ── Style switcher ─────────────────────────────────── */}
       <div style={{
-        display: 'flex', gap: '0.5rem', alignItems: 'center',
-        borderBottom: '1px solid var(--border)',
+        display: 'flex', gap: '0.375rem', alignItems: 'center',
+        flexWrap: 'wrap',
+        borderBottom: '1px solid rgba(201,168,76,0.15)',
         paddingBottom: '0.75rem',
       }}>
-        {STYLES.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setStyle(s.id)}
-            className={style === s.id ? 'btn btn-primary' : 'btn btn-ghost'}
-            style={{ fontSize: '0.875rem', padding: '0.375rem 0.875rem' }}
-          >
-            {s.label}
-          </button>
-        ))}
+        {STYLES.map((s) => {
+          const active = style === s.id
+          return (
+            <button
+              key={s.id}
+              onClick={() => setStyle(s.id as ChartStyle)}
+              title={s.description}
+              style={{
+                padding: '0.3rem 0.75rem',
+                fontSize: '0.82rem',
+                fontFamily: 'Cormorant Garamond, serif',
+                letterSpacing: '0.04em',
+                cursor: 'pointer',
+                border: '1px solid',
+                borderRadius: '4px',
+                transition: 'all 0.15s',
+                background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
+                borderColor: active ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.2)',
+                color: active ? 'rgba(201,168,76,0.9)' : 'rgba(201,168,76,0.45)',
+              }}
+            >
+              {s.shortLabel}
+            </button>
+          )
+        })}
 
         <div style={{ flex: 1 }} />
 
-        {/* Config toggles */}
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
-          <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
-          <Toggle label="Karaka"    value={showKaraka}    onChange={setShowKaraka} />
+        {/* ── Config toggles ──────────────────────────────── */}
+        <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {!isSBC && (
+            <>
+              <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
+              <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
+              {userPlan !== 'kala' && (
+                <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
+              )}
+            </>
+          )}
+          {isSBC && (
+            <>
+              <Toggle label="Tithi"  value={showTithi} onChange={setShowTithi} />
+              <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
+            </>
+          )}
         </div>
       </div>
 
-      {/* Chart */}
+      {/* ── Chart ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         {style === 'south' && (
           <SouthIndianChakra
@@ -80,35 +135,86 @@ export function ChakraSelector({
             grahas={grahas}
             size={size}
             showDegrees={showDegrees}
+            showNakshatra={showNakshatra}
+            showKaraka={showKaraka}
+          />
+        )}
+        {style === 'east' && (
+          <EastIndianChakra
+            ascRashi={ascRashi}
+            grahas={grahas}
+            size={size}
+            showDegrees={showDegrees}
+            showNakshatra={showNakshatra}
+            showKaraka={showKaraka}
+          />
+        )}
+        {style === 'sarvatobhadra' && (
+          <SarvatobhadraChakra
+            grahas={grahas}
+            moonNakIndex={moonNakIndex}
+            tithiNumber={tithiNumber}
+            varaNumber={varaNumber}
+            size={size}
+            showTithi={showTithi}
+            showVara={showVara}
           />
         )}
       </div>
 
-      {/* Legend */}
-      <div style={{
-        display: 'flex', gap: '1rem', flexWrap: 'wrap',
-        paddingTop: '0.5rem',
-        borderTop: '1px solid var(--border-soft)',
-      }}>
-        {[
-          { color: '#4ecdc4', label: 'Exalted' },
-          { color: '#c9a84c', label: 'Moolatrikona' },
-          { color: '#e2c97e', label: 'Own sign' },
-          { color: '#c8c0e0', label: 'Neutral' },
-          { color: '#d4788a', label: 'Retrograde (ᴿ)' },
-          { color: '#e07070', label: 'Debilitated' },
-        ].map(({ color, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'Cormorant Garamond, serif' }}>
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
+      {/* ── Legend ────────────────────────────────────────── */}
+      {!isSBC && (
+        <div style={{
+          display: 'flex', gap: '1rem', flexWrap: 'wrap',
+          paddingTop: '0.5rem',
+          borderTop: '1px solid rgba(201,168,76,0.1)',
+        }}>
+          {[
+            { color: '#4ecdc4', label: 'Exalted' },
+            { color: '#c9a84c', label: 'Moolatrikona' },
+            { color: '#e2c97e', label: 'Own sign' },
+            { color: '#c8c0e0', label: 'Neutral' },
+            { color: '#d4788a', label: 'Retrograde (ᴿ)' },
+            { color: '#e07070', label: 'Debilitated' },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span style={{
+                width: 7, height: 7, borderRadius: '50%',
+                background: color, display: 'inline-block', flexShrink: 0,
+              }} />
+              <span style={{
+                fontSize: '0.75rem',
+                color: 'rgba(184,176,212,0.55)',
+                fontFamily: 'Cormorant Garamond, serif',
+              }}>
+                {label}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* SBC legend */}
+      {isSBC && (
+        <div style={{
+          display: 'flex', gap: '1.25rem', flexWrap: 'wrap',
+          paddingTop: '0.5rem',
+          borderTop: '1px solid rgba(201,168,76,0.1)',
+          fontSize: '0.75rem',
+          fontFamily: 'Cormorant Garamond, serif',
+          color: 'rgba(184,176,212,0.55)',
+        }}>
+          <span><span style={{ color: 'rgba(208,232,240,0.7)' }}>■</span> Moon nakshatra</span>
+          <span><span style={{ color: 'rgba(180,140,220,0.7)' }}>■</span> Current tithi</span>
+          <span><span style={{ color: 'rgba(100,210,160,0.7)' }}>■</span> Vara lord</span>
+          <span>Outer ring: 27 nakshatras · Second: tithis · Third: vara lords · Inner: aksharas</span>
+        </div>
+      )}
     </div>
   )
 }
+
+// ── Toggle widget ─────────────────────────────────────────────
 
 function Toggle({
   label, value, onChange,
@@ -119,30 +225,33 @@ function Toggle({
       cursor: 'pointer', userSelect: 'none',
     }}>
       <span style={{
-        width: 32, height: 18, borderRadius: 9,
-        background: value ? 'var(--gold-dim)' : 'var(--surface-3)',
-        border: '1px solid var(--border)',
+        width: 30, height: 16, borderRadius: 8,
+        background: value ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.08)',
+        border: '1px solid',
+        borderColor: value ? 'rgba(201,168,76,0.6)' : 'rgba(255,255,255,0.12)',
         position: 'relative', display: 'inline-block',
-        transition: 'background 0.2s',
+        transition: 'background 0.2s, border-color 0.2s',
+        flexShrink: 0,
       }}>
         <span style={{
-          position: 'absolute', top: 2, left: value ? 14 : 2,
-          width: 12, height: 12, borderRadius: '50%',
-          background: value ? 'var(--gold-light)' : 'var(--text-muted)',
+          position: 'absolute', top: 2, left: value ? 13 : 2,
+          width: 10, height: 10, borderRadius: '50%',
+          background: value ? 'rgba(201,168,76,0.95)' : 'rgba(184,176,212,0.4)',
           transition: 'left 0.15s',
         }} />
       </span>
       <input
         type="checkbox"
         checked={value}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.checked)}
         style={{ display: 'none' }}
       />
       <span style={{
         fontSize: '0.78rem',
-        color: value ? 'var(--text-gold)' : 'var(--text-muted)',
+        color: value ? 'rgba(201,168,76,0.75)' : 'rgba(184,176,212,0.4)',
         fontFamily: 'Cormorant Garamond, serif',
-        letterSpacing: '0.04em',
+        letterSpacing: '0.03em',
+        transition: 'color 0.15s',
       }}>
         {label}
       </span>
