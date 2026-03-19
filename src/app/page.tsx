@@ -392,7 +392,9 @@ export default function HomePage() {
               {activeTab === 'chart' && (
                 <VargaSwitcher
                   vargas={chart.vargas}
+                  vargaLagnas={chart.vargaLagnas ?? {}}
                   ascRashi={chart.lagnas.ascRashi}
+                  arudhas={chart.arudhas}
                   size={500}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber}

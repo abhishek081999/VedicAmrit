@@ -131,8 +131,7 @@ function buildGrahas(
 
 function vargaNamesForPlan(plan: UserPlan): VargaName[] {
   if (plan === 'hora') return ALL_VARGAS
-  if (plan === 'vela') return VELA_VARGAS
-  return KALA_VARGAS
+  return VELA_VARGAS  // all 16 standard vargas are free for everyone
 }
 
 // ── Main export ───────────────────────────────────────────────
@@ -173,6 +172,11 @@ export async function calculateChart(
   // Vargas
   const vargaNames = vargaNamesForPlan(plan)
   const vargas: Record<string, GrahaData[]> = { D1: grahas }
+
+  // vargaLagnas: ascendant sign in each varga chart
+  // Apply the same divisional function to the ascendant's sidereal longitude
+  const vargaLagnas: Record<string, Rashi> = { D1: houses.ascRashi }
+
   for (const vname of vargaNames) {
     if (vname === 'D1') continue
     const fn = VARGA_FUNCTIONS[vname]
@@ -181,6 +185,8 @@ export async function calculateChart(
       const vRashi = fn(g.lonSidereal) as Rashi
       return { ...g, rashi: vRashi, rashiName: RASHI_NAMES[vRashi] }
     })
+    // Ascendant's varga lagna = apply same function to ascendant longitude
+    vargaLagnas[vname] = fn(houses.ascendantSidereal) as Rashi
   }
 
   // Dashas
@@ -232,6 +238,7 @@ export async function calculateChart(
       PK: karakas.PK, GK: karakas.GK,   DK: karakas.DK, PiK: karakas.PiK,
     },
     vargas,
+    vargaLagnas,
     dashas: {
       vimshottari, yogini: [], ashtottari: [],
       chara: [], narayana: [], tithi_ashtottari: [], naisargika: [],

@@ -318,7 +318,8 @@ export interface ChartOutput {
   lagnas:    LagnaData
   arudhas:   ArudhaData
   karakas:   KarakaData
-  vargas:    Record<string, GrahaData[]>  // D1, D9, D60, etc.
+  vargas:      Record<string, GrahaData[]>  // D1, D9, D60, etc. — planet rashis per varga
+  vargaLagnas: Record<string, Rashi>          // ascendant sign in each varga chart
   dashas:    Record<DashaSystem, DashaNode[]>
   panchang:  PanchangData
   upagrahas: Record<string, GrahaData>

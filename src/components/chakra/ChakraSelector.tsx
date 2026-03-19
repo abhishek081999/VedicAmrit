@@ -2,16 +2,15 @@
 //  src/components/chakra/ChakraSelector.tsx
 //  Unified chart container — style picker + config toggles
 //  Supports all 4 Kāla-tier styles:
-//    South Indian  |  North Indian  |  East Indian  |  Sarvatobhadra
+//    North Indian  |  South Indian  |  Sarvatobhadra
 // ─────────────────────────────────────────────────────────────
 'use client'
 
 import React, { useState } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
-import { EastIndianChakra }      from './EastIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
-import type { GrahaData, Rashi, ChartStyle } from '@/types/astrology'
+import type { GrahaData, Rashi, ChartStyle, ArudhaData } from '@/types/astrology'
 
 // ── Props ─────────────────────────────────────────────────────
 
@@ -20,6 +19,7 @@ interface ChakraSelectorProps {
   grahas:       GrahaData[]
   // Panchang data — needed for Sarvatobhadra
   moonNakIndex?: number    // 0–26
+  arudhas?:     ArudhaData  // for Āruḍha overlay
   tithiNumber?:  number    // 1–30
   varaNumber?:   number    // 0=Sun … 6=Sat
   defaultStyle?: ChartStyle
@@ -30,10 +30,9 @@ interface ChakraSelectorProps {
 // ── Style definitions ─────────────────────────────────────────
 
 const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string }[] = [
-  { id: 'south',          label: 'South Indian',  shortLabel: 'South', description: '4×3 fixed sign grid' },
-  { id: 'north',          label: 'North Indian',  shortLabel: 'North', description: 'Diamond kite layout' },
-  { id: 'east',           label: 'East Indian',   shortLabel: 'East',  description: 'Bengali square grid' },
-  { id: 'sarvatobhadra',  label: 'Sarvatobhadra', shortLabel: 'SBC',   description: '9×9 nakshatra wheel' },
+  { id: 'north',         label: 'North Indian',  shortLabel: 'North', description: 'Houses fixed, signs rotate' },
+  { id: 'south',         label: 'South Indian',  shortLabel: 'South', description: 'Signs fixed, houses rotate' },
+  { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',   description: '9×9 nakshatra wheel' },
 ]
 
 
@@ -44,9 +43,10 @@ export function ChakraSelector({
   ascRashi,
   grahas,
   moonNakIndex = 0,
+  arudhas,
   tithiNumber  = 1,
   varaNumber   = 0,
-  defaultStyle = 'south',
+  defaultStyle = 'north',
   size         = 480,
   userPlan     = 'kala',
 }: ChakraSelectorProps) {
@@ -54,6 +54,7 @@ export function ChakraSelector({
   const [showDegrees,   setShowDegrees]   = useState(true)
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
+  const [showArudha,    setShowArudha]    = useState(false)
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
 
@@ -106,6 +107,9 @@ export function ChakraSelector({
               {userPlan !== 'kala' && (
                 <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
               )}
+              {arudhas && (
+                <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
+              )}
             </>
           )}
           {isSBC && (
@@ -123,6 +127,8 @@ export function ChakraSelector({
           <SouthIndianChakra
             ascRashi={ascRashi}
             grahas={grahas}
+            arudhas={arudhas}
+            showArudha={showArudha}
             size={size}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
@@ -133,22 +139,14 @@ export function ChakraSelector({
           <NorthIndianChakra
             ascRashi={ascRashi}
             grahas={grahas}
+            arudhas={showArudha ? arudhas : undefined}
             size={size}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
             showKaraka={showKaraka}
           />
         )}
-        {style === 'east' && (
-          <EastIndianChakra
-            ascRashi={ascRashi}
-            grahas={grahas}
-            size={size}
-            showDegrees={showDegrees}
-            showNakshatra={showNakshatra}
-            showKaraka={showKaraka}
-          />
-        )}
+
         {style === 'sarvatobhadra' && (
           <SarvatobhadraChakra
             grahas={grahas}
