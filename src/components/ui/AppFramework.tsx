@@ -10,6 +10,7 @@ const TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: '/' },
   { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
+  { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
   { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
   { id: 'daily-panchang', label: 'Daily Pañcāṅga', icon: '📅', path: '/panchang' },
   { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯', path: '/' },

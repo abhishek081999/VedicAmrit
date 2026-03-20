@@ -26,6 +26,8 @@ interface SavedChart {
   createdAt:  string
 }
 
+type ChartUpdate = Partial<Pick<SavedChart, 'isPublic' | 'slug'>>
+
 interface Pagination {
   page: number; limit: number; total: number; pages: number
 }
@@ -51,15 +53,39 @@ function fmtSaved(iso: string): string {
 }
 
 function ChartCard({
-  chart, onLoad, onDelete,
+  chart, onLoad, onDelete, onUpdate,
 }: {
   chart: SavedChart
-  key?:     string
-  onLoad:   (c: SavedChart) => void
-  onDelete: (id: string)    => void | Promise<void>
+  key?:          string
+  onLoad:        (c: SavedChart) => void
+  onDelete:      (id: string) => void | Promise<void>
+  onUpdate:      (id: string, update: ChartUpdate) => void
 }) {
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
+  const [toggling,   setToggling]   = useState(false)
+
+  async function handleTogglePublic() {
+    setToggling(true)
+    try {
+      const res  = await fetch('/api/chart/toggle-public', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ chartId: chart._id }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        onUpdate(chart._id, { isPublic: json.isPublic, slug: json.slug })
+        // Copy share link to clipboard if now public
+        if (json.isPublic && json.slug) {
+          const url = `${window.location.origin}/chart/${json.slug}`
+          navigator.clipboard.writeText(url).catch(() => {})
+        }
+      }
+    } finally {
+      setToggling(false)
+    }
+  }
 
   async function handleDelete() {
     if (!confirmDel) { setConfirmDel(true); return }
@@ -124,31 +150,53 @@ function ChartCard({
         Saved {fmtSaved(chart.createdAt)}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem', flexWrap: 'wrap' }}>
         <button
           onClick={() => onLoad(chart)}
           className="btn btn-primary btn-sm"
-          style={{ flex: 1, justifyContent: 'center', fontSize: '0.82rem' }}
+          style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.82rem' }}
         >
           Open Chart
         </button>
 
-        {chart.slug && (
+        {/* Make Public / Share toggle */}
+        <button
+          onClick={handleTogglePublic}
+          disabled={toggling}
+          title={chart.isPublic ? 'Make private (remove share link)' : 'Make public & get share link'}
+          style={{
+            padding: '0.3rem 0.65rem',
+            background: chart.isPublic ? 'rgba(78,205,196,0.10)' : 'var(--surface-2)',
+            border: `1px solid ${chart.isPublic ? 'rgba(78,205,196,0.35)' : 'var(--border)'}`,
+            borderRadius: 'var(--r-md)',
+            fontSize: '0.78rem',
+            color: chart.isPublic ? 'var(--teal)' : 'var(--text-muted)',
+            cursor: toggling ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            transition: 'all 0.15s',
+          }}
+        >
+          {toggling ? '…' : chart.isPublic ? '🔗 Public' : '🔗 Share'}
+        </button>
+
+        {/* Copy link if public */}
+        {chart.isPublic && chart.slug && (
           <Link
             href={`/chart/${chart.slug}`}
             target="_blank"
+            title="Open public chart page"
             style={{
               padding: '0.3rem 0.65rem',
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
+              background: 'rgba(78,205,196,0.06)',
+              border: '1px solid rgba(78,205,196,0.20)',
               borderRadius: 'var(--r-md)',
               fontSize: '0.78rem',
-              color: 'var(--text-secondary)',
+              color: 'var(--teal)',
               textDecoration: 'none',
               display: 'flex', alignItems: 'center',
             }}
           >
-            🔗
+            ↗
           </Link>
         )}
 
@@ -224,6 +272,12 @@ export default function MyChartsPage() {
       tz:         chart.timezone,
     })
     router.push(`/?${params.toString()}`)
+  }
+
+  function handleUpdate(id: string, update: ChartUpdate) {
+    setCharts((prev: SavedChart[]) =>
+      prev.map((c: SavedChart) => c._id === id ? { ...c, ...update } : c)
+    )
   }
 
   async function handleDelete(id: string) {
@@ -305,7 +359,7 @@ export default function MyChartsPage() {
       {!loading && filtered.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
           {filtered.map((chart) => (
-            <ChartCard key={chart._id} chart={chart} onLoad={handleLoad} onDelete={handleDelete} />
+            <ChartCard key={chart._id} chart={chart} onLoad={handleLoad} onDelete={handleDelete} onUpdate={handleUpdate} />
           ))}
         </div>
       )}

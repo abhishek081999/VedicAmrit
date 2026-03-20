@@ -12,6 +12,7 @@ import { BirthForm }     from '@/components/ui/BirthForm'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
+import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
@@ -423,7 +424,17 @@ export default function HomePage() {
                     </div>
                  )}
 
-                 {activeTab === 'arudhas' && (
+                 {activeTab === 'shadbala' && (
+                  <div className="card fade-up">
+                    <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Planetary Strength</div>
+                    {chart.shadbala
+                      ? <ShadbalaTable shadbala={chart.shadbala} />
+                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Shadbala.</div>
+                    }
+                  </div>
+                )}
+
+                {activeTab === 'arudhas' && (
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                        <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Āruḍhas</h3>
                        <ArudhaPanel arudhas={chart.arudhas} />

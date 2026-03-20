@@ -329,6 +329,30 @@ export interface ChartOutput {
   dashas:    Record<DashaSystem, DashaNode[]>
   panchang:  PanchangData
   upagrahas: Record<string, GrahaData>
+  shadbala:  ShadbalaResult
+}
+
+// ── Shadbala ─────────────────────────────────────────────────
+
+export interface ShadbalaPlanet {
+  id:             string
+  sthanaBala:     number
+  digBala:        number
+  kalaBala:       number
+  chestaBala:     number
+  naisargikaBala: number
+  drikBala:       number
+  total:          number
+  totalShash:     number
+  required:       number
+  ratio:          number
+  isStrong:       boolean
+}
+
+export interface ShadbalaResult {
+  planets:  Record<string, ShadbalaPlanet>
+  strongest: string
+  weakest:   string
 }
 
 // ── User Plan ────────────────────────────────────────────────

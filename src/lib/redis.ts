@@ -121,7 +121,8 @@ export function chartCacheKey(
   nodeMode: string,
   houseSystem: string,
 ): string {
-  return `chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}`
+  // Added v2: prefix to force cache refresh after Shadbala calculation update
+  return `v2:chart:${birthDate}:${birthTime}:${lat.toFixed(4)}:${lng.toFixed(4)}:${ayanamsha}:${nodeMode}:${houseSystem}`
 }
 
 export function panchangCacheKey(

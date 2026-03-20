@@ -5,6 +5,7 @@
 //         → vargas → arudhas → karakas → dignity → dasha → panchang
 // ─────────────────────────────────────────────────────────────
 
+import { calculateShadbala } from './shadbala'
 import { getSunriseSunset } from './sunrise'
 import {
   SWISSEPH_IDS,
@@ -290,5 +291,26 @@ export async function calculateChart(
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: {},
+    shadbala: calculateShadbala(
+      grahas,
+      {
+        ascDegree: houses.ascendantSidereal,
+        ascRashi: houses.ascRashi,
+        ascDegreeInRashi: houses.ascDegreeInRashi,
+        horaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 60) % 360,
+        ghatiLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 150) % 360,
+        bhavaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 30) % 360,
+        pranapada: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 360 * 15) % 360,
+        sriLagna: (moon.totalDegree + (moon.totalDegree % (360 / 9)) * 12) % 360,
+        varnadaLagna: (houses.ascendantSidereal + sun.totalDegree) % 360,
+        cusps: houses.cuspsSidereal,
+        bhavalCusps: houses.bhavasidereal,
+      },
+      birthUtc,
+      sunrise,
+      sunset,
+      moon.totalDegree,
+      sun.totalDegree,
+    ),
   }
 }
