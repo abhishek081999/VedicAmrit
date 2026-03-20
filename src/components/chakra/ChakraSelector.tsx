@@ -57,6 +57,7 @@ export function ChakraSelector({
   const [showArudha,    setShowArudha]    = useState(false)
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
+  const [onlyNine,      setOnlyNine]      = useState(true)
 
   // Typography scaling
   const [fontScale,     setFontScale]     = useState(1.20)
@@ -68,6 +69,11 @@ export function ChakraSelector({
   const [showSettings,  setShowSettings]  = useState(false)
 
   const isSBC = style === 'sarvatobhadra'
+
+  // Filter 9 planets vs All
+  const displayGrahas = onlyNine 
+    ? grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
+    : grahas
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -111,6 +117,7 @@ export function ChakraSelector({
         <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'center', flexWrap: 'wrap' }}>
           {!isSBC && (
             <>
+              <Toggle label="9 Planets"   value={onlyNine}   onChange={setOnlyNine} />
               <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
               <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
               {userPlan !== 'kala' && (
@@ -167,7 +174,7 @@ export function ChakraSelector({
         {style === 'south' && (
           <SouthIndianChakra
             ascRashi={ascRashi}
-            grahas={grahas}
+            grahas={displayGrahas}
             arudhas={arudhas}
             showArudha={showArudha}
             size={Math.round(size * chartScale)}
@@ -183,7 +190,7 @@ export function ChakraSelector({
         {style === 'north' && (
           <NorthIndianChakra
             ascRashi={ascRashi}
-            grahas={grahas}
+            grahas={displayGrahas}
             arudhas={showArudha ? arudhas : undefined}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
@@ -198,7 +205,7 @@ export function ChakraSelector({
 
         {style === 'sarvatobhadra' && (
           <SarvatobhadraChakra
-            grahas={grahas}
+            grahas={displayGrahas}
             moonNakIndex={moonNakIndex}
             tithiNumber={tithiNumber}
             varaNumber={varaNumber}

@@ -14,6 +14,7 @@ export const PLANET_IDS: Record<Exclude<GrahaId, 'Ke'>, number> = {
   Su: C.SE_SUN,   Mo: C.SE_MOON,    Ma: C.SE_MARS,
   Me: C.SE_MERCURY, Ju: C.SE_JUPITER, Ve: C.SE_VENUS,
   Sa: C.SE_SATURN,  Ra: C.SE_MEAN_NODE,
+  Ur: C.SE_URANUS,  Ne: C.SE_NEPTUNE,  Pl: C.SE_PLUTO,
 }
 
 export const SWISSEPH_IDS = PLANET_IDS  // backward compat
@@ -96,7 +97,7 @@ export function getAscendant(jd: number, lat: number, lng: number, hsys = 'W') {
   }
 }
 
-export function isCombust(planetLon: number, sunLon: number, id: GrahaId): boolean {
+export function isCombust(id: GrahaId, planetLon: number, sunLon: number): boolean {
   const orbs: Partial<Record<GrahaId, number>> = {
     Mo:12, Ma:17, Me:14, Ju:11, Ve:10, Sa:15
   }

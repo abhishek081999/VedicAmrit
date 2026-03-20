@@ -15,11 +15,11 @@ import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
 function dignityColor(dignity: string, isRetro: boolean): string {
   if (isRetro) return 'var(--dig-retro)'
   switch (dignity) {
-    case 'exalted':      return 'var(--dig-exalted)'
+    case 'exalted': return 'var(--dig-exalted)'
     case 'moolatrikona': return 'var(--dig-moola)'
-    case 'own':          return 'var(--dig-own)'
-    case 'debilitated':  return 'var(--dig-debilitate)'
-    default:             return 'var(--dig-neutral)'
+    case 'own': return 'var(--dig-own)'
+    case 'debilitated': return 'var(--dig-debilitate)'
+    default: return 'var(--dig-neutral)'
   }
 }
 
@@ -28,41 +28,41 @@ function dignityColor(dignity: string, isRetro: boolean): string {
 function polyPts(h: number, S: number): [number, number][] {
   const Q = S / 4, M = S / 2
   switch (h) {
-    case 1:  return [[Q,Q],[M,M],[3*Q,Q],[M,0]]
-    case 2:  return [[0,0],[Q,Q],[M,0]]
-    case 3:  return [[0,0],[0,M],[Q,Q]]
-    case 4:  return [[0,M],[Q,3*Q],[M,M],[Q,Q]]
-    case 5:  return [[0,M],[0,S],[Q,3*Q]]
-    case 6:  return [[Q,3*Q],[0,S],[M,S]]
-    case 7:  return [[Q,3*Q],[M,S],[3*Q,3*Q],[M,M]]
-    case 8:  return [[3*Q,3*Q],[M,S],[S,S]]
-    case 9:  return [[3*Q,3*Q],[S,S],[S,M]]
-    case 10: return [[3*Q,Q],[M,M],[3*Q,3*Q],[S,M]]
-    case 11: return [[3*Q,Q],[S,M],[S,0]]
-    case 12: return [[M,0],[3*Q,Q],[S,0]]
+    case 1: return [[Q, Q], [M, M], [3 * Q, Q], [M, 0]]
+    case 2: return [[0, 0], [Q, Q], [M, 0]]
+    case 3: return [[0, 0], [0, M], [Q, Q]]
+    case 4: return [[0, M], [Q, 3 * Q], [M, M], [Q, Q]]
+    case 5: return [[0, M], [0, S], [Q, 3 * Q]]
+    case 6: return [[Q, 3 * Q], [0, S], [M, S]]
+    case 7: return [[Q, 3 * Q], [M, S], [3 * Q, 3 * Q], [M, M]]
+    case 8: return [[3 * Q, 3 * Q], [M, S], [S, S]]
+    case 9: return [[3 * Q, 3 * Q], [S, S], [S, M]]
+    case 10: return [[3 * Q, Q], [M, M], [3 * Q, 3 * Q], [S, M]]
+    case 11: return [[3 * Q, Q], [S, M], [S, 0]]
+    case 12: return [[M, 0], [3 * Q, Q], [S, 0]]
     default: return []
   }
 }
 
-function centroid(pts: [number,number][]): [number,number] {
+function centroid(pts: [number, number][]): [number, number] {
   return [
-    pts.reduce((s,p) => s+p[0], 0) / pts.length,
-    pts.reduce((s,p) => s+p[1], 0) / pts.length,
+    pts.reduce((s, p) => s + p[0], 0) / pts.length,
+    pts.reduce((s, p) => s + p[1], 0) / pts.length,
   ]
 }
 
 
 // Standard display labels for Arudha Padas
 const ARUDHA_LABEL: Record<string, string> = {
-  AL:  'AL',   // Arudha Lagna
-  A2:  'A2',
-  A3:  'A3',
-  A4:  'A4',
-  A5:  'A5',
-  A6:  'A6',
-  A7:  'A7',   // also known as Darapada
-  A8:  'A8',
-  A9:  'A9',
+  AL: 'AL',   // Arudha Lagna
+  A2: 'A2',
+  A3: 'A3',
+  A4: 'A4',
+  A5: 'A5',
+  A6: 'A6',
+  A7: 'A7',   // also known as Darapada
+  A8: 'A8',
+  A9: 'A9',
   A10: 'A10',
   A11: 'A11',
   A12: 'UL',   // Upapada Lagna
@@ -71,19 +71,19 @@ const ARUDHA_LABEL: Record<string, string> = {
 // ── Props ─────────────────────────────────────────────────────
 
 interface NorthIndianProps {
-  ascRashi:       Rashi
-  grahas:         GrahaData[]
-  size?:          number
-  showDegrees?:   boolean
+  ascRashi: Rashi
+  grahas: GrahaData[]
+  size?: number
+  showDegrees?: boolean
   showNakshatra?: boolean
-  showKaraka?:    boolean
-  arudhas?:       ArudhaData
-  interactive?:   boolean
-  onHouseClick?:  (house: number) => void
-  fontScale?:     number
-  planetScale?:   number
-  arudhaScale?:   number
-  infoScale?:     number
+  showKaraka?: boolean
+  arudhas?: ArudhaData
+  interactive?: boolean
+  onHouseClick?: (house: number) => void
+  fontScale?: number
+  planetScale?: number
+  arudhaScale?: number
+  infoScale?: number
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -92,20 +92,20 @@ export function NorthIndianChakra({
   ascRashi,
   grahas,
   size = 480,
-  showDegrees   = true,
+  showDegrees = true,
   showNakshatra = false,
-  showKaraka    = false,
+  showKaraka = false,
   arudhas,
-  interactive   = false,
+  interactive = false,
   onHouseClick,
-  fontScale     = 1.0,
-  planetScale   = 1.0,
-  arudhaScale   = 1.0,
-  infoScale     = 1.0,
+  fontScale = 1.0,
+  planetScale = 1.0,
+  arudhaScale = 1.0,
+  infoScale = 1.0,
 }: NorthIndianProps) {
   const S = size
 
-  const BASE_PL_FONT  = S * 0.038 * fontScale * planetScale
+  const BASE_PL_FONT = S * 0.038 * fontScale * planetScale
   const BASE_DEG_FONT = S * 0.024 * fontScale * infoScale
 
   const signInHouse = (h: number): number =>
@@ -126,7 +126,7 @@ export function NorthIndianChakra({
 
   // ── Group arudha labels by house ─────────────────────────────
   // Each arudha has a rashi; draw it in the house whose sign = that rashi
-  const ARUDHA_KEYS = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'] as const
+  const ARUDHA_KEYS = ['AL', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12'] as const
   const arudhaByHouse: Record<number, string[]> = {}
   if (arudhas) {
     for (const key of ARUDHA_KEYS) {
@@ -156,79 +156,98 @@ export function NorthIndianChakra({
       <rect width={S} height={S} fill="transparent" />
 
       {Array.from({ length: 12 }, (_, i) => {
-        const h    = i + 1
-        const pts  = polyPts(h, S)
+        const h = i + 1
+        const pts = polyPts(h, S)
         if (!pts.length) return null
 
-        const sign    = signInHouse(h)
+        const sign = signInHouse(h)
         const planets = byHouse[h] ?? []
-        const lagna   = h === 1
-        const kite    = isKite(h)
+        const lagna = h === 1
+        const kite = isKite(h)
 
         // ── Cell bounds ───────────────────────────────────────
-        const topY   = Math.min(...pts.map(p => p[1]))
-        const botY   = Math.max(...pts.map(p => p[1]))
-        const leftX  = Math.min(...pts.map(p => p[0]))
+        const topY = Math.min(...pts.map(p => p[1]))
+        const botY = Math.max(...pts.map(p => p[1]))
+        const leftX = Math.min(...pts.map(p => p[0]))
         const rightX = Math.max(...pts.map(p => p[0]))
-        const cellH  = botY - topY
-        const cellW  = rightX - leftX
+        const cellH = botY - topY
+        const cellW = rightX - leftX
 
         // Safe inner region (inset from polygon edges)
-        const PAD    = S * 0.016
+        const PAD = S * 0.016
         const safeTop = topY + PAD
         const safeBot = botY - PAD
-        const safeH   = safeBot - safeTop
+        const safeH = safeBot - safeTop
 
         // Centre X from centroid
-        const [gcx]  = centroid(pts)
+        const [gcx] = centroid(pts)
 
-        // ── Rashi number — top 28% of safe height ─────────────
+        // ── Rashi number positioning ──────────────────────────
+        const getRashiPos = (h: number, S: number) => {
+          const Q = S / 4, M = S/2
+          const o = S * 0.045 // Safe offset
+          switch(h) {
+            case 1:  return { x: M,     y: M - o }
+            case 2:  return { x: Q,     y: Q - o }
+            case 3:  return { x: Q - o, y: Q }
+            case 4:  return { x: M - o, y: M }
+            case 5:  return { x: Q - o, y: 3*Q }
+            case 6:  return { x: Q,     y: 3*Q + o }
+            case 7:  return { x: M,     y: M + o }
+            case 8:  return { x: 3*Q,   y: 3*Q + o }
+            case 9:  return { x: 3*Q + o, y: 3*Q }
+            case 10: return { x: M + o, y: M }
+            case 11: return { x: 3*Q + o, y: Q }
+            case 12: return { x: 3*Q,   y: Q - o }
+            default: return { x: gcx,   y: topY + cellH*0.2 }
+          }
+        }
+        const rp = getRashiPos(h, S)
+
         const rashiFont = Math.round(
           Math.min(
-            kite ? S * 0.06 * fontScale : S * 0.048 * fontScale,
-            safeH * 0.28
+            kite ? S * 0.032 * fontScale : S * 0.024 * fontScale,
+            safeH * 0.18
           )
         )
-        // Place at 20% from safeTop — always inside cell
-        const rashiY = safeTop + safeH * 0.18
 
-        // ── Planet block — bottom 72% of safe height ──────────
-        const plAreaTop = safeTop + safeH * 0.38
-        const plAreaBot = safeBot
-        const plAreaH   = plAreaBot - plAreaTop
+        // ── Planet block — more central in cell ──────────
+        const plAreaTop = safeTop + safeH * 0.15
+        const plAreaBot = safeBot - safeH * 0.15
+        const plAreaH = plAreaBot - plAreaTop
 
-        const aList       = arudhaByHouse[h] ?? []
-        const numARows    = aList.length > 0 ? Math.ceil(aList.length / 3) : 0
+        const aList = arudhaByHouse[h] ?? []
+        const numARows = aList.length > 0 ? Math.ceil(aList.length / 3) : 0
 
-        const n           = planets.length
-        const useTwoCol   = n > 3
-        const rows        = useTwoCol ? Math.ceil(n / 2) : n
+        const n = planets.length
+        const useTwoCol = n > 3
+        const rows = useTwoCol ? Math.ceil(n / 2) : n
 
-        const linesPerPl  = 1
-          + (showDegrees   ? 1 : 0)
+        const linesPerPl = 1
+          + (showDegrees ? 1 : 0)
           + (showNakshatra ? 1 : 0)
 
         // Count Arudha rows as roughly 0.8 line height equivalent
         const estTotalLines = Math.max(rows * linesPerPl + numARows * 0.8, 1)
 
         // Scale down font if many items — but never below a readable minimum
-        const maxLineH  = plAreaH / estTotalLines
-        const plFont    = Math.max(
+        const maxLineH = plAreaH / estTotalLines
+        const plFont = Math.max(
           S * 0.032 * fontScale * planetScale,                            // Stronger minimum
           Math.min(BASE_PL_FONT, maxLineH * 0.8)
         )
-        const degFont   = Math.min(BASE_DEG_FONT, plFont * 0.7)
-        const lineH     = plFont * 1.15
-          + (showDegrees   ? degFont * 1.10 : 0)
+        const degFont = Math.min(BASE_DEG_FONT, plFont * 0.7)
+        const lineH = plFont * 1.15
+          + (showDegrees ? degFont * 1.10 : 0)
           + (showNakshatra ? degFont * 0.95 : 0)
-        
+
         const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
 
         // Total height of planet block + arudha block — centre it in plArea
-        const totalPlH    = rows * lineH
-        const totalAH     = numARows > 0 ? (aFont * 0.7 + (numARows - 1) * aFont * 1.3) : 0
+        const totalPlH = rows * lineH
+        const totalAH = numARows > 0 ? (aFont * 0.7 + (numARows - 1) * aFont * 1.3) : 0
         const totalContentH = totalPlH + totalAH
-        
+
         const plBlockTopY = plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
         // Two-col horizontal offset — wider spacing
@@ -242,11 +261,11 @@ export function NorthIndianChakra({
           >
             {/* Cell fill for Lagna and Main Houses */}
             <polygon
-              points={pts.map(([x,y]) => `${x},${y}`).join(' ')}
+              points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
               fill={
                 lagna ? 'var(--gold-faint)' :
-                kite  ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
-                        'transparent'
+                  kite ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
+                    'transparent'
               }
               stroke={lagna ? 'var(--gold)' : 'var(--border-bright)'}
               strokeWidth={lagna ? 2.5 : 1.25}
@@ -255,32 +274,32 @@ export function NorthIndianChakra({
 
             {/* ── Rashi NUMBER ── */}
             <text
-              x={gcx}
-              y={rashiY}
+              x={rp.x}
+              y={rp.y}
               fontSize={rashiFont}
-              fontFamily="var(--font-display)"
-              fontWeight={lagna ? 'var(--fw-bold)' : 'var(--fw-base)'}
-              fill={lagna ? 'var(--gold)' : 'var(--text-muted)'}
+              fontFamily="var(--font-mono)"
+              fontWeight="var(--fw-medium)"
+              fill={lagna ? 'var(--gold)' : '#2d5a27'} // Green for signs
               textAnchor="middle"
               dominantBaseline="middle"
-              style={{ opacity: 0.8 }}
+              style={{ opacity: 0.9 }}
             >
               {sign}
             </text>
 
             {/* ── Planets ── */}
             {planets.map((g, gi) => {
-              const col   = useTwoCol ? gi % 2 : 0
-              const row   = useTwoCol ? Math.floor(gi / 2) : gi
-              const px    = gcx + (useTwoCol ? (col === 0 ? -colOff : colOff) : 0)
-              const py    = plBlockTopY + row * lineH + plFont * 0.55
+              const col = useTwoCol ? gi % 2 : 0
+              const row = useTwoCol ? Math.floor(gi / 2) : gi
+              const px = gcx + (useTwoCol ? (col === 0 ? -colOff : colOff) : 0)
+              const py = plBlockTopY + row * lineH + plFont * 0.55
 
               const fillCol = dignityColor(g.dignity, g.isRetro)
-              const ret   = g.isRetro ? 'ᴿ' : ''
-              const deg   = showDegrees
-                ? `${Math.floor(g.degree)}°${String(Math.floor((g.degree%1)*60)).padStart(2,'0')}'`
+              const ret = g.isRetro ? 'ᴿ' : ''
+              const deg = showDegrees
+                ? `${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2, '0')}'`
                 : ''
-              const kar   = showKaraka && g.charaKaraka ? ` ${g.charaKaraka}` : ''
+              const kar = showKaraka && g.charaKaraka ? ` ${g.charaKaraka}` : ''
 
               return (
                 <g key={g.id}>
@@ -318,7 +337,7 @@ export function NorthIndianChakra({
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
-                      {g.nakshatraName.slice(0,3)} {g.pada}
+                      {g.nakshatraName.slice(0, 3)} {g.pada}
                     </text>
                   )}
                 </g>
@@ -358,7 +377,7 @@ export function NorthIndianChakra({
       })}
 
       {/* Outer framing box */}
-      <rect x=".5" y=".5" width={S-1} height={S-1}
+      <rect x=".5" y=".5" width={S - 1} height={S - 1}
         fill="none" stroke="var(--border-bright)" strokeWidth="1.5" rx="8" />
     </svg>
   )

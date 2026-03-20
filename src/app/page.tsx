@@ -393,7 +393,7 @@ export default function HomePage() {
                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
                            <h3 className="label-caps" style={{ margin: 0 }}>Planetary Micro-Details</h3>
                          </div>
-                         <GrahaTable grahas={chart.grahas} />
+                         <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
                       </div>
                       <div className="card" style={{ padding: '1.5rem' }}>
                          <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Vimśottarī Daśā Sequence</h3>
@@ -405,7 +405,7 @@ export default function HomePage() {
                  {activeTab === 'planets' && (
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                        <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Planetary Status & Diagnostics</h3>
-                       <GrahaTable grahas={chart.grahas} />
+                       <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
                     </div>
                  )}
 

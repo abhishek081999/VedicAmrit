@@ -5,16 +5,18 @@
 
 // ── Grahas (Planets) ─────────────────────────────────────────
 
-export type GrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke'
+export type GrahaId = 'Su' | 'Mo' | 'Ma' | 'Me' | 'Ju' | 'Ve' | 'Sa' | 'Ra' | 'Ke' | 'Ur' | 'Ne' | 'Pl'
 
 export const GRAHA_NAMES: Record<GrahaId, string> = {
   Su: 'Sun',  Mo: 'Moon',    Ma: 'Mars',    Me: 'Mercury',
   Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
+  Ur: 'Uranus', Ne: 'Neptune', Pl: 'Pluto',
 }
 
 export const GRAHA_SANSKRIT: Record<GrahaId, string> = {
   Su: 'Sūrya', Mo: 'Chandra', Ma: 'Maṅgala', Me: 'Budha',
   Ju: 'Guru',  Ve: 'Śukra',   Sa: 'Śani',    Ra: 'Rāhu', Ke: 'Ketu',
+  Ur: 'Aruṇa', Ne: 'Varuṇa', Pl: 'Yama'
 }
 
 // ── Rashi (Signs) ────────────────────────────────────────────
@@ -170,21 +172,25 @@ export interface PlanetPosition {
 export interface GrahaData {
   id:           GrahaId
   name:         string
-  lonTropical:  number   // Tropical longitude
-  lonSidereal:  number   // Sidereal (after ayanamsha)
+  lonTropical:  number
+  lonSidereal:  number
   latitude:     number
   speed:        number
   isRetro:      boolean
   isCombust:    boolean
-  rashi:        Rashi    // 1–12
+  rashi:        Rashi
   rashiName:    string
-  degree:       number   // 0–30 within rashi
-  totalDegree:  number   // 0–360 sidereal
-  nakshatraIndex: number // 0–26
+  degree:       number
+  totalDegree:  number
+  nakshatraIndex: number
   nakshatraName:  string
-  pada:         number   // 1–4
+  pada:         number
   dignity:      Dignity
-  charaKaraka:  string | null  // AK, AmK, BK, etc.
+  avastha: {
+    baladi:     string   // Bala, Kumara, Yuva, Vriddha, Mrita
+    jagradadi:  string   // Jagrat, Swapna, Sushupti
+  }
+  charaKaraka:  string | null
 }
 
 // ── Lagna Data ───────────────────────────────────────────────
