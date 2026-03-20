@@ -153,13 +153,13 @@ const AKSHARA_CELLS: Array<{ row: number; col: number; label: string }> = [
 // ── Dignity colour (same palette as other chakras) ────────────
 
 function dignityColor(dignity: string, isRetro: boolean): string {
-  if (isRetro) return '#d4788a'
+  if (isRetro) return 'var(--dig-retro)'
   switch (dignity) {
-    case 'exalted':      return '#4ecdc4'
-    case 'moolatrikona': return '#c9a84c'
-    case 'own':          return '#e2c97e'
-    case 'debilitated':  return '#e07070'
-    default:             return '#c8c0e0'
+    case 'exalted':      return 'var(--dig-exalted)'
+    case 'moolatrikona': return 'var(--dig-moola)'
+    case 'own':          return 'var(--dig-own)'
+    case 'debilitated':  return 'var(--dig-debilitate)'
+    default:             return 'var(--dig-neutral)'
   }
 }
 
@@ -168,6 +168,7 @@ const GRAHA_DOT: Record<GrahaId, string> = {
   Su: '#e8b84b', Mo: '#d0e8f0', Ma: '#e07070',
   Me: '#78d478', Ju: '#f0c878', Ve: '#e8b0d8',
   Sa: '#9090c0', Ra: '#8878b0', Ke: '#c0b490',
+  Ur: '#b0f0f0', Ne: '#98b0f0', Pl: '#f0a0c0',
 }
 
 // Short nakshatra names for the small grid cells

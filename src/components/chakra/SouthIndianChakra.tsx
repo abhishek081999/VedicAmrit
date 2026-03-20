@@ -189,7 +189,7 @@ export function SouthIndianChakra({
               x={x + cell * 0.07}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill={isAsc ? 'var(--gold)' : 'var(--text-muted)'}
+              fill={isAsc ? 'var(--gold)' : 'var(--chart-sign-green)'}
               fontFamily="var(--font-display)"
               fontWeight={isAsc ? 'var(--fw-bold)' : 'var(--fw-base)'}
             >
@@ -201,7 +201,7 @@ export function SouthIndianChakra({
               x={x + cell * 0.93}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="var(--gold-dim)"
+              fill="var(--chart-label-muted)"
               fontFamily="Cormorant Garamond, serif"
               textAnchor="end"
             >
@@ -210,14 +210,14 @@ export function SouthIndianChakra({
 
             {/* Lagna marker */}
             {isAsc && (
-              <g stroke="var(--gold-dim)" strokeWidth="1" strokeLinecap="round">
+              <g stroke="var(--chart-label-muted)" strokeWidth="1" strokeLinecap="round">
                 <line x1={x + 4} y1={y + 4} x2={x + cell * 0.22} y2={y + 4} />
                 <line x1={x + 4} y1={y + 4} x2={x + 4} y2={y + cell * 0.22} />
                 <text
                   x={x + cell * 0.5}
                   y={y + cell * 0.96}
                   fontSize={fs.lagna}
-                  fill="var(--gold-dim)"
+                  fill="var(--chart-label-muted)"
                   fontFamily="Cormorant Garamond, serif"
                   textAnchor="middle"
                   fontStyle="italic"

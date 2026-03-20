@@ -147,7 +147,7 @@ export function EastIndianChakra({
               x={x + cell * 0.07}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="rgba(201,168,76,0.35)"
+              fill="var(--chart-label-muted)"
               fontFamily="Cormorant Garamond, serif"
             >
               {sign}
@@ -158,7 +158,7 @@ export function EastIndianChakra({
               x={x + cell * 0.93}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="rgba(201,168,76,0.25)"
+              fill="var(--chart-label-muted)"
               fontFamily="Cormorant Garamond, serif"
               textAnchor="end"
             >

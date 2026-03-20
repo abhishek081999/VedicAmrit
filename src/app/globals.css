@@ -94,6 +94,9 @@
   /* Scrollbar */
   --scrollbar-track: #16162a;
   --scrollbar-thumb: #333358;
+  /* Chart specific labels */
+  --chart-sign-green: #8ee07b;
+  --chart-label-muted: rgba(201, 168, 76, 0.4);
 }
 
 /* ── Light theme tokens ─────────────────────────────────────── */
@@ -177,6 +180,9 @@
 
   --scrollbar-track: #f7f3e8;
   --scrollbar-thumb: #d7d1ba;
+  /* Chart specific labels */
+  --chart-sign-green: #2d5a27;
+  --chart-label-muted: rgba(132, 27, 27, 0.35);
 }
 
 /* ── Typography constants ───────────────────────────────────── */

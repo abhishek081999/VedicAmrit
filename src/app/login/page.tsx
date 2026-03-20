@@ -61,24 +61,6 @@ export default function LoginPage() {
         }} />
       </div>
 
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header style={{
-        padding: '0 2rem', height: 60,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        backdropFilter: 'blur(16px)',
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'var(--header-bg)',
-        borderBottom: '1px solid var(--border-soft)',
-      }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <span style={{ fontSize: '1.4rem' }}>🪐</span>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontSize: '1.2rem',
-            fontWeight: 400, color: 'var(--text-gold)', letterSpacing: '0.05em'
-          }}>Jyotiṣa</span>
-        </Link>
-        <ThemeToggle />
-      </header>
 
       {/* ── Main ────────────────────────────────────────────── */}
       <main style={{

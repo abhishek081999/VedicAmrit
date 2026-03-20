@@ -206,8 +206,8 @@ export function NorthIndianChakra({
 
         const rashiFont = Math.round(
           Math.min(
-            kite ? S * 0.032 * fontScale : S * 0.024 * fontScale,
-            safeH * 0.18
+            kite ? S * 0.040 * fontScale : S * 0.030 * fontScale,
+            safeH * 0.22
           )
         )
 
@@ -279,7 +279,7 @@ export function NorthIndianChakra({
               fontSize={rashiFont}
               fontFamily="var(--font-mono)"
               fontWeight="var(--fw-medium)"
-              fill={lagna ? 'var(--gold)' : '#2d5a27'} // Green for signs
+              fill={lagna ? 'var(--gold)' : 'var(--chart-sign-green)'} // Theme-aware green for signs
               textAnchor="middle"
               dominantBaseline="middle"
               style={{ opacity: 0.9 }}

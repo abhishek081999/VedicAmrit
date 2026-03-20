@@ -52,55 +52,6 @@ export default function AccountPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header style={{
-        padding: '0 2rem',
-        height: 60,
-        borderBottom: '1px solid var(--border)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'var(--header-bg)',
-        gap: '1rem',
-      }}>
-        {/* Logo */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <span style={{ fontSize: '1.5rem' }}>🪐</span>
-          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: '1.25rem', fontWeight: 400,
-              letterSpacing: '0.07em',
-              color: 'var(--text-gold)',
-            }}>
-              Jyotiṣa
-            </span>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>
-              The Eye of the Vedas
-            </span>
-          </div>
-        </Link>
-
-        {/* Nav right */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Link href="/"
-            className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
-          >Chart</Link>
-
-          <Link href="/my/charts"
-            className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
-          >My Charts</Link>
-
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--header-text)' }}>
-            {user?.name || 'Account'}
-          </span>
-
-          <ThemeToggle />
-        </nav>
-      </header>
 
       {/* ── Main ────────────────────────────────────────────── */}
       <main style={{ flex: 1, maxWidth: 1000, width: '100%', margin: '0 auto', padding: '3.5rem 1.5rem' }}>
