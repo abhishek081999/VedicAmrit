@@ -12,11 +12,11 @@ import { DEFAULT_SETTINGS } from '@/types/astrology'
 // ── Delhi defaults ────────────────────────────────────────────
 
 const DELHI_DEFAULT = {
-  name:      'Delhi',
-  place:     'New Delhi, Delhi, IN',
-  lat:       28.6139,
-  lng:       77.2090,
-  tz:        'Asia/Kolkata',
+  name: 'Delhi',
+  place: 'New Delhi, Delhi, IN',
+  lat: 28.6139,
+  lng: 77.2090,
+  tz: 'Asia/Kolkata',
 }
 
 function nowIST(): { date: string; time: string } {
@@ -39,17 +39,17 @@ function nowIST(): { date: string; time: string } {
 // ── Types ─────────────────────────────────────────────────────
 
 interface LocationResult {
-  name:      string
-  country:   string
-  admin1:    string
-  latitude:  number
+  name: string
+  country: string
+  admin1: string
+  latitude: number
   longitude: number
-  timezone:  string
+  timezone: string
 }
 
 interface BirthFormProps {
-  onResult:    (data: ChartOutput) => void
-  onLoading?:  (loading: boolean) => void
+  onResult: (data: ChartOutput) => void
+  onLoading?: (loading: boolean) => void
   autoSubmit?: boolean   // calculate immediately on mount with defaults
 }
 
@@ -58,21 +58,21 @@ interface BirthFormProps {
 export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthFormProps) {
   const { date: todayDate, time: nowTime } = nowIST()
 
-  const [name,      setName]      = useState(DELHI_DEFAULT.name)
-  const [date,      setDate]      = useState(todayDate)
-  const [time,      setTime]      = useState(nowTime)
-  const [place,     setPlace]     = useState(DELHI_DEFAULT.place)
-  const [lat,       setLat]       = useState<number | null>(DELHI_DEFAULT.lat)
-  const [lng,       setLng]       = useState<number | null>(DELHI_DEFAULT.lng)
-  const [tz,        setTz]        = useState(DELHI_DEFAULT.tz)
-  const [settings,  setSettings]  = useState<ChartSettings>(DEFAULT_SETTINGS)
+  const [name, setName] = useState(DELHI_DEFAULT.name)
+  const [date, setDate] = useState(todayDate)
+  const [time, setTime] = useState(nowTime)
+  const [place, setPlace] = useState(DELHI_DEFAULT.place)
+  const [lat, setLat] = useState<number | null>(DELHI_DEFAULT.lat)
+  const [lng, setLng] = useState<number | null>(DELHI_DEFAULT.lng)
+  const [tz, setTz] = useState(DELHI_DEFAULT.tz)
+  const [settings, setSettings] = useState<ChartSettings>(DEFAULT_SETTINGS)
 
   const [locationResults, setLocationResults] = useState<LocationResult[]>([])
-  const [searchOpen,      setSearchOpen]      = useState(false)
-  const [searching,       setSearching]       = useState(false)
-  const [loading,         setLoading]         = useState(false)
-  const [error,           setError]           = useState<string | null>(null)
-  const [showAdvanced,    setShowAdvanced]     = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searching, setSearching] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -95,7 +95,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
         DEFAULT_SETTINGS,
       ), 120)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoSubmit])
 
   // ── Location search ───────────────────────────────────────
@@ -104,7 +104,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
     if (q.length < 2) { setLocationResults([]); return }
     setSearching(true)
     try {
-      const res  = await fetch(`/api/atlas/search?q=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/atlas/search?q=${encodeURIComponent(q)}`)
       const data = await res.json()
       setLocationResults(data.results ?? [])
       setSearchOpen(true)
@@ -159,14 +159,14 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name:       nameVal.trim() || 'Delhi',
-          birthDate:  dateVal,
-          birthTime:  safeTime,
+          name: nameVal.trim() || 'Delhi',
+          birthDate: dateVal,
+          birthTime: safeTime,
           birthPlace: placeVal,
-          latitude:   latVal,
-          longitude:  lngVal,
-          timezone:   tzVal,
-          settings:   settingsVal,
+          latitude: latVal,
+          longitude: lngVal,
+          timezone: tzVal,
+          settings: settingsVal,
         }),
       })
 
@@ -189,7 +189,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) { setError('Please enter a name'); return }
-    if (!date)        { setError('Please enter birth date'); return }
+    if (!date) { setError('Please enter birth date'); return }
     if (!lat || !lng) { setError('Please select a location from the list'); return }
     await submitChart(name, date, time, place, lat, lng, tz, settings)
   }
@@ -202,14 +202,37 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
     setTime(t)
   }
 
+  // Format time for input display (HH:MM:SS)
+  const formatTimeForInput = (timeStr: string) => {
+    if (!timeStr) return '00:00:00'
+    const parts = timeStr.split(':')
+    if (parts.length === 2) {
+      return `${parts[0]}:${parts[1]}:00`
+    }
+    if (parts.length >= 3) {
+      return `${parts[0]}:${parts[1]}:${parts[2]}`
+    }
+    return timeStr
+  }
+
+  // Handle time input change (supports HH:MM, HH:MM:SS, and step values)
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value
+    // If the input doesn't have seconds, append :00
+    if (value && value.split(':').length === 2) {
+      value = `${value}:00`
+    }
+    setTime(value)
+  }
+
   // ── Render ────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-
-      {/* Name */}
-      <div>
-        <label>Name / Label</label>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', overflow: 'hidden' }}>
+      
+      {/* Name Field */}
+      <div style={{ width: '100%' }}>
+        <label className="field-label">Name / Label</label>
         <input
           className="input"
           type="text"
@@ -217,53 +240,62 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="off"
+          style={{ width: '100%', boxSizing: 'border-box' }}
         />
       </div>
 
       {/* Date + Time row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
-        <div>
-          <label>Date</label>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%' }}>
+        {/* Date Field */}
+        <div style={{ width: '100%', minWidth: 0 }}>
+          <label className="field-label">Date</label>
           <input
             className="input"
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            style={{ colorScheme: 'dark' }}
+            style={{ colorScheme: 'auto', width: '100%', boxSizing: 'border-box' }}
           />
         </div>
-        <div>
-          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Time</span>
+
+        {/* Time Field */}
+        <div style={{ width: '100%', minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <label className="field-label" style={{ marginBottom: 0 }}>Time</label>
             <button
               type="button"
               onClick={setToNow}
               title="Set to current time"
               style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(201,168,76,0.5)', fontSize: '0.68rem',
-                fontFamily: 'Cormorant Garamond, serif',
-                letterSpacing: '0.06em', padding: 0,
-                textTransform: 'uppercase',
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer',
+                color: 'var(--gold)', 
+                fontSize: '0.68rem',
+                fontFamily: 'var(--font-body)',
+                letterSpacing: '0.06em', 
+                padding: 0,
+                textTransform: 'uppercase', 
+                fontWeight: 600,
               }}
             >
               Now ↺
             </button>
-          </label>
+          </div>
           <input
             className="input"
             type="time"
-            value={time.slice(0, 5)}
-            onChange={(e) => setTime(e.target.value)}
+            value={formatTimeForInput(time)}
+            onChange={handleTimeChange}
             step="1"
-            style={{ colorScheme: 'dark' }}
+            style={{ colorScheme: 'auto', width: '100%', boxSizing: 'border-box' }}
           />
         </div>
       </div>
 
-      {/* Location with autocomplete */}
-      <div style={{ position: 'relative' }} ref={dropdownRef}>
-        <label>
+      {/* Location Field with autocomplete */}
+      <div style={{ position: 'relative', width: '100%' }} ref={dropdownRef}>
+        <label className="field-label">
           Place
           {searching && (
             <span style={{ marginLeft: 8, fontSize: '0.68rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
@@ -279,6 +311,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
           onChange={(e) => handlePlaceChange(e.target.value)}
           onFocus={() => locationResults.length > 0 && setSearchOpen(true)}
           autoComplete="off"
+          style={{ width: '100%', boxSizing: 'border-box' }}
         />
 
         {/* Coords display */}
@@ -304,6 +337,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
             borderRadius: 8,
             boxShadow: 'var(--shadow-deep)',
             maxHeight: 280, overflowY: 'auto',
+            boxSizing: 'border-box',
           }}>
             {locationResults.map((loc, i) => (
               <button
@@ -318,6 +352,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
                   borderBottom: i < locationResults.length - 1
                     ? '1px solid var(--border-soft)' : 'none',
                   transition: 'background 0.1s',
+                  boxSizing: 'border-box',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
@@ -346,27 +381,34 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
           onClick={() => setShowAdvanced((o) => !o)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--text-muted)', fontFamily: 'Cormorant Garamond, serif',
-            fontSize: '0.82rem', letterSpacing: '0.06em',
+            color: 'var(--text-muted)',
+            fontSize: '0.8rem', fontWeight: 500,
             display: 'flex', alignItems: 'center', gap: '0.4rem', padding: 0,
+            letterSpacing: '0.03em',
           }}
         >
-          <span style={{ transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0)', transition: 'transform 0.15s', fontSize: '0.6rem' }}>▶</span>
+          <span style={{
+            display: 'inline-block',
+            transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0)',
+            transition: 'transform 0.2s cubic-bezier(0.34,1.56,0.64,1)',
+            fontSize: '0.55rem',
+          }}>▶</span>
           Advanced settings
         </button>
 
         {showAdvanced && (
           <div style={{
             marginTop: '0.75rem', padding: '1rem',
-            background: 'var(--surface-2)', borderRadius: 8,
+            background: 'var(--surface-2)', borderRadius: 'var(--r-md)',
             border: '1px solid var(--border-soft)',
             display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem',
+            animation: 'fadeUp 0.3s cubic-bezier(0.22,1,0.36,1) both',
           }}>
             <div>
-              <label style={{ fontSize: '0.7rem' }}>Ayanamsha</label>
+              <label className="field-label">Ayanamsha</label>
               <select className="input" value={settings.ayanamsha}
                 onChange={(e) => setSettings((s) => ({ ...s, ayanamsha: e.target.value as any }))}
-                style={{ colorScheme: 'dark' }}>
+                style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="lahiri">Lahiri (default)</option>
                 <option value="true_chitra">True Chitra</option>
                 <option value="raman">Raman</option>
@@ -376,10 +418,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.7rem' }}>House system</label>
+              <label className="field-label">House system</label>
               <select className="input" value={settings.houseSystem}
                 onChange={(e) => setSettings((s) => ({ ...s, houseSystem: e.target.value as any }))}
-                style={{ colorScheme: 'dark' }}>
+                style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="whole_sign">Whole Sign</option>
                 <option value="placidus">Placidus</option>
                 <option value="equal">Equal House</option>
@@ -387,19 +429,19 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.7rem' }}>Karaka scheme</label>
+              <label className="field-label">Karaka scheme</label>
               <select className="input" value={settings.karakaScheme}
                 onChange={(e) => setSettings((s) => ({ ...s, karakaScheme: Number(e.target.value) as 7 | 8 }))}
-                style={{ colorScheme: 'dark' }}>
+                style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value={8}>8 Karakas (standard)</option>
                 <option value={7}>7 Karakas</option>
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.7rem' }}>Rāhu / Ketu nodes</label>
+              <label className="field-label">Rāhu / Ketu nodes</label>
               <select className="input" value={settings.nodeMode}
                 onChange={(e) => setSettings((s) => ({ ...s, nodeMode: e.target.value as any }))}
-                style={{ colorScheme: 'dark' }}>
+                style={{ width: '100%', boxSizing: 'border-box' }}>
                 <option value="mean">Mean nodes</option>
                 <option value="true">True nodes</option>
               </select>

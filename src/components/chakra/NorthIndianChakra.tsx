@@ -13,13 +13,13 @@
 import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
 
 function dignityColor(dignity: string, isRetro: boolean): string {
-  if (isRetro) return '#e07090'
+  if (isRetro) return 'var(--dig-retro)'
   switch (dignity) {
-    case 'exalted':      return '#4ecdc4'
-    case 'moolatrikona': return '#f0c040'
-    case 'own':          return '#e8d070'
-    case 'debilitated':  return '#e05555'
-    default:             return '#c8bef0'
+    case 'exalted':      return 'var(--dig-exalted)'
+    case 'moolatrikona': return 'var(--dig-moola)'
+    case 'own':          return 'var(--dig-own)'
+    case 'debilitated':  return 'var(--dig-debilitate)'
+    default:             return 'var(--dig-neutral)'
   }
 }
 
@@ -80,6 +80,10 @@ interface NorthIndianProps {
   arudhas?:       ArudhaData
   interactive?:   boolean
   onHouseClick?:  (house: number) => void
+  fontScale?:     number
+  planetScale?:   number
+  arudhaScale?:   number
+  infoScale?:     number
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -94,8 +98,15 @@ export function NorthIndianChakra({
   arudhas,
   interactive   = false,
   onHouseClick,
+  fontScale     = 1.0,
+  planetScale   = 1.0,
+  arudhaScale   = 1.0,
+  infoScale     = 1.0,
 }: NorthIndianProps) {
   const S = size
+
+  const BASE_PL_FONT  = S * 0.038 * fontScale * planetScale
+  const BASE_DEG_FONT = S * 0.024 * fontScale * infoScale
 
   const signInHouse = (h: number): number =>
     ((ascRashi - 1 + h - 1) % 12) + 1
@@ -132,8 +143,6 @@ export function NorthIndianChakra({
   }
 
   // Planet font — SAME size for all cells (corners are large enough)
-  const BASE_PL_FONT  = S * 0.038
-  const BASE_DEG_FONT = S * 0.026
 
   return (
     <svg
@@ -175,7 +184,7 @@ export function NorthIndianChakra({
         // ── Rashi number — top 28% of safe height ─────────────
         const rashiFont = Math.round(
           Math.min(
-            kite ? S * 0.054 : S * 0.042,
+            kite ? S * 0.054 * fontScale : S * 0.042 * fontScale,
             safeH * 0.28
           )
         )
@@ -187,6 +196,9 @@ export function NorthIndianChakra({
         const plAreaBot = safeBot
         const plAreaH   = plAreaBot - plAreaTop
 
+        const aList       = arudhaByHouse[h] ?? []
+        const numARows    = aList.length > 0 ? Math.ceil(aList.length / 3) : 0
+
         const n           = planets.length
         const useTwoCol   = n > 3
         const rows        = useTwoCol ? Math.ceil(n / 2) : n
@@ -195,23 +207,31 @@ export function NorthIndianChakra({
           + (showDegrees   ? 1 : 0)
           + (showNakshatra ? 1 : 0)
 
-        // Scale down font if many planets — but never below a readable minimum
-        const maxLineH  = plAreaH / Math.max(rows * linesPerPl, 1)
+        // Count Arudha rows as roughly 0.8 line height equivalent
+        const estTotalLines = Math.max(rows * linesPerPl + numARows * 0.8, 1)
+
+        // Scale down font if many items — but never below a readable minimum
+        const maxLineH  = plAreaH / estTotalLines
         const plFont    = Math.max(
-          S * 0.022,                            // hard minimum — always readable
-          Math.min(BASE_PL_FONT, maxLineH * 0.68)
+          S * 0.026 * fontScale * planetScale,                            // Stronger minimum
+          Math.min(BASE_PL_FONT, maxLineH * 0.75)
         )
-        const degFont   = Math.min(BASE_DEG_FONT, plFont * 0.70)
-        const lineH     = plFont * 1.2
-          + (showDegrees   ? degFont * 1.15 : 0)
-          + (showNakshatra ? degFont * 1.00 : 0)
+        const degFont   = Math.min(BASE_DEG_FONT, plFont * 0.65)
+        const lineH     = plFont * 1.15
+          + (showDegrees   ? degFont * 1.10 : 0)
+          + (showNakshatra ? degFont * 0.95 : 0)
+        
+        const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
 
-        // Total height of planet block — centre it in plArea
+        // Total height of planet block + arudha block — centre it in plArea
         const totalPlH    = rows * lineH
-        const plBlockTopY = plAreaTop + Math.max(0, (plAreaH - totalPlH) / 2)
+        const totalAH     = numARows > 0 ? (aFont * 0.7 + (numARows - 1) * aFont * 1.3) : 0
+        const totalContentH = totalPlH + totalAH
+        
+        const plBlockTopY = plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
-        // Two-col horizontal offset
-        const colOff = useTwoCol ? Math.min(cellW * 0.22, S * 0.044) : 0
+        // Two-col horizontal offset — wider spacing
+        const colOff = useTwoCol ? Math.min(cellW * 0.26, S * 0.052) : 0
 
         return (
           <g
@@ -223,12 +243,12 @@ export function NorthIndianChakra({
             <polygon
               points={pts.map(([x,y]) => `${x},${y}`).join(' ')}
               fill={
-                lagna ? 'rgba(201,168,76,0.12)' :
-                kite  ? 'rgba(90,80,150,0.08)'  :
-                        'rgba(255,255,255,0.02)'
+                lagna ? 'var(--gold-faint)' :
+                kite  ? 'var(--accent-glow)'  :
+                        'transparent'
               }
-              stroke={lagna ? 'rgba(201,168,76,0.50)' : 'rgba(201,168,76,0.25)'}
-              strokeWidth={lagna ? 1.0 : 0.6}
+              stroke={lagna ? 'var(--gold)' : 'var(--border-bright)'}
+              strokeWidth={lagna ? 1.5 : 1.0}
               strokeLinejoin="miter"
             />
 
@@ -238,8 +258,8 @@ export function NorthIndianChakra({
               y={rashiY}
               fontSize={rashiFont}
               fontFamily="Cormorant Garamond, serif"
-              fontWeight={lagna ? '600' : '400'}
-              fill={lagna ? 'rgba(230,195,90,1.0)' : 'rgba(210,175,80,0.65)'}
+              fontWeight={lagna ? 'var(--fw-bold)' : 'var(--fw-base)'}
+              fill={lagna ? 'var(--gold)' : 'var(--text-gold)'}
               textAnchor="middle"
               dominantBaseline="middle"
             >
@@ -266,7 +286,7 @@ export function NorthIndianChakra({
                     x={px} y={py}
                     fontSize={Math.round(plFont)}
                     fontFamily="Cormorant Garamond, serif"
-                    fontWeight="500"
+                    fontWeight="var(--fw-medium)"
                     fill={fillCol}
                     textAnchor="middle"
                     dominantBaseline="middle"
@@ -278,7 +298,7 @@ export function NorthIndianChakra({
                       x={px} y={py + plFont * 0.72 + degFont * 0.5}
                       fontSize={Math.round(degFont)}
                       fontFamily="JetBrains Mono, monospace"
-                      fill="rgba(180,170,210,0.55)"
+                      fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
@@ -292,7 +312,7 @@ export function NorthIndianChakra({
                       fontSize={Math.round(degFont * 0.85)}
                       fontFamily="Cormorant Garamond, serif"
                       fontStyle="italic"
-                      fill="rgba(180,170,210,0.40)"
+                      fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
@@ -304,33 +324,40 @@ export function NorthIndianChakra({
             })}
 
             {/* ── Āruḍha labels ── */}
-            {(arudhaByHouse[h] ?? []).map((key, ai) => {
-              // Stack below all planets
-              const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028))
-              const totalPlanetsH = rows * lineH
-              const aStartY = plBlockTopY + totalPlanetsH + aFont * 0.6 + ai * aFont * 1.4
-              return (
+            {(() => {
+              if (!aList.length) return null
+
+              const baseY = plBlockTopY + totalPlH + aFont * 0.7
+
+              const chunks = []
+              for (let i = 0; i < aList.length; i += 3) {
+                chunks.push(aList.slice(i, i + 3).map(k => ARUDHA_LABEL[k] ?? k).join(' · '))
+              }
+
+              return chunks.map((textStr, ci) => (
                 <text
-                  key={key}
+                  key={`arudha-row-${ci}`}
                   x={gcx}
-                  y={aStartY}
+                  y={baseY + ci * aFont * 1.3}
                   fontSize={aFont}
                   fontFamily="Cormorant Garamond, serif"
                   fontStyle="italic"
-                  fill="rgba(240,180,60,0.75)"
+                  fontWeight="var(--fw-bold)"
+                  fill="var(--text-gold)"
                   textAnchor="middle"
                   dominantBaseline="middle"
                 >
-                  {ARUDHA_LABEL[key] ?? key}
+                  {textStr}
                 </text>
-              )
-            })}
+              ))
+            })()}
           </g>
         )
       })}
 
+      {/* Outer framing box */}
       <rect x=".5" y=".5" width={S-1} height={S-1}
-        fill="none" stroke="rgba(201,168,76,0.22)" strokeWidth="1" rx="8" />
+        fill="none" stroke="var(--border-bright)" strokeWidth="1.5" rx="8" />
     </svg>
   )
 }

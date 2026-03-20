@@ -190,6 +190,7 @@ interface SarvatobhadraProps {
   showTithi?:    boolean
   showVara?:     boolean
   showAkshara?:  boolean
+  fontScale?:    number
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -204,6 +205,7 @@ export function SarvatobhadraChakra({
   showTithi    = true,
   showVara     = true,
   showAkshara  = true,
+  fontScale    = 1.0,
 }: SarvatobhadraProps) {
   const GRID = 9
   const cell = size / GRID
@@ -220,14 +222,14 @@ export function SarvatobhadraChakra({
 
   // Font sizes
   const fs = {
-    nak:    Math.round(cell * 0.16),   // nakshatra short name
-    lord:   Math.round(cell * 0.13),   // nakshatra lord
-    tithi:  Math.round(cell * 0.17),
-    vara:   Math.round(cell * 0.16),
-    aksh:   Math.round(cell * 0.18),
-    brahma: Math.round(cell * 0.16),
-    dot:    Math.round(cell * 0.11),   // graha dot label
-    dir:    Math.round(cell * 0.14),   // corner direction
+    nak:    Math.round(cell * 0.16 * fontScale),   // nakshatra short name
+    lord:   Math.round(cell * 0.13 * fontScale),   // nakshatra lord
+    tithi:  Math.round(cell * 0.17 * fontScale),
+    vara:   Math.round(cell * 0.16 * fontScale),
+    aksh:   Math.round(cell * 0.18 * fontScale),
+    brahma: Math.round(cell * 0.16 * fontScale),
+    dot:    Math.round(cell * 0.11 * fontScale),   // graha dot label
+    dir:    Math.round(cell * 0.14 * fontScale),   // corner direction
   }
 
   function cx(col: number) { return col * cell + cell / 2 }

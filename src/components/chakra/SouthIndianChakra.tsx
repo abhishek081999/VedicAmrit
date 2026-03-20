@@ -31,13 +31,13 @@ const ARUDHA_KEYS = [
 ] as const
 
 function dignityColor(dignity: string, isRetro: boolean): string {
-  if (isRetro) return '#d4788a'
+  if (isRetro) return 'var(--dig-retro)'
   switch (dignity) {
-    case 'exalted':      return '#4ecdc4'
-    case 'moolatrikona': return '#c9a84c'
-    case 'own':          return '#e2c97e'
-    case 'debilitated':  return '#e07070'
-    default:             return '#c8c0e0'
+    case 'exalted':      return 'var(--dig-exalted)'
+    case 'moolatrikona': return 'var(--dig-moola)'
+    case 'own':          return 'var(--dig-own)'
+    case 'debilitated':  return 'var(--dig-debilitate)'
+    default:             return 'var(--dig-neutral)'
   }
 }
 
@@ -72,6 +72,10 @@ interface SouthIndianProps {
   interactive?:   boolean
   onCellClick?:   (rashi: Rashi) => void
   highlightRashi?:Rashi | null
+  fontScale?:     number
+  planetScale?:   number
+  arudhaScale?:   number
+  infoScale?:     number
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -88,6 +92,10 @@ export function SouthIndianChakra({
   interactive   = false,
   onCellClick,
   highlightRashi = null,
+  fontScale      = 1.0,
+  planetScale    = 1.0,
+  arudhaScale    = 1.0,
+  infoScale      = 1.0,
 }: SouthIndianProps) {
   const cell = size / 4
 
@@ -110,11 +118,11 @@ export function SouthIndianChakra({
   }
 
   const fs = {
-    sign:   Math.round(cell * 0.09),
-    graha:  Math.round(cell * 0.115),
-    degree: Math.round(cell * 0.082),
-    arudha: Math.round(cell * 0.080),
-    lagna:  Math.round(cell * 0.085),
+    sign:   Math.round(cell * 0.09 * fontScale),
+    graha:  Math.round(cell * 0.115 * fontScale * planetScale),
+    degree: Math.round(cell * 0.082 * fontScale * infoScale),
+    arudha: Math.round(cell * 0.080 * fontScale * arudhaScale),
+    lagna:  Math.round(cell * 0.085 * fontScale),
   }
 
   return (
@@ -138,17 +146,22 @@ export function SouthIndianChakra({
         const cellGrahas = byRashi[sign] ?? []
         const cellArudhas = arudhaByRashi[sign] ?? []
 
-        // Dynamic line height — fit planets + arudhas in cell
-        const totalItems = cellGrahas.length
-          + (showDegrees || showKaraka ? cellGrahas.length : 0)
-          + (showNakshatra ? cellGrahas.length : 0)
+        const nGrahas = cellGrahas.length
+        const useTwoCol = nGrahas > 3
+        
+        // Multiplier to figure out how many distinct text lines per planet
         const linesPerGraha = 1
           + (showDegrees || showKaraka ? 1 : 0)
           + (showNakshatra ? 1 : 0)
-        const lineH = cellGrahas.length
+
+        // Calculate rows based on zig-zag
+        const rows = useTwoCol ? Math.ceil(nGrahas / 2) : nGrahas
+        const totalRows = rows * linesPerGraha + cellArudhas.length * 0.8
+        
+        const lineH = nGrahas
           ? Math.min(
               cell * 0.16,
-              (cell * 0.65) / Math.max(cellGrahas.length * linesPerGraha + cellArudhas.length * 0.8, 1)
+              (cell * 0.65) / Math.max(totalRows, 1)
             )
           : cell * 0.16
 
@@ -163,12 +176,12 @@ export function SouthIndianChakra({
               x={x + 0.5} y={y + 0.5}
               width={cell - 1} height={cell - 1}
               fill={
-                isHi  ? 'rgba(123,104,238,0.15)' :
-                isAsc ? 'rgba(201,168,76,0.08)'  :
-                        'rgba(255,255,255,0.015)'
+                isHi  ? 'var(--accent-glow)' :
+                isAsc ? 'var(--gold-faint)' :
+                        'transparent'
               }
-              stroke={isAsc ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.12)'}
-              strokeWidth={isAsc ? 1.5 : 0.75}
+              stroke={isAsc ? 'var(--gold)' : 'var(--border-bright)'}
+              strokeWidth={isAsc ? 1.75 : 1.0}
             />
 
             {/* Sign number — top-left */}
@@ -176,7 +189,7 @@ export function SouthIndianChakra({
               x={x + cell * 0.07}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="rgba(201,168,76,0.35)"
+              fill="var(--text-gold)"
               fontFamily="Cormorant Garamond, serif"
             >
               {sign}
@@ -187,7 +200,7 @@ export function SouthIndianChakra({
               x={x + cell * 0.93}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="rgba(201,168,76,0.25)"
+              fill="var(--gold-dim)"
               fontFamily="Cormorant Garamond, serif"
               textAnchor="end"
             >
@@ -196,14 +209,14 @@ export function SouthIndianChakra({
 
             {/* Lagna marker */}
             {isAsc && (
-              <g stroke="rgba(201,168,76,0.7)" strokeWidth="1" strokeLinecap="round">
+              <g stroke="var(--gold-dim)" strokeWidth="1" strokeLinecap="round">
                 <line x1={x + 4} y1={y + 4} x2={x + cell * 0.22} y2={y + 4} />
                 <line x1={x + 4} y1={y + 4} x2={x + 4} y2={y + cell * 0.22} />
                 <text
                   x={x + cell * 0.5}
                   y={y + cell * 0.96}
                   fontSize={fs.lagna}
-                  fill="rgba(201,168,76,0.55)"
+                  fill="var(--gold-dim)"
                   fontFamily="Cormorant Garamond, serif"
                   textAnchor="middle"
                   fontStyle="italic"
@@ -215,7 +228,12 @@ export function SouthIndianChakra({
 
             {/* ── Planets ── */}
             {cellGrahas.map((g, i) => {
-              const yPos  = y + cell * 0.28 + i * lineH * linesPerGraha
+              const col   = useTwoCol ? (i % 2) : 0
+              const pRow  = useTwoCol ? Math.floor(i / 2) : i
+              
+              const px    = x + cell * (useTwoCol ? (col === 0 ? 0.10 : 0.55) : 0.12)
+              const yPos  = y + cell * 0.28 + pRow * lineH * linesPerGraha
+              
               const color = dignityColor(g.dignity, g.isRetro)
               const ret   = g.isRetro ? 'ᴿ' : ''
               const deg   = showDegrees
@@ -226,21 +244,21 @@ export function SouthIndianChakra({
               return (
                 <g key={g.id}>
                   <text
-                    x={x + cell * 0.12}
+                    x={px}
                     y={yPos}
                     fontSize={fs.graha}
                     fill={color}
                     fontFamily="Cormorant Garamond, serif"
-                    fontWeight="500"
+                    fontWeight="var(--fw-medium)"
                   >
                     {g.id}{ret}
                   </text>
                   {(showDegrees || showKaraka) && (
                     <text
-                      x={x + cell * 0.12}
+                      x={px}
                       y={yPos + lineH * 0.9}
                       fontSize={fs.degree}
-                      fill="rgba(184,176,212,0.65)"
+                      fill="var(--text-muted)"
                       fontFamily="JetBrains Mono, monospace"
                     >
                       {deg}{kar}
@@ -248,10 +266,10 @@ export function SouthIndianChakra({
                   )}
                   {showNakshatra && (
                     <text
-                      x={x + cell * 0.12}
+                      x={px}
                       y={yPos + lineH * (showDegrees || showKaraka ? 1.8 : 0.9)}
                       fontSize={fs.degree * 0.88}
-                      fill="rgba(184,176,212,0.45)"
+                      fill="var(--text-muted)"
                       fontFamily="Cormorant Garamond, serif"
                       fontStyle="italic"
                     >
@@ -263,35 +281,44 @@ export function SouthIndianChakra({
             })}
 
             {/* ── Āruḍhas — italic amber, below planets ── */}
-            {cellArudhas.map((key, ai) => {
-              const planetBlockH = cellGrahas.length * lineH * linesPerGraha
-              const yPos = y + cell * 0.28 + planetBlockH + ai * fs.arudha * 1.35
-              return (
+            {(() => {
+              if (!cellArudhas.length) return null
+
+              const planetBlockH = rows * lineH * linesPerGraha
+              const baseY = y + cell * 0.28 + planetBlockH + fs.arudha * 1.35
+              
+              const chunks = []
+              for (let i = 0; i < cellArudhas.length; i += 3) {
+                chunks.push(cellArudhas.slice(i, i + 3).map(k => ARUDHA_LABEL[k] ?? k).join(' · '))
+              }
+
+              return chunks.map((textStr, ci) => (
                 <text
-                  key={key}
+                  key={`arudha-row-${ci}`}
                   x={x + cell * 0.12}
-                  y={yPos}
+                  y={baseY + ci * fs.arudha * 1.4}
                   fontSize={fs.arudha}
-                  fill="rgba(240,180,60,0.75)"
+                  fill="var(--text-gold)"
                   fontFamily="Cormorant Garamond, serif"
                   fontStyle="italic"
+                  fontWeight="var(--fw-bold)"
                 >
-                  {ARUDHA_LABEL[key] ?? key}
+                  {textStr}
                 </text>
-              )
-            })}
+              ))
+            })()}
           </g>
         )
       })}
 
       {/* Centre decorative lines */}
-      <g opacity="0.25">
-        <line x1={cell} y1={cell} x2={cell*3} y2={cell}   stroke="rgba(201,168,76,0.4)" strokeWidth="0.5" />
-        <line x1={cell} y1={cell*3} x2={cell*3} y2={cell*3} stroke="rgba(201,168,76,0.4)" strokeWidth="0.5" />
-        <line x1={cell} y1={cell} x2={cell} y2={cell*3}   stroke="rgba(201,168,76,0.4)" strokeWidth="0.5" />
-        <line x1={cell*3} y1={cell} x2={cell*3} y2={cell*3} stroke="rgba(201,168,76,0.4)" strokeWidth="0.5" />
-        <line x1={cell} y1={cell} x2={cell*3} y2={cell*3} stroke="rgba(201,168,76,0.15)" strokeWidth="0.5" />
-        <line x1={cell*3} y1={cell} x2={cell} y2={cell*3} stroke="rgba(201,168,76,0.15)" strokeWidth="0.5" />
+      <g opacity="0.85">
+        <line x1={cell} y1={cell} x2={cell*3} y2={cell}   stroke="var(--border-bright)" strokeWidth="0.75" />
+        <line x1={cell} y1={cell*3} x2={cell*3} y2={cell*3} stroke="var(--border-bright)" strokeWidth="0.75" />
+        <line x1={cell} y1={cell} x2={cell} y2={cell*3}   stroke="var(--border-bright)" strokeWidth="0.75" />
+        <line x1={cell*3} y1={cell} x2={cell*3} y2={cell*3} stroke="var(--border-bright)" strokeWidth="0.75" />
+        <line x1={cell} y1={cell} x2={cell*3} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
+        <line x1={cell*3} y1={cell} x2={cell} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
       </g>
     </svg>
   )

@@ -66,22 +66,22 @@ function Pill({
   onClick: () => void
 }) {
   const bg = state === 'primary'
-    ? 'rgba(201,168,76,0.20)'
+    ? 'var(--gold-faint)'
     : state === 'secondary'
-    ? 'rgba(100,140,240,0.18)'
+    ? 'var(--accent-glow)'
     : 'transparent'
 
   const border = state === 'primary'
-    ? 'rgba(201,168,76,0.60)'
+    ? 'var(--gold)'
     : state === 'secondary'
-    ? 'rgba(100,140,240,0.55)'
-    : 'rgba(201,168,76,0.18)'
+    ? 'var(--accent)'
+    : 'var(--border)'
 
   const color = state === 'primary'
-    ? 'rgba(220,185,90,1.0)'
+    ? 'var(--gold)'
     : state === 'secondary'
-    ? 'rgba(140,170,255,1.0)'
-    : 'rgba(201,168,76,0.40)'
+    ? 'var(--accent)'
+    : 'var(--text-muted)'
 
   return (
     <button
@@ -98,7 +98,7 @@ function Pill({
         background: bg,
         borderColor: border,
         color,
-        fontWeight: state !== 'none' ? 600 : 400,
+        fontWeight: state !== 'none' ? 'var(--fw-medium)' : 'var(--fw-base)',
       }}
     >
       {name}
@@ -109,31 +109,32 @@ function Pill({
 // ── Chart header strip ────────────────────────────────────────
 
 function ChartLabel({
-  meta, accent,
+  meta, accent, prefix
 }: {
   meta: VargaMeta
   accent: 'gold' | 'blue'
+  prefix?: string
 }) {
-  const c = accent === 'gold' ? 'rgba(220,185,90,' : 'rgba(140,170,255,'
+  const isGold = accent === 'gold'
   return (
     <div style={{
       display: 'flex', alignItems: 'baseline', gap: '0.5rem',
       marginBottom: '0.5rem',
       paddingBottom: '0.4rem',
-      borderBottom: `1px solid ${c}0.25)`,
+      borderBottom: `1px solid ${isGold ? 'var(--border)' : 'var(--border-accent)'}`,
     }}>
       <span style={{
         fontFamily: 'JetBrains Mono, monospace',
         fontSize: '0.85rem',
-        fontWeight: 700,
-        color: `${c}0.95)`,
+        fontWeight: 'var(--fw-bold)',
+        color: isGold ? 'var(--gold)' : 'var(--accent)',
       }}>
-        {meta.name}
+        {prefix}{meta.name}
       </span>
       <span style={{
         fontFamily: 'Cormorant Garamond, serif',
         fontSize: '1rem',
-        color: `${c}0.75)`,
+        color: 'var(--text-primary)',
       }}>
         {meta.full}
       </span>
@@ -141,7 +142,7 @@ function ChartLabel({
         fontFamily: 'Cormorant Garamond, serif',
         fontSize: '0.78rem',
         fontStyle: 'italic',
-        color: `${c}0.45)`,
+        color: 'var(--text-muted)',
         marginLeft: 4,
       }}>
         — {meta.topic.split(' — ')[1] ?? meta.topic}
@@ -165,6 +166,7 @@ export function VargaSwitcher({
 }: VargaSwitcherProps) {
   const primary = 'D1'  // always fixed
   const [secondary, setSecondary] = useState<string | null>(null)
+  const [stacked, setStacked] = useState<boolean>(false)
 
   const available = VARGA_META.filter(v => v.name in vargas)
 
@@ -196,7 +198,7 @@ export function VargaSwitcher({
   const secProps = secondaryMeta ? chartProps(secondaryMeta.name) : null
 
   // Chart size — shrink when showing two side by side
-  const chartSize = secondaryMeta ? Math.min(size * 0.62, 380) : size
+  const chartSize = (secondaryMeta && !stacked) ? Math.min(size * 0.62, 380) : size
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -207,7 +209,7 @@ export function VargaSwitcher({
           fontFamily: 'Cormorant Garamond, serif',
           fontSize: '0.72rem', letterSpacing: '0.1em',
           textTransform: 'uppercase',
-          color: 'rgba(201,168,76,0.45)',
+          color: 'var(--text-muted)',
           flexShrink: 0,
           paddingTop: '0.3rem',
         }}>
@@ -228,22 +230,40 @@ export function VargaSwitcher({
         </div>
       </div>
 
-      {/* ── Hint ─────────────────────────────────────────────── */}
-      <div style={{
-        fontSize: '0.72rem',
-        fontFamily: 'Cormorant Garamond, serif',
-        fontStyle: 'italic',
-        color: 'rgba(201,168,76,0.30)',
-      }}>
-        D1 is always shown · click any other varga to compare side by side · click again to close
+      {/* ── Hint & Layout Controls ─────────────────────────────── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{
+          fontSize: '0.72rem',
+          fontFamily: 'Cormorant Garamond, serif',
+          fontStyle: 'italic',
+          color: 'var(--text-muted)',
+        }}>
+          D1 is always shown · click any other varga to compare {stacked ? 'stacked' : 'side by side'} · click again to close
+        </div>
+        
+        {secondaryMeta && (
+          <button
+            onClick={() => setStacked(!stacked)}
+            style={{
+              fontSize: '0.75rem', padding: '0.2rem 0.6rem',
+              background: 'transparent', color: 'var(--text-secondary)',
+              border: '1px solid var(--border-soft)', borderRadius: '4px',
+              fontFamily: 'Cormorant Garamond, serif', cursor: 'pointer',
+              display: 'flex', gap: '0.3rem', alignItems: 'center'
+            }}
+          >
+            {stacked ? '◫ Show Side-by-Side' : '⬒ Show Stacked'}
+          </button>
+        )}
       </div>
 
       {/* ── Chart(s) ─────────────────────────────────────────── */}
       <div style={{
         display: 'flex',
         gap: '1.25rem',
-        alignItems: 'flex-start',
-        flexWrap: 'wrap',
+        alignItems: stacked ? 'center' : 'flex-start',
+        flexDirection: stacked ? 'column' : 'row',
+        flexWrap: stacked ? 'wrap' : 'nowrap',
       }}>
         {/* Primary */}
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
@@ -265,8 +285,14 @@ export function VargaSwitcher({
 
         {/* Secondary */}
         {secondaryMeta && secProps && (
-          <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-            <ChartLabel meta={secondaryMeta} accent="blue" />
+          <div style={{ 
+            flex: '1 1 auto', minWidth: 0, 
+            padding: '1rem', 
+            background: 'var(--surface-2)', 
+            border: '1px dashed var(--border-accent)', 
+            borderRadius: '8px' 
+          }}>
+            <ChartLabel meta={secondaryMeta} accent="blue" prefix="Comparing: " />
             <ChakraSelector
               ascRashi={secProps.varAscRashi}
               grahas={secProps.grahas}

@@ -23,7 +23,6 @@ declare global {
 let clientPromise: Promise<MongoClient>
 
 const mongoClientOpts = {
-  serverApi: { version: ServerApiVersion.V1, strict: true, deprecationErrors: true },
   family: 4,
   serverSelectionTimeoutMS: 10_000,
 }

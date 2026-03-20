@@ -58,6 +58,15 @@ export function ChakraSelector({
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
 
+  // Typography scaling
+  const [fontScale,     setFontScale]     = useState(1.0)
+  const [planetScale,   setPlanetScale]   = useState(1.0)
+  const [arudhaScale,   setArudhaScale]   = useState(1.0)
+  const [infoScale,     setInfoScale]     = useState(1.0)
+  const [chartScale,    setChartScale]    = useState(1.0)
+  
+  const [showSettings,  setShowSettings]  = useState(false)
+
   const isSBC = style === 'sarvatobhadra'
 
   return (
@@ -67,7 +76,7 @@ export function ChakraSelector({
       <div style={{
         display: 'flex', gap: '0.375rem', alignItems: 'center',
         flexWrap: 'wrap',
-        borderBottom: '1px solid rgba(201,168,76,0.15)',
+        borderBottom: '1px solid var(--border-soft)',
         paddingBottom: '0.75rem',
       }}>
         {STYLES.map((s) => {
@@ -86,9 +95,9 @@ export function ChakraSelector({
                 border: '1px solid',
                 borderRadius: '4px',
                 transition: 'all 0.15s',
-                background: active ? 'rgba(201,168,76,0.15)' : 'transparent',
-                borderColor: active ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.2)',
-                color: active ? 'rgba(201,168,76,0.9)' : 'rgba(201,168,76,0.45)',
+                background: active ? 'var(--gold-faint)' : 'transparent',
+                borderColor: active ? 'var(--gold)' : 'var(--border)',
+                color: active ? 'var(--gold)' : 'var(--text-muted)',
               }}
             >
               {s.shortLabel}
@@ -118,8 +127,40 @@ export function ChakraSelector({
               <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
             </>
           )}
+
+          {/* Settings Toggle */}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            style={{
+              marginLeft: '0.5rem', padding: '0.2rem 0.6rem',
+              fontSize: '0.8rem', cursor: 'pointer',
+              background: showSettings ? 'var(--gold-faint)' : 'transparent',
+              border: '1px solid',
+              borderColor: showSettings ? 'var(--gold)' : 'var(--border)',
+              borderRadius: '4px', color: showSettings ? 'var(--gold)' : 'var(--text-muted)'
+            }}
+            title="Advanced Typography Settings"
+          >
+            ⚙ Text Scales
+          </button>
         </div>
       </div>
+
+        {/* ── Advanced Settings Panel ───────────────────────── */}
+        {showSettings && (
+          <div style={{
+            padding: '0.75rem 1rem', background: 'var(--surface-2)', 
+            borderRadius: '6px', border: '1px solid var(--border-soft)',
+            display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
+            marginBottom: '0.5rem'
+          }}>
+            <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
+            <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
+            <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
+            <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
+            <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+          </div>
+        )}
 
       {/* ── Chart ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -129,10 +170,14 @@ export function ChakraSelector({
             grahas={grahas}
             arudhas={arudhas}
             showArudha={showArudha}
-            size={size}
+            size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
             showKaraka={showKaraka}
+            fontScale={fontScale}
+            planetScale={planetScale}
+            infoScale={infoScale}
+            arudhaScale={arudhaScale}
           />
         )}
         {style === 'north' && (
@@ -140,10 +185,14 @@ export function ChakraSelector({
             ascRashi={ascRashi}
             grahas={grahas}
             arudhas={showArudha ? arudhas : undefined}
-            size={size}
+            size={Math.round(size * chartScale)}
             showDegrees={showDegrees}
             showNakshatra={showNakshatra}
             showKaraka={showKaraka}
+            fontScale={fontScale}
+            planetScale={planetScale}
+            infoScale={infoScale}
+            arudhaScale={arudhaScale}
           />
         )}
 
@@ -153,9 +202,10 @@ export function ChakraSelector({
             moonNakIndex={moonNakIndex}
             tithiNumber={tithiNumber}
             varaNumber={varaNumber}
-            size={size}
+            size={Math.round(size * chartScale)}
             showTithi={showTithi}
             showVara={showVara}
+            fontScale={fontScale}
           />
         )}
       </div>
@@ -165,15 +215,15 @@ export function ChakraSelector({
         <div style={{
           display: 'flex', gap: '1rem', flexWrap: 'wrap',
           paddingTop: '0.5rem',
-          borderTop: '1px solid rgba(201,168,76,0.1)',
+          borderTop: '1px solid var(--border-soft)',
         }}>
           {[
-            { color: '#4ecdc4', label: 'Exalted' },
-            { color: '#c9a84c', label: 'Moolatrikona' },
-            { color: '#e2c97e', label: 'Own sign' },
-            { color: '#c8c0e0', label: 'Neutral' },
-            { color: '#d4788a', label: 'Retrograde (ᴿ)' },
-            { color: '#e07070', label: 'Debilitated' },
+            { color: 'var(--dig-exalted)', label: 'Exalted' },
+            { color: 'var(--dig-moola)', label: 'Moolatrikona' },
+            { color: 'var(--dig-own)', label: 'Own sign' },
+            { color: 'var(--dig-neutral)', label: 'Neutral' },
+            { color: 'var(--dig-retro)', label: 'Retrograde (ᴿ)' },
+            { color: 'var(--dig-debilitate)', label: 'Debilitated' },
           ].map(({ color, label }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <span style={{
@@ -182,7 +232,7 @@ export function ChakraSelector({
               }} />
               <span style={{
                 fontSize: '0.75rem',
-                color: 'rgba(184,176,212,0.55)',
+                color: 'var(--text-muted)',
                 fontFamily: 'Cormorant Garamond, serif',
               }}>
                 {label}
@@ -197,10 +247,10 @@ export function ChakraSelector({
         <div style={{
           display: 'flex', gap: '1.25rem', flexWrap: 'wrap',
           paddingTop: '0.5rem',
-          borderTop: '1px solid rgba(201,168,76,0.1)',
+          borderTop: '1px solid var(--border-soft)',
           fontSize: '0.75rem',
           fontFamily: 'Cormorant Garamond, serif',
-          color: 'rgba(184,176,212,0.55)',
+          color: 'var(--text-muted)',
         }}>
           <span><span style={{ color: 'rgba(208,232,240,0.7)' }}>■</span> Moon nakshatra</span>
           <span><span style={{ color: 'rgba(180,140,220,0.7)' }}>■</span> Current tithi</span>
@@ -224,9 +274,9 @@ function Toggle({
     }}>
       <span style={{
         width: 30, height: 16, borderRadius: 8,
-        background: value ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.08)',
+        background: value ? 'var(--gold-faint)' : 'var(--surface-3)',
         border: '1px solid',
-        borderColor: value ? 'rgba(201,168,76,0.6)' : 'rgba(255,255,255,0.12)',
+        borderColor: value ? 'var(--gold)' : 'var(--border)',
         position: 'relative', display: 'inline-block',
         transition: 'background 0.2s, border-color 0.2s',
         flexShrink: 0,
@@ -234,7 +284,7 @@ function Toggle({
         <span style={{
           position: 'absolute', top: 2, left: value ? 13 : 2,
           width: 10, height: 10, borderRadius: '50%',
-          background: value ? 'rgba(201,168,76,0.95)' : 'rgba(184,176,212,0.4)',
+          background: value ? 'var(--gold)' : 'var(--text-muted)',
           transition: 'left 0.15s',
         }} />
       </span>
@@ -246,7 +296,7 @@ function Toggle({
       />
       <span style={{
         fontSize: '0.78rem',
-        color: value ? 'rgba(201,168,76,0.75)' : 'rgba(184,176,212,0.4)',
+        color: value ? 'var(--gold)' : 'var(--text-muted)',
         fontFamily: 'Cormorant Garamond, serif',
         letterSpacing: '0.03em',
         transition: 'color 0.15s',
@@ -254,5 +304,22 @@ function Toggle({
         {label}
       </span>
     </label>
+  )
+}
+
+function ScaleSlider({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', width: '60px' }}>{label}</span>
+      <input 
+        type="range" min="0.6" max="1.8" step="0.05" 
+        value={value} 
+        onChange={e => onChange(parseFloat(e.target.value))}
+        style={{ width: '70px', accentColor: 'var(--gold)' }}
+      />
+      <span style={{ fontSize: '0.75rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)', width: '25px' }}>
+        {value.toFixed(2)}
+      </span>
+    </div>
   )
 }

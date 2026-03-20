@@ -1,124 +1,116 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
 //  src/app/page.tsx
-//  Home page — birth form + full chart result with tabs
-//  Tabs: Chart (Varga Switcher) · Planets · Arudhas · Dasha · Pañcāṅga
+//  Home — birth form + full chart result
+//  Redesigned: themed, animated, cleaner visual hierarchy
 // ─────────────────────────────────────────────────────────────
 
-import { useState } from 'react'
-import { BirthForm }       from '@/components/ui/BirthForm'
-import { VargaSwitcher }   from '@/components/chakra/VargaSwitcher'
-import { DashaTree }       from '@/components/dasha/DashaTree'
-import { GrahaTable }      from '@/components/ui/GrahaTable'
+import { useState, useEffect } from 'react'
+import { BirthForm }     from '@/components/ui/BirthForm'
+import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
+import { DashaTree }     from '@/components/dasha/DashaTree'
+import { GrahaTable }    from '@/components/ui/GrahaTable'
+import { ThemeToggle }   from '@/components/ui/ThemeToggle'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
 
-// ── Tab type ──────────────────────────────────────────────────
-
 type Tab = 'chart' | 'planets' | 'arudhas' | 'dasha' | 'panchang'
 
-// ── Panchang panel ────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  Panchang Panel
+// ─────────────────────────────────────────────────────────────
 
 function PanchangPanel({ p }: { p: ChartOutput['panchang'] }) {
   const fmtTime = (d: Date | string) =>
     new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
 
   const items = [
-    { label: 'Vara',      value: p.vara.name,       sub: `Lord: ${p.vara.lord}` },
-    { label: 'Tithi',     value: p.tithi.name,       sub: `${p.tithi.paksha === 'shukla' ? 'Śukla Pakṣa' : 'Kṛṣṇa Pakṣa'}` },
-    { label: 'Nakshatra', value: p.nakshatra.name,   sub: `Pada ${p.nakshatra.pada} · lord ${p.nakshatra.lord}` },
-    { label: 'Yoga',      value: p.yoga.name,        sub: `#${p.yoga.number}` },
-    { label: 'Karana',    value: p.karana.name,      sub: `#${p.karana.number}` },
+    { label: 'Vara',      value: p.vara.name,     sub: `Lord: ${p.vara.lord}`,                      icon: '☀' },
+    { label: 'Tithi',     value: p.tithi.name,    sub: p.tithi.paksha === 'shukla' ? 'Śukla Pakṣa' : 'Kṛṣṇa Pakṣa', icon: '🌙' },
+    { label: 'Nakshatra', value: p.nakshatra.name, sub: `Pada ${p.nakshatra.pada} · ${p.nakshatra.lord}`, icon: '⭐' },
+    { label: 'Yoga',      value: p.yoga.name,     sub: `#${p.yoga.number}`,                          icon: '☯' },
+    { label: 'Karana',    value: p.karana.name,   sub: `#${p.karana.number}`,                        icon: '✦' },
+  ]
+
+  const muhurtas = [
+    { label: 'Rāhu Kālam',      times: p.rahuKalam,      color: 'var(--rose)',  neutral: false },
+    { label: 'Gulikā Kālam',    times: p.gulikaKalam,    color: 'var(--rose)',  neutral: false },
+    ...(p.abhijitMuhurta ? [{ label: 'Abhijit Muhūrta', times: p.abhijitMuhurta, color: 'var(--teal)', neutral: true }] : []),
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))', gap: '0.75rem' }}>
-        {items.map(({ label, value, sub }) => (
-          <div key={label} className="card" style={{ padding: '1rem' }}>
-            <div style={{
-              fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase',
-              color: 'rgba(201,168,76,0.6)', fontFamily: 'Cormorant Garamond, serif',
-              marginBottom: '0.4rem',
-            }}>
-              {label}
-            </div>
-            <div style={{ fontSize: '1.05rem', fontFamily: 'Cormorant Garamond, serif', color: 'var(--text-primary)' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: '0.75rem' }}>
+        {items.map(({ label, value, sub, icon }, i) => (
+          <div
+            key={label}
+            className="stat-chip"
+            style={{ animationDelay: `${i * 0.05}s` }}
+          >
+            <div className="stat-label">{label}</div>
+            <div className="stat-value">
+              <span style={{ marginRight: 6, opacity: 0.7 }}>{icon}</span>
               {value}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2, fontFamily: 'Cormorant Garamond, serif' }}>
-              {sub}
-            </div>
+            <div className="stat-sub">{sub}</div>
           </div>
         ))}
       </div>
 
-      {/* Muhurta times */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem' }}>
-        <div className="card" style={{ padding: '1rem' }}>
-          <div style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rose)', fontFamily: 'Cormorant Garamond, serif', marginBottom: '0.4rem' }}>
-            Rāhu Kālam
-          </div>
-          <div style={{ fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>
-            {fmtTime(p.rahuKalam.start)} – {fmtTime(p.rahuKalam.end)}
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: '1rem' }}>
-          <div style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--rose)', fontFamily: 'Cormorant Garamond, serif', marginBottom: '0.4rem' }}>
-            Gulikā Kālam
-          </div>
-          <div style={{ fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>
-            {fmtTime(p.gulikaKalam.start)} – {fmtTime(p.gulikaKalam.end)}
-          </div>
-        </div>
-
-        {p.abhijitMuhurta && (
-          <div className="card" style={{ padding: '1rem' }}>
-            <div style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', fontFamily: 'Cormorant Garamond, serif', marginBottom: '0.4rem' }}>
-              Abhijit Muhūrta
+      <div>
+        <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Muhūrta Windows</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.6rem' }}>
+          {muhurtas.map(({ label, times, color, neutral }) => (
+            <div key={label} style={{
+              padding: '0.85rem 1rem',
+              background: neutral ? 'rgba(78,205,196,0.06)' : 'rgba(224,123,142,0.06)',
+              border: `1px solid ${neutral ? 'rgba(78,205,196,0.2)' : 'rgba(224,123,142,0.2)'}`,
+              borderRadius: 'var(--r-md)',
+            }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase', color, marginBottom: '0.35rem' }}>
+                {label}
+              </div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                {fmtTime(times.start)} – {fmtTime(times.end)}
+              </div>
             </div>
-            <div style={{ fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)' }}>
-              {fmtTime(p.abhijitMuhurta.start)} – {fmtTime(p.abhijitMuhurta.end)}
-            </div>
-          </div>
-        )}
+          ))}
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Arudha panel ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  Arudha Panel
+// ─────────────────────────────────────────────────────────────
 
 const ARUDHA_TOPICS: Record<string, string> = {
-  AL:  'Public image / worldly self',
-  A2:  'Wealth, speech, sustenance',
-  A3:  'Courage, siblings, skills',
-  A4:  'Home, mother, property',
-  A5:  'Intellect, children, past karma',
-  A6:  'Debts, enemies, service',
-  A7:  'Spouse, partnerships (Darapada)',
-  A8:  'Longevity, hidden matters',
-  A9:  'Dharma, father, fortune',
-  A10: 'Career, status, action',
-  A11: 'Gains, elder siblings, wishes',
-  A12: 'Loss, liberation (Upapada)',
+  AL:  'Public image · worldly self',
+  A2:  'Wealth · speech · sustenance',
+  A3:  'Courage · siblings · skills',
+  A4:  'Home · mother · property',
+  A5:  'Intellect · children · karma',
+  A6:  'Debts · enemies · service',
+  A7:  'Spouse · partnerships',
+  A8:  'Longevity · hidden matters',
+  A9:  'Dharma · father · fortune',
+  A10: 'Career · status · action',
+  A11: 'Gains · elder siblings · wishes',
+  A12: 'Loss · liberation',
 }
 
-function ArudhaPanel({ arudhas, ascRashi }: { arudhas: ChartOutput['arudhas']; ascRashi: Rashi }) {
+function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
   const keys = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'] as const
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{
-        fontSize: '0.78rem', color: 'rgba(201,168,76,0.45)',
-        fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic',
-      }}>
-        Bhāva Āruḍhas — mirror of worldly reality. Calculated by BPHS algorithm.
-      </div>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <p style={{ fontSize: '0.82rem', fontStyle: 'italic', color: 'var(--text-muted)', margin: 0 }}>
+        Bhāva Āruḍhas — mirror of worldly reality, calculated by the BPHS algorithm.
+      </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.6rem' }}>
-        {keys.map((key) => {
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '0.55rem' }}>
+        {keys.map((key, i) => {
           const rashi = arudhas[key] as Rashi | undefined
           if (!rashi) return null
           const isAL  = key === 'AL'
@@ -127,45 +119,48 @@ function ArudhaPanel({ arudhas, ascRashi }: { arudhas: ChartOutput['arudhas']; a
               key={key}
               style={{
                 padding: '0.7rem 1rem',
-                background: isAL ? 'rgba(201,168,76,0.07)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${isAL ? 'rgba(201,168,76,0.35)' : 'rgba(201,168,76,0.1)'}`,
-                borderRadius: 8,
-                display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
+                background: isAL ? 'rgba(201,168,76,0.08)' : 'var(--surface-2)',
+                border: `1px solid ${isAL ? 'var(--border-bright)' : 'var(--border-soft)'}`,
+                borderRadius: 'var(--r-md)',
+                display: 'flex', gap: '0.65rem', alignItems: 'flex-start',
+                transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                cursor: 'default',
+                animationDelay: `${i * 0.03}s`,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-bright)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = 'var(--glow-gold)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = isAL ? 'var(--border-bright)' : 'var(--border-soft)'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
               }}
             >
               <span style={{
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.78rem',
-                color: isAL ? 'rgba(201,168,76,0.9)' : 'rgba(201,168,76,0.45)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.72rem',
+                color: isAL ? 'var(--gold)' : 'var(--text-muted)',
                 minWidth: 28,
-                paddingTop: 2,
+                paddingTop: 3,
+                fontWeight: 600,
               }}>
                 {key}
               </span>
               <div>
                 <div style={{
-                  fontFamily: 'Cormorant Garamond, serif',
-                  fontSize: '1rem',
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '1.02rem',
                   color: 'var(--text-primary)',
                   fontWeight: isAL ? 500 : 400,
                 }}>
                   {RASHI_NAMES[rashi]}
-                  <span style={{
-                    marginLeft: 6,
-                    fontSize: '0.72rem',
-                    fontFamily: 'JetBrains Mono, monospace',
-                    color: 'rgba(201,168,76,0.3)',
-                  }}>
+                  <span style={{ marginLeft: 6, fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                     {RASHI_SHORT[rashi]}
                   </span>
                 </div>
-                <div style={{
-                  fontSize: '0.73rem',
-                  color: 'var(--text-muted)',
-                  fontFamily: 'Cormorant Garamond, serif',
-                  fontStyle: 'italic',
-                  marginTop: 1,
-                }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 1 }}>
                   {ARUDHA_TOPICS[key]}
                 </div>
               </div>
@@ -174,221 +169,235 @@ function ArudhaPanel({ arudhas, ascRashi }: { arudhas: ChartOutput['arudhas']; a
         })}
       </div>
 
-      {/* Upapada and Darapada callout */}
       <div style={{
-        display: 'flex', gap: '0.75rem', flexWrap: 'wrap',
+        display: 'flex', gap: '1rem', flexWrap: 'wrap',
         paddingTop: '0.75rem',
-        borderTop: '1px solid rgba(201,168,76,0.1)',
+        borderTop: '1px solid var(--border-soft)',
         fontSize: '0.82rem',
-        fontFamily: 'Cormorant Garamond, serif',
         color: 'var(--text-muted)',
       }}>
         <span>
-          <span style={{ color: 'rgba(201,168,76,0.6)' }}>Upapada Lagna (A12):</span>{' '}
+          <span style={{ color: 'var(--gold)' }}>Upapada (A12): </span>
           {arudhas.A12 ? RASHI_NAMES[arudhas.A12] : '—'} · quality of marriage
         </span>
         <span>
-          <span style={{ color: 'rgba(201,168,76,0.6)' }}>Darapada (A7):</span>{' '}
-          {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · partner's public image
+          <span style={{ color: 'var(--gold)' }}>Darapada (A7): </span>
+          {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · partner's image
         </span>
       </div>
     </div>
   )
 }
 
-// ── Main page ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+//  Chart Summary sidebar strip
+// ─────────────────────────────────────────────────────────────
+
+function ChartSummary({ chart }: { chart: ChartOutput }) {
+  const rows = [
+    { label: 'Ascendant', value: `${RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} ${chart.lagnas.ascDegreeInRashi.toFixed(1)}°` },
+    { label: 'Ayanamsha', value: `${chart.meta.settings.ayanamsha} ${chart.meta.ayanamshaValue.toFixed(3)}°` },
+    { label: 'Julian Day', value: chart.meta.julianDay.toFixed(4), mono: true },
+  ]
+  return (
+    <div style={{
+      marginTop: '0.85rem',
+      padding: '0.85rem 1rem',
+      background: 'var(--gold-faint)',
+      border: '1px solid var(--border)',
+      borderRadius: 'var(--r-md)',
+    }}>
+      <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Chart Summary</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        {rows.map(({ label, value, mono }) => (
+          <div key={label} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.8rem' }}>
+            <span style={{ color: 'var(--text-muted)' }}>{label}</span>
+            <span style={{
+              color: 'var(--text-secondary)',
+              fontFamily: mono ? 'var(--font-mono)' : 'inherit',
+              fontSize: mono ? '0.72rem' : '0.8rem',
+            }}>{value}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Main Page
+// ─────────────────────────────────────────────────────────────
+
+const TABS: { id: Tab; label: string; emoji: string }[] = [
+  { id: 'chart',    label: 'Chart',     emoji: '🪐' },
+  { id: 'planets',  label: 'Planets',   emoji: '✦' },
+  { id: 'arudhas',  label: 'Āruḍhas',   emoji: '☯' },
+  { id: 'dasha',    label: 'Daśā',      emoji: '⏳' },
+  { id: 'panchang', label: 'Pañcāṅga',  emoji: '📅' },
+]
 
 export default function HomePage() {
-  const [chart,     setChart]     = useState<ChartOutput | null>(null)
-  const [loading,   setLoading]   = useState(false)
-  const [activeTab, setActiveTab] = useState<Tab>('chart')
+  const [chart,      setChart]      = useState<ChartOutput | null>(null)
+  const [loading,    setLoading]    = useState(false)
+  const [activeTab,  setActiveTab]  = useState<Tab>('chart')
+  const [tabKey,     setTabKey]     = useState(0)  // forces re-animation on tab switch
 
-  // Derive panchang props for Sarvatobhadra once chart is loaded
-  const moonNakIndex = chart?.grahas.find((g: import('@/types/astrology').GrahaData) => g.id === 'Mo')?.nakshatraIndex ?? 0
+  function switchTab(id: Tab) {
+    setActiveTab(id)
+    setTabKey((k) => k + 1)
+  }
+
+  const moonNakIndex = chart?.grahas.find((g) => g.id === 'Mo')?.nakshatraIndex ?? 0
   const tithiNumber  = chart?.panchang.tithi.number ?? 1
   const varaNumber   = chart?.panchang.vara.number  ?? 0
 
-  const TABS: { id: Tab; label: string }[] = [
-    { id: 'chart',    label: 'Chart' },
-    { id: 'planets',  label: 'Planets' },
-    { id: 'arudhas',  label: 'Āruḍhas' },
-    { id: 'dasha',    label: 'Daśā' },
-    { id: 'panchang', label: 'Pañcāṅga' },
-  ]
-
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
 
-      {/* ── Header ────────────────────────────────────────── */}
+      {/* ── Ambient background orbs ─────────────────────────── */}
+      <div aria-hidden style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute', width: 600, height: 600,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(139,124,246,0.12) 0%, transparent 70%)',
+          top: '-200px', left: '30%',
+          animation: 'orb-drift 18s ease-in-out infinite',
+        }} />
+        <div style={{
+          position: 'absolute', width: 400, height: 400,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 70%)',
+          bottom: '-100px', right: '10%',
+          animation: 'orb-drift 22s ease-in-out infinite reverse',
+        }} />
+        <div style={{
+          position: 'absolute', width: 300, height: 300,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(78,205,196,0.06) 0%, transparent 70%)',
+          top: '40%', left: '-80px',
+          animation: 'orb-drift 26s ease-in-out infinite 4s',
+        }} />
+      </div>
+
+      {/* ── Header ──────────────────────────────────────────── */}
       <header style={{
-        padding: '1.25rem 2rem',
+        padding: '0 2rem',
+        height: 60,
         borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        backdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(14,14,22,0.88)',
+        background: 'var(--header-bg)',
+        gap: '1rem',
       }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
-          <span style={{ fontSize: '1.4rem' }}>🪐</span>
-          <h1 style={{
-            fontFamily: 'Cormorant Garamond, serif',
-            fontSize: '1.35rem', fontWeight: 300,
-            letterSpacing: '0.06em',
-            color: 'var(--text-gold)',
-            margin: 0,
-          }}>
-            Jyotiṣa
-          </h1>
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span style={{
-            fontSize: '0.72rem', color: 'var(--text-muted)',
-            fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic',
-            letterSpacing: '0.04em',
-          }}>
-            The Eye of the Vedas
-          </span>
+            fontSize: '1.5rem',
+            display: 'inline-block',
+            animation: 'float 4s ease-in-out infinite',
+          }}>🪐</span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.25rem', fontWeight: 400,
+              letterSpacing: '0.07em',
+              color: 'var(--text-gold)',
+            }}>
+              Jyotiṣa
+            </span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>
+              The Eye of the Vedas
+            </span>
+          </div>
         </div>
 
-        <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <a href="/panchang" style={{
-            color: 'var(--text-secondary)', fontFamily: 'Cormorant Garamond, serif',
-            fontSize: '0.95rem', textDecoration: 'none', letterSpacing: '0.02em',
-          }}>
-            Pañcāṅga
-          </a>
-          <span style={{
-            padding: '0.2rem 0.65rem',
-            background: 'rgba(201,168,76,0.1)',
-            border: '1px solid rgba(201,168,76,0.2)',
-            borderRadius: 99,
-            fontSize: '0.72rem',
-            color: 'rgba(201,168,76,0.65)',
-            fontFamily: 'Cormorant Garamond, serif',
-            letterSpacing: '0.06em',
-          }}>
-            Kāla · Free
-          </span>
-        </nav>
+        {/* Nav right */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span className="badge badge-gold hide-mobile">Kāla · Free</span>
+          <ThemeToggle />
+        </div>
       </header>
 
-      {/* ── Main layout ───────────────────────────────────── */}
+      {/* ── Main ────────────────────────────────────────────── */}
       <main style={{
         flex: 1,
+        position: 'relative', zIndex: 1,
         display: 'grid',
-        gridTemplateColumns: chart ? '360px 1fr' : '360px 1fr',
-        maxWidth: '1400px',
+        gridTemplateColumns: '340px 1fr',
+        maxWidth: 1440,
         width: '100%',
         margin: '0 auto',
         padding: '2rem',
         gap: '2rem',
-        transition: 'max-width 0.35s ease',
         alignItems: 'start',
       }}>
 
-        {/* ── Left: form ──────────────────────────────────── */}
-        <div style={{ position: 'sticky', top: '5rem' }}>
-            <div className="card fade-up">
+        {/* ── Left: Form panel ────────────────────────────── */}
+        <div style={{ position: 'sticky', top: '4.5rem' }} className="slide-left">
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <div style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.1rem', letterSpacing: '0.04em', margin: 0, fontFamily: 'var(--font-display)' }}>
+                Birth Details
+              </h2>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Janma Kāla</span>
+            </div>
             <BirthForm
-              onResult={(data) => { setChart(data); setActiveTab('chart') }}
+              onResult={(data) => { setChart(data); switchTab('chart') }}
               onLoading={setLoading}
-              autoSubmit={true}
+              autoSubmit
             />
           </div>
 
-          {/* Mini asc info below form when chart is shown */}
-          {chart && (
-            <div style={{
-              marginTop: '1rem',
-              padding: '0.75rem 1rem',
-              background: 'rgba(201,168,76,0.05)',
-              border: '1px solid rgba(201,168,76,0.12)',
-              borderRadius: 8,
-              fontSize: '0.78rem',
-              fontFamily: 'Cormorant Garamond, serif',
-              color: 'var(--text-muted)',
-            }}>
-              <div style={{ marginBottom: 4, color: 'rgba(201,168,76,0.5)', fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Chart summary
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <span>
-                  <span style={{ color: 'rgba(201,168,76,0.65)' }}>Ascendant: </span>
-                  {RASHI_NAMES[chart.lagnas.ascRashi as import('@/types/astrology').Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
-                </span>
-                <span>
-                  <span style={{ color: 'rgba(201,168,76,0.65)' }}>Ayanamsha: </span>
-                  {chart.meta.settings.ayanamsha} · {chart.meta.ayanamshaValue.toFixed(3)}°
-                </span>
-                <span>
-                  <span style={{ color: 'rgba(201,168,76,0.65)' }}>JD: </span>
-                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.72rem' }}>
-                    {chart.meta.julianDay.toFixed(4)}
-                  </span>
-                </span>
-              </div>
-            </div>
-          )}
+          {chart && <ChartSummary chart={chart} />}
         </div>
 
-        {/* ── Right: chart result ──────────────────────────── */}
-        {chart && (
+        {/* ── Right: Chart result ──────────────────────────── */}
+        {chart ? (
           <div className="fade-up" style={{ minWidth: 0 }}>
 
-            {/* Name + birth info */}
+            {/* Person header */}
             <div style={{ marginBottom: '1.25rem' }}>
               <h2 style={{
-                fontFamily: 'Cormorant Garamond, serif',
-                fontSize: '1.75rem', fontWeight: 300,
-                color: 'var(--text-primary)',
-                marginBottom: '0.2rem',
+                fontFamily: 'var(--font-display)',
+                fontSize: '2rem', fontWeight: 300,
+                letterSpacing: '0.03em',
+                margin: 0, marginBottom: '0.25rem',
               }}>
                 {chart.meta.name}
               </h2>
               <div style={{
-                color: 'var(--text-muted)',
-                fontFamily: 'JetBrains Mono, monospace',
-                fontSize: '0.78rem',
-                display: 'flex', gap: '1.25rem', flexWrap: 'wrap',
+                display: 'flex', gap: '1rem', flexWrap: 'wrap',
+                fontSize: '0.8rem', color: 'var(--text-muted)',
               }}>
-                <span>{chart.meta.birthDate} · {chart.meta.birthTime}</span>
-                <span>{chart.meta.birthPlace}</span>
-                <span style={{ fontFamily: 'Cormorant Garamond, serif', color: 'rgba(201,168,76,0.55)', fontStyle: 'italic' }}>
-                  {chart.meta.timezone}
+                <span style={{ fontFamily: 'var(--font-mono)' }}>
+                  {chart.meta.birthDate} · {chart.meta.birthTime}
                 </span>
+                <span>{chart.meta.birthPlace}</span>
+                <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{chart.meta.timezone}</span>
               </div>
             </div>
 
-            {/* Tabs */}
-            <div style={{
-              display: 'flex', gap: '0',
-              borderBottom: '1px solid rgba(201,168,76,0.15)',
-              marginBottom: '1.5rem',
-              overflowX: 'auto',
-            }}>
-              {TABS.map(({ id, label }) => (
+            {/* Tab bar */}
+            <div className="tab-bar" style={{ marginBottom: '1.5rem' }}>
+              {TABS.map(({ id, label, emoji }) => (
                 <button
                   key={id}
-                  onClick={() => setActiveTab(id)}
-                  style={{
-                    padding: '0.5rem 1.1rem',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    fontFamily: 'Cormorant Garamond, serif',
-                    fontSize: '1rem',
-                    color: activeTab === id ? 'var(--text-gold)' : 'var(--text-muted)',
-                    borderBottom: `2px solid ${activeTab === id ? 'rgba(201,168,76,0.7)' : 'transparent'}`,
-                    marginBottom: -1,
-                    transition: 'color 0.15s',
-                    letterSpacing: '0.02em',
-                    whiteSpace: 'nowrap',
-                  }}
+                  id={`tab-${id}`}
+                  className={`tab-btn${activeTab === id ? ' active' : ''}`}
+                  onClick={() => switchTab(id)}
                 >
+                  <span style={{ marginRight: '0.35rem', opacity: 0.75 }}>{emoji}</span>
                   {label}
                 </button>
               ))}
             </div>
 
-            {/* Tab content */}
-            <div className="fade-up">
-
+            {/* Tab panels */}
+            <div key={tabKey} className="fade-up">
               {activeTab === 'chart' && (
                 <VargaSwitcher
                   vargas={chart.vargas}
@@ -410,10 +419,7 @@ export default function HomePage() {
 
               {activeTab === 'arudhas' && (
                 <div className="card">
-                  <ArudhaPanel
-                    arudhas={chart.arudhas}
-                    ascRashi={chart.lagnas.ascRashi}
-                  />
+                  <ArudhaPanel arudhas={chart.arudhas} />
                 </div>
               )}
 
@@ -427,55 +433,99 @@ export default function HomePage() {
               )}
 
               {activeTab === 'panchang' && (
-                <PanchangPanel p={chart.panchang} />
+                <div className="card">
+                  <PanchangPanel p={chart.panchang} />
+                </div>
               )}
-
+            </div>
+          </div>
+        ) : (
+          /* Empty state */
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            minHeight: 400,
+          }}>
+            <div style={{ textAlign: 'center', opacity: 0.45 }} className="fade-in">
+              <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'float 5s ease-in-out infinite' }}>
+                🌌
+              </div>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                Enter birth details to cast the chart
+              </p>
             </div>
           </div>
         )}
       </main>
 
-      {/* ── Loading overlay ───────────────────────────────── */}
+      {/* ── Loading overlay ──────────────────────────────────── */}
       {loading && (
         <div style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(14,14,22,0.75)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(9,9,15,0.7)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 200,
+          zIndex: 300,
+          animation: 'fadeIn 0.2s ease',
         }}>
           <div style={{ textAlign: 'center' }}>
-            <div style={{
-              width: 48, height: 48,
-              border: '3px solid rgba(201,168,76,0.2)',
-              borderTopColor: 'var(--gold)',
-              borderRadius: '50%',
-              animation: 'spin-slow 0.8s linear infinite',
-              margin: '0 auto 1rem',
-            }} />
+            {/* Dual-ring spinner */}
+            <div style={{ position: 'relative', width: 64, height: 64, margin: '0 auto 1.25rem' }}>
+              <div style={{
+                position: 'absolute', inset: 0,
+                border: '3px solid transparent',
+                borderTopColor: 'var(--gold)',
+                borderRadius: '50%',
+                animation: 'spin-slow 0.85s linear infinite',
+              }} />
+              <div style={{
+                position: 'absolute', inset: 8,
+                border: '2px solid transparent',
+                borderTopColor: 'var(--accent)',
+                borderRadius: '50%',
+                animation: 'spin-slow 0.6s linear infinite reverse',
+              }} />
+              <div style={{
+                position: 'absolute',
+                inset: '50%', transform: 'translate(-50%,-50%)',
+                width: 8, height: 8,
+                background: 'var(--gold)',
+                borderRadius: '50%',
+                animation: 'glow-pulse 1.2s ease-in-out infinite',
+              }} />
+            </div>
             <p style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              color: 'var(--text-gold)', fontSize: '1.1rem', fontStyle: 'italic',
+              fontFamily: 'var(--font-display)',
+              color: 'var(--text-gold)',
+              fontSize: '1.1rem',
+              fontStyle: 'italic',
+              margin: 0,
             }}>
-              Consulting the ephemeris…
+              Consulting the chart
+            </p>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
+              Jyotisha
             </p>
           </div>
         </div>
       )}
 
-      {/* ── Footer ────────────────────────────────────────── */}
+      {/* ── Footer ───────────────────────────────────────────── */}
       <footer style={{
-        padding: '1.25rem 2rem',
-        borderTop: '1px solid rgba(201,168,76,0.08)',
-        textAlign: 'center',
+        position: 'relative', zIndex: 1,
+        padding: '1rem 2rem',
+        borderTop: '1px solid var(--border-soft)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'wrap', gap: '0.5rem',
+        fontSize: '0.75rem',
         color: 'var(--text-muted)',
-        fontFamily: 'Cormorant Garamond, serif',
-        fontSize: '0.82rem',
-        letterSpacing: '0.04em',
       }}>
-        Calculations powered by{' '}
-        <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
-        {' '}· Lahiri ayanamsha · Kāla tier — free forever
+        <span>
+          Powered by{' '}
+          <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>Swiss Ephemeris</span>
+          {' '}· Lahiri ayanamsha
+        </span>
+        <span>Kāla tier — free forever ✦</span>
       </footer>
     </div>
   )

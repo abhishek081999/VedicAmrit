@@ -34,8 +34,6 @@ export async function connectDB(): Promise<typeof mongoose> {
     const opts = {
       bufferCommands: false,
       dbName: getOptionalEnv('MONGODB_DB_NAME') || 'jyotish',
-      // Stable API — version must be the string '1' (Mongoose bundles its own mongodb driver)
-      serverApi: { version: '1', strict: true, deprecationErrors: true },
       // Force IPv4 to avoid IPv6 resolution issues on some networks
       family: 4,
       serverSelectionTimeoutMS: 10_000,
