@@ -332,22 +332,29 @@ export default function HomePage() {
         gap: '1rem',
       }}>
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span style={{
-            fontSize: '1.5rem',
+            fontSize: '1.6rem',
             display: 'inline-block',
             animation: 'float 4s ease-in-out infinite',
+            filter: 'drop-shadow(0 0 8px rgba(201,168,76,0.3))'
           }}>🪐</span>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
             <span style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '1.25rem', fontWeight: 400,
-              letterSpacing: '0.07em',
+              fontSize: '1.4rem', fontWeight: 600,
+              letterSpacing: '0.05em',
               color: 'var(--text-gold)',
             }}>
               Jyotiṣa
             </span>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>
+            <span style={{ 
+              fontSize: '0.68rem', 
+              color: 'var(--header-text-muted)', 
+              letterSpacing: '0.08em', 
+              fontStyle: 'italic',
+              fontWeight: 500
+            }}>
               The Eye of the Vedas
             </span>
           </div>
@@ -357,24 +364,56 @@ export default function HomePage() {
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/panchang"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ 
+              fontFamily: 'var(--font-body)', 
+              fontSize: '0.75rem', 
+              fontWeight: 700, 
+              color: 'var(--header-text)', 
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}
           >Pañcāṅga</Link>
 
           <Link href="/my/charts"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ 
+              fontFamily: 'var(--font-body)', 
+              fontSize: '0.75rem', 
+              fontWeight: 700, 
+              color: 'var(--header-text)', 
+              textDecoration: 'none',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}
           >My Charts</Link>
 
           {status === 'authenticated' ? (
             <Link href="/account"
-              style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}
+              style={{ 
+                fontFamily: 'var(--font-body)', 
+                fontSize: '0.75rem', 
+                fontWeight: 700, 
+                color: 'var(--gold-light)', 
+                textDecoration: 'none',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em'
+              }}
             >
               {session.user.name || 'Account'}
             </Link>
           ) : (
             <>
               <Link href="/login"
-                style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+                style={{ 
+                  fontFamily: 'var(--font-body)', 
+                  fontSize: '0.75rem', 
+                  fontWeight: 700, 
+                  color: 'var(--header-text)', 
+                  textDecoration: 'none',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em'
+                }}
               >Sign In</Link>
               <Link href="/signup"
                 className="btn btn-primary btn-sm hide-mobile"

@@ -130,11 +130,11 @@ export function SouthIndianChakra({
       viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
-      style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+      style={{ display: 'block', maxWidth: '100%', height: 'auto', overflow: 'visible' }}
       aria-label="South Indian birth chart"
     >
-      {/* Background */}
-      <rect width={size} height={size} fill="var(--surface-1, #1a1a2e)" rx="8" />
+      {/* Background — transparent for parchment theme */}
+      <rect width={size} height={size} fill="transparent" />
 
       {/* Grid cells */}
       {Object.entries(SIGN_CELLS).map(([signStr, [row, col]]) => {
@@ -181,7 +181,7 @@ export function SouthIndianChakra({
                         'transparent'
               }
               stroke={isAsc ? 'var(--gold)' : 'var(--border-bright)'}
-              strokeWidth={isAsc ? 1.75 : 1.0}
+              strokeWidth={isAsc ? 2.5 : 1.25}
             />
 
             {/* Sign number — top-left */}
@@ -189,8 +189,9 @@ export function SouthIndianChakra({
               x={x + cell * 0.07}
               y={y + cell * 0.18}
               fontSize={fs.sign}
-              fill="var(--text-gold)"
-              fontFamily="Cormorant Garamond, serif"
+              fill={isAsc ? 'var(--gold)' : 'var(--text-muted)'}
+              fontFamily="var(--font-display)"
+              fontWeight={isAsc ? 'var(--fw-bold)' : 'var(--fw-base)'}
             >
               {sign}
             </text>

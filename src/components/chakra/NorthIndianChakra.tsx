@@ -149,10 +149,11 @@ export function NorthIndianChakra({
       viewBox={`0 0 ${S} ${S}`}
       width={S}
       height={S}
-      style={{ display: 'block', maxWidth: '100%', height: 'auto' }}
+      style={{ display: 'block', maxWidth: '100%', height: 'auto', overflow: 'visible' }}
       aria-label="North Indian birth chart"
     >
-      <rect width={S} height={S} fill="var(--surface-1,#1a1a2e)" rx="8" />
+      {/* Background — transparent to let theme parchment show through */}
+      <rect width={S} height={S} fill="transparent" />
 
       {Array.from({ length: 12 }, (_, i) => {
         const h    = i + 1
@@ -184,12 +185,12 @@ export function NorthIndianChakra({
         // ── Rashi number — top 28% of safe height ─────────────
         const rashiFont = Math.round(
           Math.min(
-            kite ? S * 0.054 * fontScale : S * 0.042 * fontScale,
+            kite ? S * 0.06 * fontScale : S * 0.048 * fontScale,
             safeH * 0.28
           )
         )
         // Place at 20% from safeTop — always inside cell
-        const rashiY = safeTop + safeH * 0.20
+        const rashiY = safeTop + safeH * 0.18
 
         // ── Planet block — bottom 72% of safe height ──────────
         const plAreaTop = safeTop + safeH * 0.38
@@ -213,10 +214,10 @@ export function NorthIndianChakra({
         // Scale down font if many items — but never below a readable minimum
         const maxLineH  = plAreaH / estTotalLines
         const plFont    = Math.max(
-          S * 0.026 * fontScale * planetScale,                            // Stronger minimum
-          Math.min(BASE_PL_FONT, maxLineH * 0.75)
+          S * 0.032 * fontScale * planetScale,                            // Stronger minimum
+          Math.min(BASE_PL_FONT, maxLineH * 0.8)
         )
-        const degFont   = Math.min(BASE_DEG_FONT, plFont * 0.65)
+        const degFont   = Math.min(BASE_DEG_FONT, plFont * 0.7)
         const lineH     = plFont * 1.15
           + (showDegrees   ? degFont * 1.10 : 0)
           + (showNakshatra ? degFont * 0.95 : 0)
@@ -231,7 +232,7 @@ export function NorthIndianChakra({
         const plBlockTopY = plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
         // Two-col horizontal offset — wider spacing
-        const colOff = useTwoCol ? Math.min(cellW * 0.26, S * 0.052) : 0
+        const colOff = useTwoCol ? Math.min(cellW * 0.28, S * 0.06) : 0
 
         return (
           <g
@@ -239,17 +240,17 @@ export function NorthIndianChakra({
             onClick={() => interactive && onHouseClick?.(h)}
             style={{ cursor: interactive ? 'pointer' : 'default' }}
           >
-            {/* Cell fill */}
+            {/* Cell fill for Lagna and Main Houses */}
             <polygon
               points={pts.map(([x,y]) => `${x},${y}`).join(' ')}
               fill={
                 lagna ? 'var(--gold-faint)' :
-                kite  ? 'var(--accent-glow)'  :
+                kite  ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
                         'transparent'
               }
               stroke={lagna ? 'var(--gold)' : 'var(--border-bright)'}
-              strokeWidth={lagna ? 1.5 : 1.0}
-              strokeLinejoin="miter"
+              strokeWidth={lagna ? 2.5 : 1.25}
+              strokeLinejoin="round"
             />
 
             {/* ── Rashi NUMBER ── */}
@@ -257,11 +258,12 @@ export function NorthIndianChakra({
               x={gcx}
               y={rashiY}
               fontSize={rashiFont}
-              fontFamily="Cormorant Garamond, serif"
+              fontFamily="var(--font-display)"
               fontWeight={lagna ? 'var(--fw-bold)' : 'var(--fw-base)'}
-              fill={lagna ? 'var(--gold)' : 'var(--text-gold)'}
+              fill={lagna ? 'var(--gold)' : 'var(--text-muted)'}
               textAnchor="middle"
               dominantBaseline="middle"
+              style={{ opacity: 0.8 }}
             >
               {sign}
             </text>

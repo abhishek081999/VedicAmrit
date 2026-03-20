@@ -87,6 +87,8 @@
 
   /* Header blur bg */
   --header-bg: rgba(9, 9, 15, 0.88);
+  --header-text: var(--text-secondary);
+  --header-text-muted: var(--text-muted);
 
   /* Scrollbar */
   --scrollbar-track: #16162a;
@@ -98,70 +100,81 @@
 [data-theme="light"] {
   color-scheme: light;
 
-  /* Thicker, sharper typography for light mode */
-  --font-smooth-mac: auto;
-  --font-smooth-moz: auto;
+  /* Sharp, authoritative typography for light mode */
+  --font-smooth-mac: antialiased;
+  --font-smooth-moz: grayscale;
   --fw-base: 500;
-  --fw-display: 400;
-  --fw-heading: 500;
+  --fw-display: 600;
+  --fw-heading: 700;
   --fw-medium: 600;
   --fw-bold: 700;
-  -webkit-text-stroke: 0.1px currentcolor;
 
-  --bg-page: #faf8f2;
-  --surface-0: #faf8f2;
-  --surface-1: #f3efe4;
-  --surface-2: #ebe5d2;
-  --surface-3: #e0d9c4;
-  --surface-4: #d4ccb4;
+  /* Surfaces: Cream/Parchment palette */
+  --bg-page: #fdfaf3;  /* Warmer parchment */
+  --surface-0: #fdfaf3;
+  --surface-1: #ffffff;
+  --surface-2: #f7f3e8;
+  --surface-3: #edead9;
+  --surface-4: #e2dfcb;
 
-  --gold: #a87d24;
-  --gold-light: #c9a84c;
+  /* Primary Accent: Devaguru Red / Maroon */
+  --primary-brand: #841b1b; 
+  --header-bg: #841b1b;
+  --header-text: #ffffff;
+  --header-text-muted: rgba(255, 255, 255, 0.85);
+
+  /* Gold: Deep academic gold */
+  --gold: #a67c00;
+  --gold-light: #d4ac0d;
   --gold-dim: #7a5c18;
-  --gold-faint: rgba(168, 125, 36, 0.08);
+  --gold-faint: rgba(166, 124, 0, 0.08);
 
-  --accent: #5b48c0;
-  --accent-dim: #3d2e8a;
-  --accent-glow: rgba(91, 72, 192, 0.18);
+  /* Secondary Accents */
+  --accent: #4a4080;
+  --accent-dim: #352d60;
+  --accent-glow: rgba(74, 64, 128, 0.15);
 
-  --rose: #c0455a;
-  --teal: #2a9d94;
-  --amber: #c47820;
+  /* Status */
+  --rose: #92182b;
+  --teal: #14645e;
+  --amber: #92400e;
 
-  --dig-retro: #bd364f;
-  --dig-exalted: #167a72;
-  --dig-moola: #9c7100;
-  --dig-own: #7a5c18;
-  --dig-neutral: #524b6e;
-  --dig-debilitate: #c0455a;
+  /* Dignity */
+  --dig-retro: #92182b;
+  --dig-exalted: #14645e;
+  --dig-moola: #8a6300;
+  --dig-own: #841b1b;
+  --dig-neutral: #4a4080;
+  --dig-debilitate: #64748b;
 
-  --text-primary: #0f0b1a;
-  --text-secondary: #272044;
-  --text-muted: #524b6e;
-  --text-gold: #664b10;
-  --text-on-gold: #faf8f2;
+  /* Text: Clean high-contrast charcoal */
+  --text-primary: #121212;
+  --text-secondary: #333333;
+  --text-muted: #666666;
+  --text-gold: #a67c00;
+  --text-on-gold: #ffffff;
 
-  --border: rgba(168, 125, 36, 0.35);
-  --border-soft: rgba(168, 125, 36, 0.20);
-  --border-bright: rgba(168, 125, 36, 0.55);
-  --border-accent: rgba(91, 72, 192, 0.35);
+  /* Borders: Matching theme red/charcoal tints */
+  --border: rgba(132, 27, 27, 0.15);
+  --border-soft: rgba(132, 27, 27, 0.08);
+  --border-bright: rgba(132, 27, 27, 0.3);
+  --border-accent: rgba(74, 64, 128, 0.25);
 
-  --glow-gold: 0 0 24px rgba(168, 125, 36, 0.16);
-  --glow-gold-sm: rgba(168, 125, 36, 0.18);
-  --glow-accent: 0 0 20px rgba(91, 72, 192, 0.2);
-  --shadow-deep: 0 8px 40px rgba(0, 0, 0, 0.12);
-  --shadow-card: 0 2px 20px rgba(0, 0, 0, 0.08);
-  --shadow-lift: 0 12px 40px rgba(0, 0, 0, 0.14);
+  /* Shadows */
+  --glow-gold: 0 0 20px rgba(166, 124, 0, 0.12);
+  --glow-gold-sm: rgba(166, 124, 0, 0.14);
+  --glow-accent: 0 0 20px rgba(74, 64, 128, 0.14);
+  --shadow-deep: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 2px 14px rgba(0, 0, 0, 0.06);
+  --shadow-lift: 0 16px 48px rgba(0, 0, 0, 0.15);
 
+  /* Background gradient */
   --bg-gradient:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(91, 72, 192, 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 85% 110%, rgba(168, 125, 36, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% -20%, rgba(132, 27, 27, 0.05) 0%, transparent 70%),
     var(--bg-page);
 
-  --header-bg: rgba(250, 248, 242, 0.9);
-
-  --scrollbar-track: #ebe5d2;
-  --scrollbar-thumb: #c9b998;
+  --scrollbar-track: #f7f3e8;
+  --scrollbar-thumb: #d7d1ba;
 }
 
 /* ── Typography constants ───────────────────────────────────── */

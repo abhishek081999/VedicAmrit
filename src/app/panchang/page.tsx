@@ -319,24 +319,24 @@ export default function PanchangPage() {
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
           >Chart</Link>
 
           <Link href="/my/charts"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
           >My Charts</Link>
 
           {status === 'authenticated' ? (
             <Link href="/account"
               style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}
             >
-              {session.user.name || 'Account'}
+              {session?.user?.name || 'Account'}
             </Link>
           ) : (
             <>
               <Link href="/login"
-                style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+                style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
               >Sign In</Link>
               <Link href="/signup"
                 className="btn btn-primary btn-sm hide-mobile"

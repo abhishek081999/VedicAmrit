@@ -86,15 +86,15 @@ export default function AccountPage() {
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
           >Chart</Link>
 
           <Link href="/my/charts"
             className="hide-mobile"
-            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--header-text)', textDecoration: 'none' }}
           >My Charts</Link>
 
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--gold)' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--header-text)' }}>
             {user?.name || 'Account'}
           </span>
 
