@@ -6,6 +6,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { ChartOutput, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
 
@@ -57,6 +58,7 @@ interface BirthFormProps {
 
 export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthFormProps) {
   const { date: todayDate, time: nowTime } = nowIST()
+  const searchParams = useSearchParams()
 
   const [name, setName] = useState(DELHI_DEFAULT.name)
   const [date, setDate] = useState(todayDate)
@@ -78,12 +80,40 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
   const dropdownRef = useRef<HTMLDivElement>(null)
   const didAutoSubmit = useRef(false)
 
-  // ── Auto-submit on mount ──────────────────────────────────
+  // ── Pre-fill and Auto-submit from URL ────────────────────────
 
   useEffect(() => {
-    if (autoSubmit && !didAutoSubmit.current) {
+    if (didAutoSubmit.current) return
+
+    const pName = searchParams.get('name')
+    const pDate = searchParams.get('birthDate')
+    const pTime = searchParams.get('birthTime')
+    const pPlace = searchParams.get('birthPlace')
+    const pLat = searchParams.get('lat')
+    const pLng = searchParams.get('lng')
+    const pTz = searchParams.get('tz')
+
+    if (pName && pDate && pTime && pLat && pLng) {
       didAutoSubmit.current = true
-      // Small delay so the page can paint before the fetch
+      const n = pName
+      const d = pDate
+      const t = pTime
+      const pl = pPlace || ''
+      const lt = parseFloat(pLat)
+      const lg = parseFloat(pLng)
+      const tzone = pTz || 'UTC'
+
+      setName(n)
+      setDate(d)
+      setTime(t)
+      setPlace(pl)
+      setLat(lt)
+      setLng(lg)
+      setTz(tzone)
+
+      setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, settings), 150)
+    } else if (autoSubmit) {
+      didAutoSubmit.current = true
       setTimeout(() => submitChart(
         DELHI_DEFAULT.name,
         todayDate,
@@ -93,10 +123,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false }: BirthForm
         DELHI_DEFAULT.lng,
         DELHI_DEFAULT.tz,
         DEFAULT_SETTINGS,
-      ), 120)
+      ), 150)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoSubmit])
+  }, [searchParams, autoSubmit])
 
   // ── Location search ───────────────────────────────────────
 

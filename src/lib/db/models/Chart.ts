@@ -20,6 +20,7 @@ export interface IChart extends Document {
   timezone:  string   // IANA timezone e.g. "Asia/Kolkata"
   settings:  ChartSettings
   isPublic:  boolean
+  isPersonal:boolean   // true = user's own birth chart
   slug:      string | null   // for public sharing
   notes:     Array<{ content: string; createdAt: Date }>
   cachedDataId: Types.ObjectId | null
@@ -38,6 +39,7 @@ const ChartSchema = new Schema<IChart>({
   timezone:  { type: String, required: true },
   settings:  { type: Schema.Types.Mixed, required: true },
   isPublic:  { type: Boolean, default: false },
+  isPersonal:{ type: Boolean, default: false, index: true },
   slug:      { type: String, unique: true, sparse: true },
   notes: [{
     content:   { type: String, required: true },
@@ -50,7 +52,6 @@ const ChartSchema = new Schema<IChart>({
 
 ChartSchema.index({ userId: 1, createdAt: -1 })
 ChartSchema.index({ isPublic: 1, createdAt: -1 })
-ChartSchema.index({ slug: 1 })
 
 export const Chart = models.Chart || model<IChart>('Chart', ChartSchema)
 

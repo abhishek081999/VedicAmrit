@@ -2,12 +2,10 @@
 // ─────────────────────────────────────────────────────────────
 //  src/app/panchang/page.tsx
 //  Daily Panchang — location-aware, date-navigable
-//  Shows: Vara · Tithi · Nakshatra · Yoga · Karana
-//         Rahu Kalam · Gulika · Abhijit · Hora table
 // ─────────────────────────────────────────────────────────────
-
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -248,8 +246,8 @@ function TithiProgress({ percent, paksha }: { percent: number; paksha: string })
 }
 
 // ── Main page ─────────────────────────────────────────────────
-
 export default function PanchangPage() {
+  const { data: session, status } = useSession()
   const [date,     setDate]     = useState(todayIST)
   const [data,     setData]     = useState<PanchangData | null>(null)
   const [loading,  setLoading]  = useState(false)
@@ -287,48 +285,65 @@ export default function PanchangPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
 
-      {/* ── Header ─────────────────────────────────────── */}
+      {/* ── Header ──────────────────────────────────────────── */}
       <header style={{
         padding: '0 2rem',
-        height: '3.75rem',
+        height: 60,
+        borderBottom: '1px solid var(--border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
         position: 'sticky', top: 0, zIndex: 50,
         background: 'var(--header-bg)',
-        borderBottom: '1px solid var(--border-soft)',
+        gap: '1rem',
       }}>
-        <Link href="/" style={{
-          display: 'flex', alignItems: 'baseline', gap: '0.6rem',
-          textDecoration: 'none',
-        }}>
-          <span style={{ fontSize: '1.25rem' }}>🪐</span>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontSize: '1.25rem',
-            fontWeight: 600, letterSpacing: '0.04em', color: 'var(--text-gold)',
-          }}>
-            Jyotiṣa
-          </span>
-          <span style={{
-            fontSize: '0.7rem', color: 'var(--text-muted)',
-            fontFamily: 'var(--font-display)', fontStyle: 'italic',
-          }}>
-            The Eye of the Vedas
-          </span>
+        {/* Logo */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+          <span style={{ fontSize: '1.5rem' }}>🪐</span>
+          <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.25rem', fontWeight: 400,
+              letterSpacing: '0.07em',
+              color: 'var(--text-gold)',
+            }}>
+              Jyotiṣa
+            </span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.08em', fontStyle: 'italic' }}>
+              The Eye of the Vedas
+            </span>
+          </div>
         </Link>
 
-        <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <span style={{
-            fontFamily: 'var(--font-display)', fontSize: '0.9rem',
-            color: 'var(--text-gold)', fontWeight: 600,
-          }}>
-            Pañcāṅga
-          </span>
-          <Link href="/" style={{
-            fontFamily: 'var(--font-display)', fontSize: '0.9rem',
-            color: 'var(--text-secondary)', textDecoration: 'none',
-          }}>
-            Chart
-          </Link>
+        {/* Nav right */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link href="/"
+            className="hide-mobile"
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+          >Chart</Link>
+
+          <Link href="/my/charts"
+            className="hide-mobile"
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+          >My Charts</Link>
+
+          {status === 'authenticated' ? (
+            <Link href="/account"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}
+            >
+              {session.user.name || 'Account'}
+            </Link>
+          ) : (
+            <>
+              <Link href="/login"
+                style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+              >Sign In</Link>
+              <Link href="/signup"
+                className="btn btn-primary btn-sm hide-mobile"
+              >Join Free</Link>
+            </>
+          )}
+
           <ThemeToggle />
         </nav>
       </header>

@@ -60,10 +60,14 @@ async function verifyCredentials(
     const db     = client.db(process.env.MONGODB_DB_NAME || 'jyotish')
     const user   = await db.collection('users').findOne(
       { email: email.toLowerCase() },
-      { projection: { _id: 1, email: 1, name: 1, image: 1, plan: 1, passwordHash: 1 } },
+      { projection: { _id: 1, email: 1, name: 1, image: 1, plan: 1, passwordHash: 1, emailVerified: 1 } },
     )
 
     if (!user || !user.passwordHash) return null
+
+    if (!user.emailVerified) {
+      throw new Error('Please verify your email before signing in.')
+    }
 
     const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) return null
@@ -154,9 +158,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const client = await clientPromise
         const db     = client.db(process.env.MONGODB_DB_NAME || 'jyotish')
         await db.collection('users').updateOne(
-          { _id: { $exists: true }, email: user.email },
-          { $setOnInsert: { plan: 'kala', preferences: {}, devices: [] } },
-          { upsert: false },
+          { email: user.email },
+          { 
+            $set: { emailVerified: new Date() },
+            $setOnInsert: { plan: 'kala', preferences: {}, devices: [] } 
+          },
+          { upsert: true }, // Ensure user exists or create if missing (though events:createUser implies they're created)
         )
       } catch (err) {
         console.error('[auth] createUser event error:', err)

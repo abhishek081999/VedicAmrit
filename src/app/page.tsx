@@ -5,7 +5,9 @@
 //  Redesigned: themed, animated, cleaner visual hierarchy
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useSession, signOut } from 'next-auth/react'
+import Link from 'next/link'
 import { BirthForm }     from '@/components/ui/BirthForm'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
@@ -237,10 +239,46 @@ const TABS: { id: Tab; label: string; emoji: string }[] = [
 ]
 
 export default function HomePage() {
+  const { data: session, status } = useSession()
   const [chart,      setChart]      = useState<ChartOutput | null>(null)
   const [loading,    setLoading]    = useState(false)
   const [activeTab,  setActiveTab]  = useState<Tab>('chart')
   const [tabKey,     setTabKey]     = useState(0)  // forces re-animation on tab switch
+  const [saving,     setSaving]     = useState(false)
+  const [saveDone,   setSaveDone]   = useState(false)
+  const [saveType,   setSaveType]   = useState<'regular' | 'personal'>('regular')
+  const [showSaveMenu, setShowSaveMenu] = useState(false)
+
+  async function handleSave(type: 'regular' | 'personal' = 'regular') {
+    if (!chart || saving) return
+    setSaving(true)
+    setShowSaveMenu(false)
+    try {
+      const res = await fetch('/api/chart/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       chart.meta.name,
+          birthDate:  chart.meta.birthDate,
+          birthTime:  chart.meta.birthTime,
+          birthPlace: chart.meta.birthPlace,
+          latitude:   chart.meta.latitude,
+          longitude:  chart.meta.longitude,
+          timezone:   chart.meta.timezone,
+          settings:   chart.meta.settings,
+          isPersonal: type === 'personal',
+        })
+      })
+      if (res.ok) {
+        setSaveDone(true)
+        setTimeout(() => setSaveDone(false), 4000)
+      }
+    } catch (e) {
+      console.error('Save failed', e)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   function switchTab(id: Tab) {
     setActiveTab(id)
@@ -316,10 +354,36 @@ export default function HomePage() {
         </div>
 
         {/* Nav right */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span className="badge badge-gold hide-mobile">Kāla · Free</span>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link href="/panchang"
+            className="hide-mobile"
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+          >Pañcāṅga</Link>
+
+          <Link href="/my/charts"
+            className="hide-mobile"
+            style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+          >My Charts</Link>
+
+          {status === 'authenticated' ? (
+            <Link href="/account"
+              style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600, color: 'var(--gold)', textDecoration: 'none' }}
+            >
+              {session.user.name || 'Account'}
+            </Link>
+          ) : (
+            <>
+              <Link href="/login"
+                style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none' }}
+              >Sign In</Link>
+              <Link href="/signup"
+                className="btn btn-primary btn-sm hide-mobile"
+              >Join Free</Link>
+            </>
+          )}
+
           <ThemeToggle />
-        </div>
+        </nav>
       </header>
 
       {/* ── Main ────────────────────────────────────────────── */}
@@ -360,25 +424,75 @@ export default function HomePage() {
           <div className="fade-up chart-area" style={{ minWidth: 0 }}>
 
             {/* Person header */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <h2 style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '2rem', fontWeight: 300,
-                letterSpacing: '0.03em',
-                margin: 0, marginBottom: '0.25rem',
-              }}>
-                {chart.meta.name}
-              </h2>
-              <div style={{
-                display: 'flex', gap: '1rem', flexWrap: 'wrap',
-                fontSize: '0.8rem', color: 'var(--text-muted)',
-              }}>
-                <span style={{ fontFamily: 'var(--font-mono)' }}>
-                  {chart.meta.birthDate} · {chart.meta.birthTime}
-                </span>
-                <span>{chart.meta.birthPlace}</span>
-                <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{chart.meta.timezone}</span>
+            <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h2 style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '2rem', fontWeight: 300,
+                  letterSpacing: '0.03em',
+                  margin: 0, marginBottom: '0.25rem',
+                }}>
+                  {chart.meta.name}
+                </h2>
+                <div style={{
+                  display: 'flex', gap: '1rem', flexWrap: 'wrap',
+                  fontSize: '0.8rem', color: 'var(--text-muted)',
+                }}>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>
+                    {chart.meta.birthDate} · {chart.meta.birthTime}
+                  </span>
+                  <span>{chart.meta.birthPlace}</span>
+                  <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>{chart.meta.timezone}</span>
+                </div>
               </div>
+
+              {status === 'authenticated' && (
+                <div style={{ position: 'relative' }}>
+                  <div style={{ display: 'flex', gap: '1px' }}>
+                    <button
+                      onClick={() => handleSave('regular')}
+                      disabled={saving || saveDone}
+                      className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
+                      style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, minWidth: 100 }}
+                    >
+                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
+                    </button>
+                    {!saveDone && (
+                      <button
+                        onClick={() => setShowSaveMenu(!showSaveMenu)}
+                        className="btn btn-primary btn-sm"
+                        style={{ padding: '0 0.5rem', borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
+                      >
+                         ▾
+                      </button>
+                    )}
+                  </div>
+                  
+                  {showSaveMenu && (
+                    <div 
+                      className="glass fade-up" 
+                      style={{ 
+                        position: 'absolute', top: '100%', right: 0, marginTop: '0.5rem', 
+                        width: 180, padding: '0.5rem', zIndex: 100, border: '1px solid var(--border-bright)' 
+                      }}
+                      onMouseLeave={() => setShowSaveMenu(false)}
+                    >
+                      <button 
+                        onClick={() => handleSave('personal')}
+                        style={{ 
+                          width: '100%', padding: '0.6rem 0.75rem', textAlign: 'left', 
+                          background: 'none', border: 'none', color: 'var(--text-primary)',
+                          fontSize: '0.82rem', cursor: 'pointer', borderRadius: 'var(--r-sm)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--gold-faint)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                      >
+                        🌟 Set as MY birth details
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Tab bar */}

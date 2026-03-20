@@ -42,6 +42,8 @@ export interface IUser extends Document {
   oauthProvider:  'google' | 'apple' | null
   oauthId:        string | null
   emailVerified:  Date | null
+  verificationToken: string | null
+  verificationExpires: Date | null
 
   // Device management (max 3 per Vela/Hora)
   devices: IUserDevice[]
@@ -86,9 +88,11 @@ const UserSchema = new Schema<IUser>({
   planExpiresAt:{ type: Date,   default: null },
 
   passwordHash:   { type: String, default: null, select: false },
-  oauthProvider:  { type: String, enum: ['google','apple',null], default: null },
+  oauthProvider:  { type: String, enum: ['google', 'apple', null], default: null },
   oauthId:        { type: String, default: null },
   emailVerified:  { type: Date,   default: null },
+  verificationToken:   { type: String, default: null },
+  verificationExpires: { type: Date,   default: null },
 
   devices: { type: [UserDeviceSchema], default: [] },
 
