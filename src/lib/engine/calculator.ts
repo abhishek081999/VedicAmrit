@@ -5,6 +5,7 @@
 //         → vargas → arudhas → karakas → dignity → dasha → panchang
 // ─────────────────────────────────────────────────────────────
 
+import { getSunriseSunset } from './sunrise'
 import {
   SWISSEPH_IDS,
   dateToJD,
@@ -200,11 +201,13 @@ export async function calculateChart(
   const vara    = getVara(jd)
   const moonNak = getNakshatra(moon.lonSidereal)
 
-  // Rahu/Gulika/Yamaganda use sunrise placeholder — Phase 4 fixes with real rise_trans
-  const rahuKalam   = getRahuKalam(birthUtc, birthUtc, vara.number)
-  const gulikaKalam = getGulikaKalam(birthUtc, birthUtc, vara.number)
-  const yamaganda   = getYamaganda(birthUtc, birthUtc, vara.number)
-  const abhijit     = getAbhijitMuhurta(birthUtc, birthUtc)
+  // Real sunrise/sunset via swisseph rise_trans
+  const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
+  const { sunrise, sunset } = getSunriseSunset(birthDateStr, input.latitude, input.longitude, input.timezone)
+  const rahuKalam   = getRahuKalam(sunrise, sunset, vara.number)
+  const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number)
+  const yamaganda   = getYamaganda(sunrise, sunset, vara.number)
+  const abhijit     = getAbhijitMuhurta(sunrise, sunset)
 
   return {
     meta: {
@@ -251,7 +254,7 @@ export async function calculateChart(
       nakshatra: { index: moonNak.index, name: moonNak.name, pada: moonNak.pada, lord: moonNak.lord, degree: moonNak.degreeInNak, moonNakshatra: moonNak.name },
       yoga:   { number: yoga.number,   name: yoga.name,   endTime: new Date(birthUtc.getTime() + 3600000) },
       karana: { number: karana.number, name: karana.name, endTime: new Date(birthUtc.getTime() + 1800000) },
-      sunrise: birthUtc, sunset: birthUtc, moonrise: null, moonset: null,
+      sunrise, sunset, moonrise: null, moonset: null,
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: {},

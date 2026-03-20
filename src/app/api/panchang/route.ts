@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { fromZonedTime } from 'date-fns-tz'
 import { redis, panchangCacheKey, CACHE_TTL } from '@/lib/redis'
+import { getSunriseSunset } from '@/lib/engine/sunrise'
 import {
   toJulianDay,
   getPlanetPosition,
@@ -36,27 +37,7 @@ const QuerySchema = z.object({
   ]).default('lahiri'),
 })
 
-// ── Approximate sunrise/sunset ────────────────────────────────
-// Phase 4 will replace with accurate sweph.rise_trans calculation
-// For now, use a simple civil twilight approximation
-
-function approximateSunrise(date: string, lat: number, tz: string): Date {
-  // Sunrise ≈ 6:00 AM local time (rough approximation)
-  try {
-    return fromZonedTime(`${date}T06:00:00`, tz)
-  } catch {
-    return new Date(`${date}T00:30:00Z`)
-  }
-}
-
-function approximateSunset(date: string, lat: number, tz: string): Date {
-  // Sunset ≈ 6:00 PM local time
-  try {
-    return fromZonedTime(`${date}T18:00:00`, tz)
-  } catch {
-    return new Date(`${date}T12:30:00Z`)
-  }
-}
+// Sunrise/sunset now calculated via swisseph rise_trans (see sunrise.ts)
 
 // ── Route handler ─────────────────────────────────────────────
 
@@ -104,9 +85,8 @@ export async function GET(req: NextRequest) {
     const moonNak = getNakshatra(moonSid)
     const sunNak  = getNakshatra(sunSid)
 
-    // Sunrise/sunset (approximate — Phase 4 fix)
-    const sunrise = approximateSunrise(date, lat, tz)
-    const sunset  = approximateSunset(date, lat, tz)
+    // Real sunrise/sunset via swisseph rise_trans
+    const { sunrise, sunset } = getSunriseSunset(date, lat, lng, tz)
 
     const rahuKalam   = getRahuKalam(sunrise, sunset, vara.number)
     const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number)
