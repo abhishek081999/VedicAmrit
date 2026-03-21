@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter }           from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 
@@ -108,8 +108,9 @@ function PrefToggle({ label, desc, value, onChange }: {
 
 // ── Main page ─────────────────────────────────────────────────
 export default function AccountPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [user,          setUser]          = useState<any>(null)
   const [personalChart, setPersonalChart] = useState<PersonalChart | null>(null)
@@ -119,6 +120,27 @@ export default function AccountPage() {
   const [saving,        setSaving]        = useState(false)
   const [saved,         setSaved]         = useState(false)
   const [prefsDirty,    setPrefsDirty]    = useState(false)
+  const [upgradeMsg,    setUpgradeMsg]    = useState<string | null>(null)
+
+  // ── Refresh plan from DB after payment redirect ───────────
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    if (searchParams.get('upgraded') !== '1') return
+
+    // Fetch current plan from DB (webhook/verify already wrote it)
+    fetch('/api/auth/refresh-plan')
+      .then(r => r.json())
+      .then(async data => {
+        if (data.success && data.plan) {
+          // Update the NextAuth JWT token with the new plan
+          await update({ plan: data.plan })
+          setUpgradeMsg(`✓ Plan upgraded to ${data.plan === 'vela' ? 'Velā' : 'Horā'} successfully!`)
+          // Remove the query param without full reload
+          router.replace('/account', { scroll: false })
+        }
+      })
+      .catch(() => {/* ignore — user can re-login to refresh */})
+  }, [status, searchParams, update, router])
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -213,6 +235,23 @@ export default function AccountPage() {
             </span>
           </div>
         </div>
+
+        {/* Upgrade success banner */}
+        {upgradeMsg && (
+          <div style={{
+            margin: '0 0 1rem', padding: '0.75rem 1rem',
+            background: 'rgba(78,205,196,0.10)', border: '1px solid rgba(78,205,196,0.35)',
+            borderRadius: 'var(--r-md)', color: 'var(--teal)',
+            fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span>{upgradeMsg}</span>
+            <button
+              onClick={() => setUpgradeMsg(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: '1.1rem', lineHeight: 1 }}
+            >×</button>
+          </div>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
 

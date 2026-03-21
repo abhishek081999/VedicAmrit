@@ -9,6 +9,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayData {
@@ -260,7 +261,7 @@ export default function MonthlyPanchangPage() {
   const [selected, setSelected] = useState<string | null>(today)
   const fetchQueue = useRef<Set<string>>(new Set())
 
-  const location = { lat: 28.6139, lng: 77.209, tz: 'Asia/Kolkata', name: 'New Delhi' }
+  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
 
   // Fetch a single day
   const fetchDay = useCallback(async (date: string) => {
@@ -347,7 +348,7 @@ export default function MonthlyPanchangPage() {
               {MONTHS[month]} {year}
             </h1>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
-              {location.name} · {location.tz}
+              <LocationPicker value={location} onChange={(loc) => { setLocation(loc); setDayMap({}) }} label="" />
             </div>
           </div>
 
@@ -495,7 +496,7 @@ export default function MonthlyPanchangPage() {
         fontFamily: 'var(--font-display)', fontSize: '0.8rem',
       }}>
         Vedic Pañcāṅga · Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
-        {' '}· New Delhi · Lahiri ayanamsha
+        {' '}· {location.name} · Lahiri ayanamsha
       </footer>
     </div>
   )

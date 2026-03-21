@@ -4,6 +4,7 @@
 //  Daily Panchang — location-aware, date-navigable
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from 'react'
+import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
 
 interface PanchangData {
   date: string
@@ -231,7 +232,7 @@ export default function PanchangPage() {
   const [data,     setData]     = useState<PanchangData | null>(null)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState<string | null>(null)
-  const [location] = useState({ lat: 28.6139, lng: 77.209, tz: 'Asia/Kolkata', name: 'New Delhi' })
+  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
   const [horaOpen, setHoraOpen] = useState(false)
   const [tick,     setTick]     = useState(0)
 
@@ -288,11 +289,8 @@ export default function PanchangPage() {
             }}>
             {fmtDateLong(date)}
           </div>
-          <div style={{
-            fontSize: '0.75rem', color: 'var(--text-muted)',
-            fontFamily: 'var(--font-mono)', marginTop: 2,
-          }}>
-            {location.name} · {location.tz}
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+            <LocationPicker value={location} onChange={setLocation} label="" />
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  POST /api/chart/save
 //  Saves a calculated chart to MongoDB for the logged-in user.
-//  Anonymous users get a guest-scoped save (userId: null).
+//  Enforces per-plan chart limits: Kāla=3, Velā=1008, Horā=∞
 //  Returns { success, chartId, slug }
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,9 +9,17 @@ import { z } from 'zod'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { User }  from '@/lib/db/models/User'
 import crypto from 'crypto'
 
 export const runtime = 'nodejs'
+
+// ── Per-plan chart save limits ────────────────────────────────
+const CHART_LIMITS: Record<string, number> = {
+  kala: 3,
+  vela: 1008,
+  hora: Infinity,
+}
 
 const SaveSchema = z.object({
   name:       z.string().min(1).max(100),
@@ -41,6 +49,37 @@ export async function POST(req: NextRequest) {
     const { name, birthDate, birthTime, birthPlace, latitude, longitude, timezone, settings, isPublic, isPersonal } = parsed.data
 
     const userId = session?.user?.id
+
+    // ── Plan-based limit check ────────────────────────────────
+    if (userId) {
+      const user  = await User.findById(userId).select('plan planExpiresAt').lean()
+      const plan  = (user as any)?.plan ?? 'kala'
+
+      // Check planExpiresAt — downgrade to kala if subscription lapsed
+      const effectivePlan = (() => {
+        if (plan === 'kala') return 'kala'
+        const expiry = (user as any)?.planExpiresAt
+        if (expiry && new Date(expiry) < new Date()) return 'kala'
+        return plan
+      })()
+
+      const limit = CHART_LIMITS[effectivePlan] ?? 3
+
+      if (isFinite(limit)) {
+        const count = await Chart.countDocuments({ userId })
+        if (count >= limit) {
+          return NextResponse.json({
+            success: false,
+            error:   `Chart limit reached. ${effectivePlan === 'kala'
+              ? 'Kāla plan allows up to 3 saved charts. Upgrade to Velā for 1,008.'
+              : 'Velā plan allows up to 1,008 saved charts. Upgrade to Horā for unlimited.'}`,
+            limitReached: true,
+            currentCount: count,
+            limit,
+          }, { status: 403 })
+        }
+      }
+    }
 
     // If saving as personal, unset older personal charts for this user
     if (isPersonal && userId) {

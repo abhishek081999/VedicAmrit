@@ -178,9 +178,11 @@ export function calcCharaDasha(
     const start = new Date(cursor)
     const end   = new Date(cursor.getTime() + ms)
 
-    // Build antardasha sequence for this maha
-    // Antardasha starts from the same sign and follows same direction rules
-    const antarSeq = buildSequence(sign)
+    // Build antardasha sequence for this maha.
+    // Per Jaimini: antardasha starts from the sign IMMEDIATELY FOLLOWING
+    // the maha sign in that sign's own sequence direction, wrapping around.
+    const nextSign = sequence[(i + 1) % sequence.length]
+    const antarSeq = buildSequence(nextSign)
 
     nodes.push({
       lord:       SIGN_LORD[sign] ?? 'Su',

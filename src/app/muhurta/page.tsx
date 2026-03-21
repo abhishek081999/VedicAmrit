@@ -14,6 +14,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { LocationPicker, DELHI_DEFAULT, type LocationValue } from '@/components/ui/LocationPicker'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {
@@ -283,7 +284,7 @@ export default function MuhurtaPage() {
   const [error,     setError]     = useState<string | null>(null)
   const [minGrade,  setMinGrade]  = useState<'A' | 'B' | 'C' | 'D'>('B')
 
-  const location = { lat: 28.6139, lng: 77.209, tz: 'Asia/Kolkata', name: 'New Delhi' }
+  const [location, setLocation] = useState<LocationValue>(DELHI_DEFAULT)
 
   const findMuhurta = useCallback(async () => {
     setLoading(true)
@@ -411,8 +412,8 @@ export default function MuhurtaPage() {
           </div>
 
           {/* Location */}
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-            📍 {location.name} · {location.tz}
+          <div style={{ maxWidth: 320 }}>
+            <LocationPicker value={location} onChange={setLocation} label="📍 Location" />
           </div>
 
           <button

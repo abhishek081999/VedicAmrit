@@ -37,6 +37,7 @@ import {
   getKarana, getNakshatra, getTithi,
   getVara, getYoga,
   getRahuKalam, getGulikaKalam, getYamaganda, getAbhijitMuhurta,
+  type GulikaMode,
 } from '@/lib/engine/nakshatra'
 import {
   DEFAULT_SETTINGS,
@@ -203,6 +204,49 @@ export async function calculateChart(
   const bhavaArudhas = calcAllBhavaArudhas(ascRashi, grahaSlim)
   const grahaArudhas = calcGrahaArudhas(ascRashi, grahaSlim)
 
+  // Real sunrise/sunset via swisseph rise_trans
+  const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
+  const { sunrise, sunset } = getSunriseSunset(birthDateStr, input.latitude, input.longitude, input.timezone)
+  const vara = getVara(jd)
+  const rahuKalam = getRahuKalam(sunrise, sunset, vara.number)
+  const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number, (settings.gulikaMode ?? 'phaladipika') as GulikaMode)
+  const yamaganda = getYamaganda(sunrise, sunset, vara.number)
+  const abhijit = getAbhijitMuhurta(sunrise, sunset)
+
+  // ── Special Lagnas (computed once, reused in lagnas + shadbala) ──────────
+  const hoursFromSunrise = (birthUtc.getTime() - sunrise.getTime()) / 3600000
+  const horaLagnaVal  = ((sun.totalDegree + hoursFromSunrise * 60)  % 360 + 360) % 360
+  const ghatiLagnaVal = ((sun.totalDegree + hoursFromSunrise * 150) % 360 + 360) % 360
+  const bhavaLagnaVal = ((sun.totalDegree + hoursFromSunrise * 30)  % 360 + 360) % 360
+
+  // Pranapada (BPHS): Sun + (ghatis from sunrise × 30°/ghati)
+  const ghatiFromSunrise = hoursFromSunrise * 2.5  // 1 hr = 2.5 ghatis
+  const pranapadaVal = ((sun.totalDegree + ghatiFromSunrise * 30) % 360 + 360) % 360
+
+  // Sri Lagna (BPHS): Asc + (Moon's navamsha index within sign × 30°)
+  const moonNavamshaIdx = Math.floor((moon.totalDegree % 30) / (30 / 9)) // 0-8
+  const sriLagnaVal = ((houses.ascendantSidereal + moonNavamshaIdx * 30) % 360 + 360) % 360
+
+  // Varnada Lagna (BPHS): based on Asc sign parity + Hora Lagna sign
+  const hlSign = Math.floor(horaLagnaVal / 30) + 1 // 1-12
+  const varnadaVal = houses.ascRashi % 2 === 1
+    ? ((((houses.ascRashi - 1 + hlSign - 1) % 12) * 30 + 15) % 360 + 360) % 360
+    : (((((houses.ascRashi - 1 - (hlSign - 1)) % 12 + 12) % 12) * 30 + 15) % 360 + 360) % 360
+
+  const lagnaData = {
+    ascDegree:        houses.ascendantSidereal,
+    ascRashi:         houses.ascRashi,
+    ascDegreeInRashi: houses.ascDegreeInRashi,
+    horaLagna:        horaLagnaVal,
+    ghatiLagna:       ghatiLagnaVal,
+    bhavaLagna:       bhavaLagnaVal,
+    pranapada:        pranapadaVal,
+    sriLagna:         sriLagnaVal,
+    varnadaLagna:     varnadaVal,
+    cusps:            houses.cuspsSidereal,
+    bhavalCusps:      houses.bhavasidereal,
+  }
+
   // Vargas
   const vargaNames = vargaNamesForPlan(plan)
   const vargas: Record<string, GrahaData[]> = { D1: grahas }
@@ -231,16 +275,7 @@ export async function calculateChart(
   const tithi = getTithi(moon.lonSidereal, sun.lonSidereal)
   const yoga = getYoga(sun.lonSidereal, moon.lonSidereal)
   const karana = getKarana(moon.lonSidereal, sun.lonSidereal)
-  const vara = getVara(jd)
   const moonNak = getNakshatra(moon.lonSidereal)
-
-  // Real sunrise/sunset via swisseph rise_trans
-  const birthDateStr = input.birthDate  // 'YYYY-MM-DD'
-  const { sunrise, sunset } = getSunriseSunset(birthDateStr, input.latitude, input.longitude, input.timezone)
-  const rahuKalam = getRahuKalam(sunrise, sunset, vara.number)
-  const gulikaKalam = getGulikaKalam(sunrise, sunset, vara.number)
-  const yamaganda = getYamaganda(sunrise, sunset, vara.number)
-  const abhijit = getAbhijitMuhurta(sunrise, sunset)
 
   return {
     meta: {
@@ -251,20 +286,17 @@ export async function calculateChart(
     },
     grahas,
     lagnas: {
-      ascDegree: houses.ascendantSidereal,
-      ascRashi: houses.ascRashi,
-      ascDegreeInRashi: houses.ascDegreeInRashi,
-      // HL: 2 components per hour = 60 degrees per hour from Sun
-      // GL: 5 components per hour = 150 degrees per hour from Sun
-      // BL: 1 component per hour = 30 degrees per hour from Sun
-      horaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 60) % 360,
-      ghatiLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 150) % 360,
-      bhavaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 30) % 360,
-      pranapada: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 360 * 15) % 360, // approximate
-      sriLagna: (moon.totalDegree + (moon.totalDegree % (360 / 9)) * 12) % 360, // placeholder Sri Lagna
-      varnadaLagna: (houses.ascendantSidereal + sun.totalDegree) % 360, // placeholder
-      cusps: houses.cuspsSidereal,
-      bhavalCusps: houses.bhavasidereal,
+      ascDegree:        lagnaData.ascDegree,
+      ascRashi:         lagnaData.ascRashi,
+      ascDegreeInRashi: lagnaData.ascDegreeInRashi,
+      horaLagna:        lagnaData.horaLagna,
+      ghatiLagna:       lagnaData.ghatiLagna,
+      bhavaLagna:       lagnaData.bhavaLagna,
+      pranapada:        lagnaData.pranapada,
+      sriLagna:         lagnaData.sriLagna,
+      varnadaLagna:     lagnaData.varnadaLagna,
+      cusps:            lagnaData.cusps,
+      bhavalCusps:      lagnaData.bhavalCusps,
     },
     arudhas: {
       AL: bhavaArudhas.AL, A2: bhavaArudhas.A2,
@@ -286,13 +318,7 @@ export async function calculateChart(
       vimshottari,
       yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, 2),
       ashtottari: [],
-      chara: calcCharaDasha(grahas, {
-        ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
-        ascDegreeInRashi: houses.ascDegreeInRashi,
-        horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-        pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-        cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
-      }, birthUtc, 2),
+      chara: calcCharaDasha(grahas, lagnaData, birthUtc, 2),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
@@ -309,38 +335,14 @@ export async function calculateChart(
     upagrahas: {},
     shadbala: (calculateShadbala(
       grahas,
-      {
-        ascDegree: houses.ascendantSidereal,
-        ascRashi: houses.ascRashi,
-        ascDegreeInRashi: houses.ascDegreeInRashi,
-        horaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 60) % 360,
-        ghatiLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 150) % 360,
-        bhavaLagna: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 30) % 360,
-        pranapada: (sun.totalDegree + (birthUtc.getTime() - sunrise.getTime()) / 3600000 * 360 * 15) % 360,
-        sriLagna: (moon.totalDegree + (moon.totalDegree % (360 / 9)) * 12) % 360,
-        varnadaLagna: (houses.ascendantSidereal + sun.totalDegree) % 360,
-        cusps: houses.cuspsSidereal,
-        bhavalCusps: houses.bhavasidereal,
-      },
+      lagnaData,
       birthUtc,
       sunrise,
       sunset,
       moon.totalDegree,
       sun.totalDegree,
     ) as ShadbalaResult),
-    ashtakavarga: calculateAshtakavarga(grahas, {
-      ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
-      ascDegreeInRashi: houses.ascDegreeInRashi,
-      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-      cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
-    }),
-    yogas: detectYogas(grahas, {
-      ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
-      ascDegreeInRashi: houses.ascDegreeInRashi,
-      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
-      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-      cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
-    }),
+    ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
+    yogas: detectYogas(grahas, lagnaData),
   }
 }

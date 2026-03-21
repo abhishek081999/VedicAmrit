@@ -92,8 +92,85 @@ export default function PricingPage() {
   const { data: session } = useSession()
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)  // plan key being loaded
+  const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
 
   const currentPlan = (session?.user as any)?.plan ?? 'kala'
+
+  // ── Razorpay checkout ────────────────────────────────────────
+  async function handleSubscribe(planKey: 'vela' | 'hora') {
+    if (!session) {
+      window.location.href = '/login?callbackUrl=/pricing'
+      return
+    }
+    setCheckoutLoading(planKey)
+    setCheckoutError(null)
+
+    try {
+      // 1. Create order on server
+      const res = await fetch('/api/payment/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planKey, interval: billing }),
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.error ?? 'Order creation failed')
+
+      // 2. Load Razorpay script if not already present
+      await loadRazorpayScript()
+
+      // 3. Open Razorpay modal
+      const rzp = new (window as any).Razorpay({
+        key:         data.keyId,
+        amount:      data.amount,
+        currency:    data.currency,
+        order_id:    data.orderId,
+        name:        'Vedic Amrit',
+        description: `${data.planLabel} — ${billing} subscription`,
+        prefill: {
+          name:  data.userName,
+          email: data.userEmail,
+        },
+        theme: { color: planKey === 'vela' ? '#8B7CF6' : '#4ECDC4' },
+        handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
+          // 4. Verify payment signature + activate subscription via webhook
+          //    (webhook handles plan upgrade asynchronously)
+          //    Show a success message immediately on payment capture
+          await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentId:  response.razorpay_payment_id,
+              orderId:    response.razorpay_order_id,
+              signature:  response.razorpay_signature,
+              plan:       planKey,
+              interval:   billing,
+            }),
+          })
+          window.location.href = '/account?upgraded=1'
+        },
+        modal: {
+          ondismiss: () => setCheckoutLoading(null),
+        },
+      })
+      rzp.open()
+
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Payment failed. Please try again.')
+      setCheckoutLoading(null)
+    }
+  }
+
+  function loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if ((window as any).Razorpay) { resolve(); return }
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve()
+      script.onerror = () => reject(new Error('Failed to load Razorpay SDK'))
+      document.head.appendChild(script)
+    })
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
@@ -238,19 +315,41 @@ export default function PricingPage() {
                   }}>
                     Get Started Free →
                   </Link>
-                ) : (
-                  <Link href={session ? `/api/payment/checkout?plan=${key}&billing=${billing}` : `/login?callbackUrl=/pricing`} style={{
+                ) : currentPlan === key ? (
+                  <div style={{
                     display: 'block', padding: '0.65rem 1rem', textAlign: 'center',
-                    background: tier.color, borderRadius: 'var(--r-md)', textDecoration: 'none',
+                    background: 'var(--surface-3)', borderRadius: 'var(--r-md)',
                     fontFamily: 'var(--font-display)', fontSize: '0.85rem',
-                    fontWeight: 700, color: '#fff', transition: 'opacity 0.15s',
-                    border: 'none',
-                  }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.opacity = '0.9')}
-                  onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => (e.currentTarget.style.opacity = '1')}
-                  >
-                    Upgrade to {tier.name} →
-                  </Link>
+                    fontWeight: 600, color: 'var(--text-muted)',
+                  }}>
+                    ✓ Current plan
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleSubscribe(key as 'vela' | 'hora')}
+                      disabled={checkoutLoading === key}
+                      style={{
+                        display: 'block', width: '100%', padding: '0.65rem 1rem',
+                        textAlign: 'center', background: tier.color,
+                        borderRadius: 'var(--r-md)', textDecoration: 'none',
+                        fontFamily: 'var(--font-display)', fontSize: '0.85rem',
+                        fontWeight: 700, color: '#fff', border: 'none',
+                        cursor: checkoutLoading === key ? 'not-allowed' : 'pointer',
+                        opacity: checkoutLoading === key ? 0.75 : 1,
+                        transition: 'opacity 0.15s',
+                      }}
+                    >
+                      {checkoutLoading === key
+                        ? 'Opening checkout…'
+                        : `Upgrade to ${tier.name} →`}
+                    </button>
+                    {checkoutError && checkoutLoading === null && (
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-danger)', marginTop: '0.4rem', textAlign: 'center' }}>
+                        {checkoutError}
+                      </p>
+                    )}
+                  </>
                 )}
 
                 {/* Features */}

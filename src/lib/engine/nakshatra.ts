@@ -297,8 +297,17 @@ export function getHoraTable(
 // Rahu Kalam portion of the day by weekday (0=Sun...6=Sat)
 // Expressed as 8ths of the day (daytime)
 const RAHU_KALAM_PORTIONS: number[] = [7, 1, 6, 4, 5, 3, 2] // portion index (1-8)
+
+// Gulika Kalam — standard (Phaladipika) portion by weekday
 const GULIKA_KALAM_PORTIONS: number[] = [6, 7, 5, 6, 6, 5, 6]
+
+// Gulika Kalam — Kaala Hora method (different tradition)
+// Gulika = Son of Saturn, appears at specific hora windows
+const GULIKA_KALAM_HORA: number[] = [5, 4, 3, 2, 1, 7, 6]
+
 const YAMAGANDA_PORTIONS: number[]  = [4, 3, 2, 1, 0, 6, 5]
+
+export type GulikaMode = 'begin' | 'middle' | 'end' | 'phaladipika'
 
 function getTimePortion(
   sunrise: Date,
@@ -311,6 +320,19 @@ function getTimePortion(
   return { start, end }
 }
 
+function getTimePortionWithOffset(
+  sunrise: Date,
+  sunset:  Date,
+  portionIndex: number,
+  offset: 0 | 0.5 | 1,  // fraction within the portion slot
+): { start: Date; end: Date } {
+  const slotDuration = (sunset.getTime() - sunrise.getTime()) / 8
+  const slotStart = sunrise.getTime() + (portionIndex - 1) * slotDuration
+  const start = new Date(slotStart + offset * slotDuration)
+  const end   = new Date(slotStart + (offset + 0.5) * slotDuration)
+  return { start, end }
+}
+
 export function getRahuKalam(
   sunrise: Date,
   sunset:  Date,
@@ -320,11 +342,21 @@ export function getRahuKalam(
 }
 
 export function getGulikaKalam(
-  sunrise: Date,
-  sunset:  Date,
+  sunrise:    Date,
+  sunset:     Date,
   varaNumber: number,
+  mode:       GulikaMode = 'phaladipika',
 ): { start: Date; end: Date } {
-  return getTimePortion(sunrise, sunset, GULIKA_KALAM_PORTIONS[varaNumber])
+  if (mode === 'phaladipika') {
+    // Standard Phaladipika: 1 slot = 1/8 of daytime, at the given portion
+    return getTimePortion(sunrise, sunset, GULIKA_KALAM_PORTIONS[varaNumber])
+  }
+  // begin/middle/end: use the hora-based table, offset within that slot
+  const portionIdx = GULIKA_KALAM_HORA[varaNumber]
+  const offsetMap: Record<GulikaMode, 0 | 0.5 | 1> = {
+    begin: 0, middle: 0.5, end: 1, phaladipika: 0,
+  }
+  return getTimePortionWithOffset(sunrise, sunset, portionIdx, offsetMap[mode])
 }
 
 export function getYamaganda(
