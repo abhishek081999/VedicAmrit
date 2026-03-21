@@ -54,8 +54,10 @@ import {
 
 export interface CalculateChartInput {
   name: string
-  birthDate: string   // 'YYYY-MM-DD'
-  birthTime: string   // 'HH:MM:SS' (in UTC — convert before calling)
+  birthDate: string   // local date
+  birthTime: string   // local time
+  utcDate: string     // UTC date for calculation
+  utcTime: string     // UTC time for calculation
   birthPlace: string
   latitude: number
   longitude: number
@@ -173,7 +175,7 @@ export async function calculateChart(
   plan: UserPlan = 'kala',
 ): Promise<ChartOutput> { // eslint-disable-line
   const settings = input.settings ?? DEFAULT_SETTINGS
-  const birthUtc = parseBirthUtc(input.birthDate, input.birthTime)
+  const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
   const jd = dateToJD(birthUtc)
   const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
 

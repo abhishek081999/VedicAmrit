@@ -265,16 +265,43 @@ export default function HomePage() {
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
-  const [isFormOpen, setIsFormOpen] = useState(true)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [defaultChart, setDefaultChart] = useState<any>(null)
+  const [fetchingDefault, setFetchingDefault] = useState(false)
 
-  // Listen for 'New Consultation' link clicks
+  // 1. Fetch default chart if logged in
+  useEffect(() => {
+    if (status === 'authenticated') {
+      setFetchingDefault(true)
+      fetch('/api/user/me')
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.personalChart) {
+             setDefaultChart(data.personalChart)
+          }
+        })
+        .finally(() => setFetchingDefault(false))
+    }
+  }, [status])
+
+  // 2. Open form if 'new=true' is in URL
   useEffect(() => {
     if (searchParams.get('new') === 'true') {
       setIsFormOpen(true)
-      // Clear chart to start fresh
       setChart(null)
     }
   }, [searchParams])
+
+  // 3. Open form by default ONLY if not authenticated or no default chart after fetching
+  useEffect(() => {
+    if (status === 'loading' || fetchingDefault) return
+    if (!chart && !searchParams.get('name')) {
+      // If we don't have a chart on screen, decide if form should be open
+      if (status === 'unauthenticated' || (!fetchingDefault && !defaultChart)) {
+        setIsFormOpen(true)
+      }
+    }
+  }, [status, fetchingDefault, defaultChart, chart, searchParams])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -364,15 +391,22 @@ export default function HomePage() {
               </div>
             </div>
            
-            {/* Responsive: Dominant CHART | Tab Content */}
+            {/* Responsive: Dominant CHART | Tab Analysis */}
             <div className="chart-layout-grid" style={{ 
               display: 'flex', 
               flexWrap: 'wrap', 
-              gap: '1.5rem', 
+              gap: '2.5rem', 
               alignItems: 'start' 
             }}>
-               {/* LEFT: Dominant chart area */}
-               <div style={{ flex: '1 1 500px', minWidth: 'min(100%, 300px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+               {/* LEFT: Dominant chart area (Primary Focus) */}
+               <div style={{ 
+                 flex: '2 1 600px', 
+                 minWidth: 'min(100%, 400px)', 
+                 display: 'flex', 
+                 flexDirection: 'column', 
+                 gap: '1.5rem',
+                 order: 1 // Chart stays 1st
+               }}>
                   <TransitOverlay natalChart={chart} onTransitLoad={setTransitGrahas} />
                   <VargaSwitcher
                      vargas={chart.vargas}
@@ -386,120 +420,196 @@ export default function HomePage() {
                   />
                </div>
 
-               {/* RIGHT: Active Tab Content (Sticky so it follows long chart lists) */}
+               {/* RIGHT: Active Tab Content (Sidebar Analysis) */}
                <div style={{ 
-                 flex: '1 0 380px', 
+                 flex: '1 0 320px', 
                  maxWidth: '100%',
                  display: 'flex', flexDirection: 'column', 
                  gap: '1.5rem', 
                  position: 'sticky', 
                  top: '5.5rem',
-                 paddingRight: '4px' 
+                 paddingRight: '4px',
+                 order: 2 // Dasha/Planets stay 2nd on responsive
                }}>
                  {activeTab === 'dashboard' && (
                     <>
-                      <div className="card" style={{ padding: '1.5rem' }}>
-                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                           <h3 className="label-caps" style={{ margin: 0 }}>Planetary Micro-Details</h3>
-                         </div>
-                         <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
-                      </div>
-                      <div className="card" style={{ padding: '1.5rem' }}>
-                         <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Vimśottarī Daśā Sequence</h3>
+                      <div className="card" style={{ padding: '1.25rem' }}>
+                         <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Active Timeline</h3>
                          <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
+                      </div>
+                      <div className="card" style={{ padding: '1.25rem' }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
+                           <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Planetary Micro-Details</h3>
+                         </div>
+                         <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} limited={true} />
                       </div>
                     </>
                  )}
 
                  {activeTab === 'planets' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Planetary Status & Diagnostics</h3>
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Planetary Status & Diagnostics</h3>
                        <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
                     </div>
                  )}
 
                  {activeTab === 'dasha' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                        <h3 className="label-caps" style={{ flex: 1, margin: 0 }}>Daśā System</h3>
-                        <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    <div className="card fade-up" style={{ padding: '1.5rem', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ 
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+                        marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem',
+                        paddingBottom: '1rem', borderBottom: '1px solid var(--border-soft)'
+                      }}>
+                        <div>
+                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', letterSpacing: '0.12em', fontSize: '0.7rem' }}>Time Sequence Analysis</h3>
+                          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>Dynamic planetary cycles</div>
+                        </div>
+
+                        <div style={{ 
+                          display: 'flex', background: 'var(--surface-3)', 
+                          padding: '3px', borderRadius: '8px',
+                          border: '1px solid var(--border-soft)'
+                        }}>
                           {([
-                            { id: 'vimshottari' as const, label: 'Viṁśottarī', sub: '120 yr' },
-                            { id: 'yogini'      as const, label: 'Yoginī',     sub: '36 yr' },
-                            { id: 'chara'       as const, label: 'Chara',      sub: '12 signs' },
-                          ]).map(({ id, label, sub }) => (
-                            <button key={id} onClick={() => setDashaSystem(id)} style={{
-                              padding: '0.3rem 0.65rem',
-                              background: dashaSystem === id ? 'rgba(201,168,76,0.15)' : 'var(--surface-2)',
-                              border: `1px solid ${dashaSystem === id ? 'var(--border-bright)' : 'var(--border)'}`,
-                              borderRadius: 'var(--r-md)', cursor: 'pointer',
-                              fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-                              fontWeight: dashaSystem === id ? 700 : 500,
-                              color: dashaSystem === id ? 'var(--text-gold)' : 'var(--text-secondary)',
-                            }}>
-                              {label} <span style={{ fontSize: '0.62rem', opacity: 0.6, marginLeft: 3 }}>{sub}</span>
+                            { id: 'vimshottari' as const, label: 'Viṁśottarī', desc: '120y' },
+                            { id: 'yogini'      as const, label: 'Yoginī',     desc: '36y' },
+                            { id: 'chara'       as const, label: 'Chara',      desc: '12s' },
+                          ]).map(({ id, label, desc }) => (
+                            <button 
+                              key={id} 
+                              onClick={() => setDashaSystem(id)} 
+                              style={{
+                                padding: '0.35rem 0.6rem',
+                                background: dashaSystem === id ? 'var(--surface-1)' : 'transparent',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                minWidth: '75px',
+                                boxShadow: dashaSystem === id ? '0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px var(--border-bright)' : 'none',
+                              }}
+                            >
+                              <span style={{ 
+                                fontSize: '0.75rem', 
+                                fontWeight: dashaSystem === id ? 700 : 500,
+                                color: dashaSystem === id ? 'var(--text-gold)' : 'var(--text-muted)',
+                                fontFamily: 'var(--font-display)'
+                              }}>{label}</span>
+                              <span style={{ fontSize: '0.55rem', opacity: 0.5 }}>{desc}</span>
                             </button>
                           ))}
                         </div>
                       </div>
-                      {dashaSystem === 'vimshottari' && <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />}
-                      {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate to see Yoginī Daśā.</p>)}
-                      {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate to see Chara Daśā.</p>)}
+
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        {dashaSystem === 'vimshottari' && <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />}
+                        {dashaSystem === 'yogini' && (
+                          chart.dashas.yogini?.length 
+                            ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> 
+                            : <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Yoginī computation required.</div>
+                        )}
+                        {dashaSystem === 'chara' && (
+                          chart.dashas.chara?.length 
+                            ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> 
+                            : <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Chara computation required.</div>
+                        )}
+                      </div>
                     </div>
                  )}
 
                  {activeTab === 'panchang' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Daily Pañcāṅga Analysis</h3>
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Daily Pañcāṅga Analysis</h3>
                        <PanchangPanel p={chart.panchang} />
                     </div>
                  )}
 
                  {activeTab === 'ashtakavarga' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Aṣṭakavarga</h3>
-                      {chart.ashtakavarga
-                        ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                        : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Aṣṭakavarga.</p>
-                      }
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Aṣṭakavarga</h3>
+                       {chart.ashtakavarga
+                         ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                         : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Recalculate chart to see Aṣṭakavarga.</p>
+                       }
                     </div>
                  )}
 
                  {activeTab === 'yogas' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Graha Yogas</h3>
-                      {chart.yogas
-                        ? <YogaList yogas={chart.yogas} />
-                        : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Yogas.</p>
-                      }
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Graha Yogas</h3>
+                       {chart.yogas
+                         ? <YogaList yogas={chart.yogas} />
+                         : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Recalculate chart to see Yogas.</p>
+                       }
                     </div>
                  )}
 
                  {activeTab === 'shadbala' && (
-                  <div className="card fade-up">
-                    <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Planetary Strength</div>
+                  <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                    <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Ṣaḍbala Strength</div>
                     {chart.shadbala
                       ? <ShadbalaTable shadbala={chart.shadbala} />
-                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Shadbala.</div>
+                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Shadbala.</div>
                     }
                   </div>
                 )}
 
                  {activeTab === 'varshaphal' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Varṣaphal — Solar Return</h3>
-                      <VarshaphalPanel natalChart={chart} />
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Solar Return</h3>
+                       <VarshaphalPanel natalChart={chart} />
                     </div>
                  )}
 
                 {activeTab === 'arudhas' && (
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                       <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Bhāva Āruḍhas</h3>
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                       <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Bhāva Āruḍhas</h3>
                        <ArudhaPanel arudhas={chart.arudhas} />
                     </div>
                  )}
                </div>
 
+               {/* BOTTOM: Dashboard Extended Details (Full width Diagnostics) */}
+               {activeTab === 'dashboard' && (
+                 <div style={{ 
+                   flex: '1 1 100%', 
+                   display: 'grid', 
+                   gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+                   gap: '1.5rem', 
+                   marginTop: '0.5rem',
+                   order: 3 // Extended details always last
+                 }}>
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
+                        {chart.ashtakavarga 
+                          ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
+                        }
+                    </div>
+
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Planetary Strengths (Shadbala)</h3>
+                        {chart.shadbala 
+                          ? <ShadbalaTable shadbala={chart.shadbala} />
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
+                        }
+                    </div>
+
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Natal Panchang</h3>
+                        <PanchangPanel p={chart.panchang} />
+                    </div>
+
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Graha Yogas</h3>
+                        {chart.yogas 
+                          ? <YogaList yogas={chart.yogas} />
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Yoga data unavailable.</p>
+                        }
+                    </div>
+                 </div>
+               )}
             </div>
          </div>
       ) : (
@@ -568,15 +678,18 @@ export default function HomePage() {
         </div>
         
         <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
-           <BirthForm
-             onResult={(data) => { 
-               setChart(data);
-               setTimeout(() => setIsFormOpen(false), 300);
-             }}
-             onLoading={setLoading}
-             autoSubmit
-             initialName="Transit"
-           />
+            {(status === 'unauthenticated' || (!fetchingDefault)) && (
+              <BirthForm
+                onResult={(data) => { 
+                  setChart(data);
+                  setTimeout(() => setIsFormOpen(false), 300);
+                }}
+                onLoading={setLoading}
+                autoSubmit
+                initialName="Transit"
+                initialData={defaultChart || undefined}
+              />
+            )}
            {chart && <ChartSummary chart={chart} />}
         </div>
       </div>

@@ -92,17 +92,21 @@ interface GrahaTableProps {
   grahas: GrahaData[]
   lagnas?: LagnaData
   upagrahas?: Record<string, GrahaData>
+  limited?: boolean
 }
 
 // ── Component ────────────────────────────────────────────────
 
-export function GrahaTable({ grahas, lagnas, upagrahas }: GrahaTableProps) {
+export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: GrahaTableProps) {
 
   // 1. Build a combined List of all bodies
   const bodies: BodyInfo[] = []
 
   // Add 9 Grahas
-  grahas.forEach(g => {
+  const main9 = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
+  grahas
+    .filter(g => !limited || main9.includes(g.id))
+    .forEach(g => {
     bodies.push({
       name: GRAHA_NAMES[g.id],
       totalDeg: g.totalDegree,
@@ -118,12 +122,14 @@ export function GrahaTable({ grahas, lagnas, upagrahas }: GrahaTableProps) {
   if (lagnas) {
     const lagnaItems = [
       { name: 'Lagna', deg: lagnas.ascDegree },
-      { name: 'Bhāva Lagna (BL)', deg: lagnas.bhavaLagna },
-      { name: 'Hora Lagna (HL)', deg: lagnas.horaLagna },
-      { name: 'Ghaṭi Lagna (GL)', deg: lagnas.ghatiLagna },
-      { name: 'Prāṇapada (PP)', deg: lagnas.pranapada },
-      { name: 'Śrī Lagna (SL)', deg: lagnas.sriLagna },
-      { name: 'Varṇada Lagna (VL)', deg: lagnas.varnadaLagna },
+      ...(!limited ? [
+        { name: 'Bhāva Lagna (BL)', deg: lagnas.bhavaLagna },
+        { name: 'Hora Lagna (HL)', deg: lagnas.horaLagna },
+        { name: 'Ghaṭi Lagna (GL)', deg: lagnas.ghatiLagna },
+        { name: 'Prāṇapada (PP)', deg: lagnas.pranapada },
+        { name: 'Śrī Lagna (SL)', deg: lagnas.sriLagna },
+        { name: 'Varṇada Lagna (VL)', deg: lagnas.varnadaLagna },
+      ] : [])
     ]
     lagnaItems.forEach(l => {
       if (l.deg !== undefined && l.deg !== 0) {
@@ -133,7 +139,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas }: GrahaTableProps) {
   }
 
   // Add Upagrahas (Mandi, Gulika)
-  if (upagrahas) {
+  if (upagrahas && !limited) {
     Object.entries(upagrahas).forEach(([id, data]) => {
       bodies.push({ name: data.name, totalDeg: data.totalDegree, color: 'var(--text-secondary)' })
     })

@@ -53,22 +53,26 @@ interface BirthFormProps {
   onLoading?: (loading: boolean) => void
   autoSubmit?: boolean   // calculate immediately on mount with defaults
   initialName?: string
+  initialData?: {
+    name: string; birthDate: string; birthTime: string; birthPlace: string
+    latitude: number; longitude: number; timezone: string; settings?: ChartSettings
+  }
 }
 
 // ── Component ────────────────────────────────────────────────
 
-export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName = 'Transit' }: BirthFormProps) {
+export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName = 'Transit', initialData }: BirthFormProps) {
   const { date: todayDate, time: nowTime } = nowIST()
   const searchParams = useSearchParams()
 
-  const [name, setName] = useState(initialName)
-  const [date, setDate] = useState(todayDate)
-  const [time, setTime] = useState(nowTime)
-  const [place, setPlace] = useState(DELHI_DEFAULT.place)
-  const [lat, setLat] = useState<number | null>(DELHI_DEFAULT.lat)
-  const [lng, setLng] = useState<number | null>(DELHI_DEFAULT.lng)
-  const [tz, setTz] = useState(DELHI_DEFAULT.tz)
-  const [settings, setSettings] = useState<ChartSettings>(DEFAULT_SETTINGS)
+  const [name, setName] = useState(initialData?.name || initialName)
+  const [date, setDate] = useState(initialData?.birthDate || todayDate)
+  const [time, setTime] = useState(initialData?.birthTime || nowTime)
+  const [place, setPlace] = useState(initialData?.birthPlace || DELHI_DEFAULT.place)
+  const [lat, setLat] = useState<number | null>(initialData?.latitude ?? DELHI_DEFAULT.lat)
+  const [lng, setLng] = useState<number | null>(initialData?.longitude ?? DELHI_DEFAULT.lng)
+  const [tz, setTz] = useState(initialData?.timezone || DELHI_DEFAULT.tz)
+  const [settings, setSettings] = useState<ChartSettings>(initialData?.settings || DEFAULT_SETTINGS)
 
   const [locationResults, setLocationResults] = useState<LocationResult[]>([])
   const [searchOpen, setSearchOpen] = useState(false)
@@ -115,6 +119,18 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       setTz(tzone)
 
       setTimeout(() => submitChart(n, d, t, pl, lt, lg, tzone, settings), 150)
+    } else if (autoSubmit && initialData) {
+      didAutoSubmit.current = true
+      setTimeout(() => submitChart(
+        initialData.name,
+        initialData.birthDate,
+        initialData.birthTime,
+        initialData.birthPlace,
+        initialData.latitude,
+        initialData.longitude,
+        initialData.timezone,
+        initialData.settings || DEFAULT_SETTINGS
+      ), 150)
     } else if (autoSubmit) {
       didAutoSubmit.current = true
       setTimeout(() => submitChart(
@@ -129,7 +145,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       ), 150)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, autoSubmit])
+  }, [searchParams, autoSubmit, initialData])
 
   // ── Location search ───────────────────────────────────────
 
@@ -313,7 +329,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           } else {
             [d, m, y] = parts               // DD/MM/YYYY
           }
-          setDate(`\${y.padStart(4,'0')}-\${m.padStart(2,'0')}-\${d.padStart(2,'0')}`)
+          setDate(`${y.padStart(4,'0')}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`)
         }
       }
 
@@ -326,7 +342,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           const h = timeParts[0].padStart(2,'0')
           const mi = timeParts[1].padStart(2,'0')
           const s  = (timeParts[2] ?? '00').padStart(2,'0')
-          setTime(`\${h}:\${mi}:\${s}`)
+          setTime(`${h}:${mi}:${s}`)
         }
       }
 
@@ -395,7 +411,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           if (parts[0].length === 4) { [y, m2, d] = parts }
           else if (parseInt(parts[2]) > 31) { [m2, d, y] = parts }
           else { [d, m2, y] = parts }
-          setDate(`\${y.padStart(4,'0')}-\${m2.padStart(2,'0')}-\${d.padStart(2,'0')}`)
+          setDate(`${y.padStart(4,'0')}-${m2.padStart(2,'0')}-${d.padStart(2,'0')}`)
         }
       }
 
@@ -403,7 +419,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       if (rawTime) {
         const timeParts = rawTime.split(':')
         if (timeParts.length >= 2) {
-          setTime(`\${timeParts[0].padStart(2,'0')}:\${timeParts[1].padStart(2,'0')}:\${(timeParts[2]??'00').padStart(2,'0')}`)
+          setTime(`${timeParts[0].padStart(2,'0')}:${timeParts[1].padStart(2,'0')}:${(timeParts[2]??'00').padStart(2,'0')}`)
         }
       }
 

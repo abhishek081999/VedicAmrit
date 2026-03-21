@@ -102,12 +102,28 @@ export async function POST(req: NextRequest) {
       input.settings.ayanamsha,
       input.settings.nodeMode,
       input.settings.houseSystem,
+      input.settings.karakaScheme,
+      input.settings.gulikaMode,
     )
 
     // Check cache first
     const cached = await redis.get(cacheKey)
     if (cached) {
-      return NextResponse.json({ success: true, data: cached, fromCache: true })
+      // Overwrite name, place, etc. from input — these don't affect calculation
+      // but are stored in meta. We want to return the name from input.
+      const finalData = {
+        ...(cached as any),
+        meta: {
+          ...(cached as any).meta,
+          name:       input.name,
+          birthDate:  input.birthDate,
+          birthTime:  input.birthTime,
+          birthPlace: input.birthPlace,
+          timezone:   input.timezone,
+          calculatedAt: new Date(),
+        }
+      }
+      return NextResponse.json({ success: true, data: finalData, fromCache: true })
     }
 
     // Connect DB (needed for chart save later — warm the connection)
@@ -117,8 +133,10 @@ export async function POST(req: NextRequest) {
     const chartData = await calculateChart(
       {
         name:       input.name,
-        birthDate:  utcDate,
-        birthTime:  utcTime,
+        birthDate:  input.birthDate,
+        birthTime:  input.birthTime,
+        utcDate:    utcDate,
+        utcTime:    utcTime,
         birthPlace: input.birthPlace,
         latitude:   input.latitude,
         longitude:  input.longitude,

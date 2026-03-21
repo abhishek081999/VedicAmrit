@@ -27,12 +27,18 @@ const YOGINIS: Yogini[] = [
   { name: 'Saṅkaṭā',  lord: 'Ra', years: 8 },
 ]
 
+const GRAHA_MAP: Record<string, string> = {
+  Mo: 'Moon', Su: 'Sun', Ju: 'Jupiter', Ma: 'Mars',
+  Me: 'Mercury', Sa: 'Saturn', Ve: 'Venus', Ra: 'Rahu'
+}
+
 const TOTAL_YEARS = 36   // Sum of 1+2+3+4+5+6+7+8
 
-// Each nakshatra maps to a Yogini (index 0–26 → Yogini 0–7, cycling)
-// Mangala rules nakshatras 1,9,17 (0-indexed: 0,8,16), etc.
+// Each nakshatra maps to a Yogini (formula: (Nak# + 3) % 8)
 function yoginiForNakshatra(nakIndex: number): number {
-  return nakIndex % 8
+  // If nakIndex=15 (Vishakha, 16th), (15 + 3)%8 = 2 (Dhanya)
+  // If nakIndex=5 (Ardra, 6th), (5 + 3)%8 = 0 (Mangala)
+  return (nakIndex + 3) % 8
 }
 
 // ── Main calculator ───────────────────────────────────────────
@@ -63,7 +69,7 @@ export function calcYoginiDasha(
   const nodes: DashaNode[] = []
   let cursor = new Date(birthDate)
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 24; i++) {
     const yIdx    = (startYogini + i) % 8
     const yogini  = YOGINIS[yIdx]
     const years   = i === 0 ? balanceYears : yogini.years
@@ -74,7 +80,7 @@ export function calcYoginiDasha(
 
     nodes.push({
       lord:      yogini.lord,
-      label:     yogini.name,            // Yogini name as label
+      label:     `${yogini.name} (${GRAHA_MAP[yogini.lord]})`,
       start,
       end,
       durationMs: ms,
@@ -119,7 +125,7 @@ function buildYoginiAntar(
 
     nodes.push({
       lord:       yogini.lord,
-      label:      yogini.name,
+      label:      `${yogini.name} (${GRAHA_MAP[yogini.lord]})`,
       start:      s,
       end:        e,
       durationMs: ms,
