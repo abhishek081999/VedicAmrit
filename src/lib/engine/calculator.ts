@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { calculateShadbala } from './shadbala'
+import type { ShadbalaResult } from '@/types/astrology'
 import { getSunriseSunset } from './sunrise'
 import {
   SWISSEPH_IDS,
@@ -27,6 +28,10 @@ import {
   KALA_VARGAS, VELA_VARGAS, ALL_VARGAS,
   type VargaName,
 } from '@/lib/engine/vargas'
+import { calculateAshtakavarga } from './ashtakavarga'
+import { detectYogas }           from './yogas'
+import { calcYoginiDasha }       from './dasha/yogini'
+import { calcCharaDasha }        from './dasha/chara'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
   getKarana, getNakshatra, getTithi,
@@ -71,7 +76,7 @@ function buildGrahas(
   sunTropLon: number,
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
-    'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ur', 'Ne', 'Pl'
+    'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'
   ]
 
   const grahas: GrahaData[] = order.map((id): GrahaData => {
@@ -166,7 +171,7 @@ function vargaNamesForPlan(plan: UserPlan): VargaName[] {
 export async function calculateChart(
   input: CalculateChartInput,
   plan: UserPlan = 'kala',
-): Promise<ChartOutput> {
+): Promise<ChartOutput> { // eslint-disable-line
   const settings = input.settings ?? DEFAULT_SETTINGS
   const birthUtc = parseBirthUtc(input.birthDate, input.birthTime)
   const jd = dateToJD(birthUtc)
@@ -276,8 +281,17 @@ export async function calculateChart(
     vargas,
     vargaLagnas,
     dashas: {
-      vimshottari, yogini: [], ashtottari: [],
-      chara: [], narayana: [], tithi_ashtottari: [], naisargika: [],
+      vimshottari,
+      yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, 2),
+      ashtottari: [],
+      chara: calcCharaDasha(grahas, {
+        ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
+        ascDegreeInRashi: houses.ascDegreeInRashi,
+        horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+        pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+        cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
+      }, birthUtc, 2),
+      narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
       date: input.birthDate,
@@ -291,7 +305,7 @@ export async function calculateChart(
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: {},
-    shadbala: calculateShadbala(
+    shadbala: (calculateShadbala(
       grahas,
       {
         ascDegree: houses.ascendantSidereal,
@@ -311,6 +325,20 @@ export async function calculateChart(
       sunset,
       moon.totalDegree,
       sun.totalDegree,
-    ),
+    ) as ShadbalaResult),
+    ashtakavarga: calculateAshtakavarga(grahas, {
+      ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
+      ascDegreeInRashi: houses.ascDegreeInRashi,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
+    }),
+    yogas: detectYogas(grahas, {
+      ascDegree: houses.ascendantSidereal, ascRashi: houses.ascRashi,
+      ascDegreeInRashi: houses.ascDegreeInRashi,
+      horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
+      pranapada: 0, sriLagna: 0, varnadaLagna: 0,
+      cusps: houses.cuspsSidereal, bhavalCusps: houses.bhavasidereal,
+    }),
   }
 }

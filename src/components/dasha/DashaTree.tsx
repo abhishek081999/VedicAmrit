@@ -49,6 +49,7 @@ function DashaRow({
   maxVisibleDepth,
   path = []
 }: {
+  key?: string
   node: DashaNode
   depth: number
   isLast: boolean

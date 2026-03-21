@@ -9,7 +9,7 @@ import type { GrahaId, Rashi, Dignity } from '@/types/astrology'
 
 // ── Exaltation signs and exact degrees ───────────────────────
 
-export const EXALTATION_SIGN: Record<GrahaId, Rashi> = {
+export const EXALTATION_SIGN: Record<string, Rashi> = {
   Su: 1,   // Aries (exact: 10°)
   Mo: 2,   // Taurus (exact: 3°)
   Ma: 10,  // Capricorn (exact: 28°)
@@ -25,7 +25,7 @@ export const EXALTATION_DEGREE: Partial<Record<GrahaId, number>> = {
   Su: 10, Mo: 3, Ma: 28, Me: 15, Ju: 5, Ve: 27, Sa: 20,
 }
 
-export const DEBILITATION_SIGN: Record<GrahaId, Rashi> = {
+export const DEBILITATION_SIGN: Record<string, Rashi> = {
   Su: 7,   // Libra
   Mo: 8,   // Scorpio
   Ma: 4,   // Cancer
@@ -39,7 +39,7 @@ export const DEBILITATION_SIGN: Record<GrahaId, Rashi> = {
 
 // ── Own signs (Swakshetra) ────────────────────────────────────
 
-export const OWN_SIGNS: Record<GrahaId, Rashi[]> = {
+export const OWN_SIGNS: Record<string, Rashi[]> = {
   Su: [5],           // Leo
   Mo: [4],           // Cancer
   Ma: [1, 8],        // Aries, Scorpio
@@ -53,7 +53,7 @@ export const OWN_SIGNS: Record<GrahaId, Rashi[]> = {
 
 // ── Moolatrikona signs and degree ranges ──────────────────────
 
-export const MOOLATRIKONA_SIGN: Partial<Record<GrahaId, Rashi>> = {
+export const MOOLATRIKONA_SIGN: Record<string, Rashi> = {
   Su: 5,   // Leo (0°–20°)
   Mo: 2,   // Taurus (4°–20°) — some texts: 4–30°
   Ma: 1,   // Aries (0°–12°)
@@ -76,7 +76,7 @@ export const MOOLATRIKONA_RANGE: Partial<Record<GrahaId, [number, number]>> = {
 // ── Natural friendship table (Naisargika Maitri) ─────────────
 // Source: BPHS Chapter 3
 
-export const NATURAL_FRIENDS: Record<GrahaId, GrahaId[]> = {
+export const NATURAL_FRIENDS: Record<string, GrahaId[]> = {
   Su: ['Mo', 'Ma', 'Ju'],
   Mo: ['Su', 'Me'],
   Ma: ['Su', 'Mo', 'Ju'],
@@ -88,7 +88,7 @@ export const NATURAL_FRIENDS: Record<GrahaId, GrahaId[]> = {
   Ke: ['Ve', 'Sa'],
 }
 
-export const NATURAL_ENEMIES: Record<GrahaId, GrahaId[]> = {
+export const NATURAL_ENEMIES: Record<string, GrahaId[]> = {
   Su: ['Ve', 'Sa'],
   Mo: ['Ra', 'Ke'],
   Ma: ['Me'],

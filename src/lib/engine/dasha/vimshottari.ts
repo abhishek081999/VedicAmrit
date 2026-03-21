@@ -9,7 +9,7 @@ import { NAKSHATRA_LORDS } from '@/types/astrology'
 
 // ── Vimshottari Constants ─────────────────────────────────────
 
-export const VIMSHOTTARI_YEARS: Record<GrahaId, number> = {
+export const VIMSHOTTARI_YEARS: Record<string, number> = {
   Ke: 7,  Ve: 20, Su: 6,  Mo: 10,
   Ma: 7,  Ra: 18, Ju: 16, Sa: 19, Me: 17,
 }

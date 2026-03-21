@@ -85,7 +85,7 @@ export function calcCharaKarakas(
   candidates.sort((a, b) => b.sortDeg - a.sortDeg)
 
   // Assign roles
-  const roleOf: Record<GrahaId, string | null> = {
+  const roleOf: Record<string, string | null> = {
     Su: null, Mo: null, Ma: null, Me: null,
     Ju: null, Ve: null, Sa: null, Ra: null, Ke: null,
   }

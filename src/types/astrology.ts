@@ -16,7 +16,7 @@ export const GRAHA_NAMES: Record<GrahaId, string> = {
 export const GRAHA_SANSKRIT: Record<GrahaId, string> = {
   Su: 'Sūrya', Mo: 'Chandra', Ma: 'Maṅgala', Me: 'Budha',
   Ju: 'Guru',  Ve: 'Śukra',   Sa: 'Śani',    Ra: 'Rāhu', Ke: 'Ketu',
-  Ur: 'Aruṇa', Ne: 'Varuṇa', Pl: 'Yama'
+  Ur: 'Aruṇa', Ne: 'Varuṇa', Pl: 'Yama',
 }
 
 // ── Rashi (Signs) ────────────────────────────────────────────
@@ -269,6 +269,7 @@ export type DashaSystem =
 
 export interface DashaNode {
   lord:       string
+  label?:     string
   start:      Date
   end:        Date
   durationMs: number
@@ -328,8 +329,25 @@ export interface ChartOutput {
   vargaLagnas: Record<string, Rashi>          // ascendant sign in each varga chart
   dashas:    Record<DashaSystem, DashaNode[]>
   panchang:  PanchangData
-  upagrahas: Record<string, GrahaData>
-  shadbala:  ShadbalaResult
+  upagrahas:    Record<string, GrahaData>
+  shadbala:     ShadbalaResult
+  ashtakavarga?: AshtakavargaResult
+  yogas?:        YogaResult[]
+}
+
+
+// ── Ashtakavarga ─────────────────────────────────────────────
+
+export interface PlanetBAV {
+  planet:   string
+  bindus:   number[]
+  total:    number
+}
+
+export interface AshtakavargaResult {
+  bav:      Record<string, PlanetBAV>
+  sav:      number[]
+  savTotal: number
 }
 
 // ── Shadbala ─────────────────────────────────────────────────
@@ -350,9 +368,24 @@ export interface ShadbalaPlanet {
 }
 
 export interface ShadbalaResult {
-  planets:  Record<string, ShadbalaPlanet>
+  planets:   Record<string, ShadbalaPlanet>
   strongest: string
   weakest:   string
+}
+
+// ── Graha Yogas ───────────────────────────────────────────────
+
+export type YogaCategory = 'raja' | 'dhana' | 'mahapurusha' | 'viparita' | 'special' | 'lunar'
+
+export interface YogaResult {
+  name:        string
+  sanskrit:    string
+  category:    YogaCategory
+  strength:    'strong' | 'moderate' | 'weak'
+  planets:     string[]
+  houses:      number[]
+  description: string
+  effect:      string
 }
 
 // ── User Plan ────────────────────────────────────────────────
