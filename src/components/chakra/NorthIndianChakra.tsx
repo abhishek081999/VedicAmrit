@@ -269,8 +269,8 @@ export function NorthIndianChakra({
                   kite ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
                     'transparent'
               }
-              stroke={lagna ? 'var(--gold)' : 'var(--border-bright)'}
-              strokeWidth={lagna ? 2.5 : 1.25}
+              stroke="var(--gold)"
+              strokeWidth={lagna ? 2.0 : 1.25}
               strokeLinejoin="round"
             />
 
@@ -426,7 +426,7 @@ export function NorthIndianChakra({
 
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}
-        fill="none" stroke="var(--border-bright)" strokeWidth="1.5" rx="8" />
+        fill="none" stroke="var(--gold)" strokeWidth="1.5" />
     </svg>
   )
 }

@@ -6,19 +6,29 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
-const TABS: { id: string; label: string; icon: string; path?: string }[] = [
+const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: '/' },
+]
+
+const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
   { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
-  { id: 'yogas',        label: 'Yogas',         icon: '✧', path: '/' },
-  { id: 'varshaphal',   label: 'Varṣaphal',     icon: '☀', path: '/' },
   { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
-  { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
-  { id: 'muhurta',          label: 'Muhūrta Finder',  icon: '🔍', path: '/muhurta' },
-  { id: 'monthly-panchang', label: 'Monthly Calendar', icon: '🗓', path: '/panchang/calendar' },
-  { id: 'daily-panchang', label: 'Daily Pañcāṅga', icon: '📅', path: '/panchang' },
   { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯', path: '/' },
+  { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
+  { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
+]
+
+const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'daily-panchang', label: 'Daily Pañcāṅga', icon: '📅', path: '/panchang' },
+  { id: 'monthly-panchang', label: 'Monthly Calendar', icon: '🗓', path: '/panchang/calendar' },
+  { id: 'muhurta',          label: 'Muhūrta Finder',  icon: '🔍', path: '/muhurta' },
+]
+
+const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'varshaphal',   label: 'Varṣaphal',     icon: '☀', path: '/' },
+  { id: 'my-charts',    label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]
 
 export function AppFramework({ children }: { children: React.ReactNode }) {
@@ -26,6 +36,60 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab } = useAppLayout()
+  const [isAstroOpen, setIsAstroOpen] = useState(true)
+  const [isPanchangOpen, setIsPanchangOpen] = useState(false)
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('astro-nav-expanded')
+    if (saved !== null) {
+      setIsAstroOpen(saved === 'true')
+    }
+    const savedP = localStorage.getItem('panchang-nav-expanded')
+    if (savedP !== null) {
+      setIsPanchangOpen(savedP === 'true')
+    }
+  }, [])
+
+  const toggleAstroOpen = () => {
+    setIsAstroOpen(prev => {
+      const next = !prev
+      localStorage.setItem('astro-nav-expanded', String(next))
+      return next
+    })
+  }
+
+  const togglePanchangOpen = () => {
+    setIsPanchangOpen(prev => {
+      const next = !prev
+      localStorage.setItem('panchang-nav-expanded', String(next))
+      return next
+    })
+  }
+
+  const renderTab = (t: { id: string; label: string; icon: string; path?: string }, isSub?: boolean) => {
+    const isCurrentPage = (t.path === pathname)
+    const isActive = t.path === '/' ? (isCurrentPage && activeTab === t.id) : isCurrentPage
+    const handleNav = () => {
+      setActiveTab(t.id)
+      if (window.innerWidth < 1024) setIsSidenavOpen(false)
+    }
+    const style: React.CSSProperties = {
+      display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.65rem 0.75rem',
+      background: isActive ? 'var(--gold-faint)' : 'transparent', border: 'none',
+      borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
+      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
+      borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
+      fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+      width: '100%', textDecoration: 'none',
+      paddingLeft: isSub ? '2rem' : '0.75rem' // indent sub-items
+    }
+    return (
+      <Link key={t.id} href={t.path || '/'} onClick={handleNav} style={style}>
+         <span style={{ fontSize: '1rem', opacity: isActive ? 1 : 0.5 }}>{t.icon}</span>
+         <span style={{ fontWeight: isActive ? 600 : 400 }}>{t.label}</span>
+      </Link>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'row', position: 'relative', overflow: 'hidden', background: 'var(--bg-page)' }}>
@@ -144,29 +208,61 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         {/* Navigation */}
         <nav style={{ flex: 1, padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <div className="label-caps" style={{ padding: '0.5rem 0.75rem', fontSize: '0.65rem', opacity: 0.5 }}>Navigation</div>
-          {TABS.map(t => {
-            const isCurrentPage = (t.path === pathname)
-            const isActive = t.path === '/' ? (isCurrentPage && activeTab === t.id) : isCurrentPage
-            const handleNav = () => {
-              setActiveTab(t.id)
-              if (window.innerWidth < 1024) setIsSidenavOpen(false)
-            }
-            const style: React.CSSProperties = {
-              display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.65rem 0.75rem',
-              background: isActive ? 'var(--gold-faint)' : 'transparent', border: 'none',
-              borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
-              color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-              borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
+          {TOP_TABS.map(t => renderTab(t))}
+          
+          <button
+            onClick={toggleAstroOpen}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+              background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+              color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
               fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
-              width: '100%', textDecoration: 'none'
-            }
-            return (
-              <Link key={t.id} href={t.path || '/'} onClick={handleNav} style={style}>
-                 <span style={{ fontSize: '1rem', opacity: isActive ? 1 : 0.5 }}>{t.icon}</span>
-                 <span style={{ fontWeight: isActive ? 600 : 400 }}>{t.label}</span>
-              </Link>
-            )
-          })}
+              width: '100%'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <span style={{ fontSize: '1rem', opacity: 0.5 }}>🌌</span>
+              <span>Astrology</span>
+            </div>
+            <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAstroOpen ? '▲' : '▼'}</span>
+          </button>
+          
+          <div style={{
+             overflow: 'hidden',
+             maxHeight: isAstroOpen ? '500px' : '0',
+             transition: 'max-height 0.3s ease-in-out',
+             display: 'flex', flexDirection: 'column', gap: '0.25rem'
+          }}>
+            {ASTRO_TABS.map(t => renderTab(t, true))}
+          </div>
+
+          <button
+            onClick={togglePanchangOpen}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+              background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+              color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
+              fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+              width: '100%'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <span style={{ fontSize: '1rem', opacity: 0.5 }}>📅</span>
+              <span>Pañcāṅga</span>
+            </div>
+            <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isPanchangOpen ? '▲' : '▼'}</span>
+          </button>
+          
+          <div style={{
+             overflow: 'hidden',
+             maxHeight: isPanchangOpen ? '500px' : '0',
+             transition: 'max-height 0.3s ease-in-out',
+             display: 'flex', flexDirection: 'column', gap: '0.25rem'
+          }}>
+            {PANCHANG_TABS.map(t => renderTab(t, true))}
+          </div>
+
+          {MAIN_TABS.map(t => renderTab(t))}
         </nav>
 
         {/* Bottom Actions */}

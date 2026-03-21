@@ -5,8 +5,8 @@
 //  each year using bisection search on swisseph
 // ─────────────────────────────────────────────────────────────
 
-import sweph from 'sweph'
-import { toJulianDay, getPlanetPosition, getAyanamsha } from './ephemeris'
+import { toJulianDay, getPlanetPosition, getAyanamsha, PLANET_IDS } from './ephemeris'
+import type { AyanamshaMode } from '@/types/astrology'
 
 export const runtime = 'nodejs'
 
@@ -22,25 +22,14 @@ export function findSolarReturnJD(
   returnYear:       number,  // the year to find the return in
   ayanamshaMode:    string,  // ayanamsha mode string
 ): number {
+  const mode = ayanamshaMode as AyanamshaMode
+
   // Estimate: use the same calendar date of birth in the return year
   // JD starts around Jan 1 of return year
   const jdJan1 = toJulianDay(returnYear, 1, 1, 12)
 
-  // Map ayanamsha string to sweph constant
-  const AYAN_MAP: Record<string, number> = {
-    lahiri:       sweph.SE_SIDM_LAHIRI,
-    true_chitra:  sweph.SE_SIDM_TRUE_CITRA,
-    true_revati:  sweph.SE_SIDM_TRUE_REVATI,
-    true_pushya:  sweph.SE_SIDM_TRUE_PUSHYA ?? sweph.SE_SIDM_LAHIRI,
-    raman:        sweph.SE_SIDM_RAMAN,
-    usha_shashi:  sweph.SE_SIDM_USHASHASHI ?? sweph.SE_SIDM_LAHIRI,
-    yukteshwar:   sweph.SE_SIDM_YUKTESHWAR ?? sweph.SE_SIDM_LAHIRI,
-  }
-  const ayanId = AYAN_MAP[ayanamshaMode] ?? sweph.SE_SIDM_LAHIRI
-  sweph.set_sid_mode(ayanId, 0, 0)
-
   // Get current Sun position at Jan 1 to orient the search
-  const sunAtJan1  = getSunSidereal(jdJan1)
+  const sunAtJan1  = getSunSidereal(jdJan1, mode)
   
   // Compute how many degrees Sun needs to travel to reach natal position
   let diff = ((natalSunSidereal - sunAtJan1) + 360) % 360
@@ -54,7 +43,7 @@ export function findSolarReturnJD(
 
   for (let i = 0; i < 50; i++) {
     const mid    = (lo + hi) / 2
-    const sunMid = getSunSidereal(mid)
+    const sunMid = getSunSidereal(mid, mode)
     
     // Angular difference (normalised to -180..180)
     let d = sunMid - natalSunSidereal
@@ -70,11 +59,12 @@ export function findSolarReturnJD(
   return (lo + hi) / 2
 }
 
-function getSunSidereal(jd: number): number {
-  const flags   = sweph.SEFLG_SWIEPH | sweph.SEFLG_SPEED
-  const result  = sweph.calc_ut(jd, sweph.SE_SUN, flags)
-  const ayan    = sweph.get_ayanamsa_ut(jd)
-  return ((result.longitude - ayan) + 360) % 360
+function getSunSidereal(jd: number, mode: AyanamshaMode): number {
+  // sun is 0 (sweph.constants.SE_SUN), which is what PLANET_IDS.Su resolves to
+  const planet = getPlanetPosition(jd, PLANET_IDS.Su ?? 0)
+  const ayan   = getAyanamsha(jd, mode)
+  
+  return ((planet.longitude - ayan) + 360) % 360
 }
 
 /**
