@@ -13,6 +13,9 @@ import { VarshaphalPanel }   from '@/components/ui/VarshaphalPanel'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
+import { AshtakavargaGrid }   from '@/components/ui/AshtakavargaGrid'
+import { YogaList }           from '@/components/ui/YogaList'
+import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import type { ChartOutput, Rashi } from '@/types/astrology'
@@ -254,6 +257,7 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 export default function HomePage() {
   const { data: session, status } = useSession()
   const { activeTab } = useAppLayout()
+  const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'yogini' | 'chara'>('vimshottari')
   const searchParams = useSearchParams()
   
@@ -369,6 +373,7 @@ export default function HomePage() {
             }}>
                {/* LEFT: Dominant chart area */}
                <div style={{ flex: '1 1 500px', minWidth: 'min(100%, 300px)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <TransitOverlay natalChart={chart} onTransitLoad={setTransitGrahas} />
                   <VargaSwitcher
                      vargas={chart.vargas}
                      vargaLagnas={chart.vargaLagnas ?? {}}
@@ -377,6 +382,7 @@ export default function HomePage() {
                      moonNakIndex={moonNakIndex}
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
+                     transitGrahas={transitGrahas ?? undefined}
                   />
                </div>
 
@@ -446,6 +452,26 @@ export default function HomePage() {
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                        <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Daily Pañcāṅga Analysis</h3>
                        <PanchangPanel p={chart.panchang} />
+                    </div>
+                 )}
+
+                 {activeTab === 'ashtakavarga' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Aṣṭakavarga</h3>
+                      {chart.ashtakavarga
+                        ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                        : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Aṣṭakavarga.</p>
+                      }
+                    </div>
+                 )}
+
+                 {activeTab === 'yogas' && (
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                      <h3 className="label-caps" style={{ marginBottom: '1rem' }}>Graha Yogas</h3>
+                      {chart.yogas
+                        ? <YogaList yogas={chart.yogas} />
+                        : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'var(--font-display)' }}>Recalculate chart to see Yogas.</p>
+                      }
                     </div>
                  )}
 

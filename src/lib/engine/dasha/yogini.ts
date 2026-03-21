@@ -54,9 +54,11 @@ export function calcYoginiDasha(
   const startYogini = yoginiForNakshatra(moonNakIndex)
 
   // Balance remaining in birth Yogini based on Moon position within nakshatra
-  const traversed     = moonDegInNak / NAK_SPAN          // fraction of nak traversed
-  const balanceFrac   = 1 - traversed
-  const balanceYears  = balanceFrac * YOGINIS[startYogini].years
+  // moonDegInNak is 0–NAK_SPAN degrees within the nakshatra
+  const traversed    = Math.max(0, Math.min(1, moonDegInNak / NAK_SPAN))
+  const balanceFrac  = 1 - traversed
+  // Ensure minimum 1 day balance to avoid zero-length periods
+  const balanceYears = Math.max(1 / 365.25, balanceFrac * YOGINIS[startYogini].years)
 
   const nodes: DashaNode[] = []
   let cursor = new Date(birthDate)

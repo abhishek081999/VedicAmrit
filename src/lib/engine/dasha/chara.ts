@@ -160,10 +160,12 @@ export function calcCharaDasha(
   // Calculate durations
   const durations = sequence.map(s => charaDuration(s, grahas))
 
-  // Find balance at birth
-  // The birth falls within the first dasha period
-  // We need to figure out how far through the first dasha we are
-  // (simplified: assume full first dasha starts at birth)
+  // Birth balance: calculate remaining portion of first sign dasha
+  // Based on degree of Lagna within its sign (0-30°)
+  // More traversed = less remaining
+  const lagnaDegreInSign = lagnas.ascDegreeInRashi ?? 0  // 0-30
+  const birthBalance = Math.max(0.1, 1 - (lagnaDegreInSign / 30))
+  const firstDurYears = durations[0] * birthBalance
 
   const nodes: DashaNode[] = []
   let cursor = new Date(birthDate)
@@ -171,7 +173,7 @@ export function calcCharaDasha(
 
   for (let i = 0; i < sequence.length; i++) {
     const sign  = sequence[i]
-    const years = durations[i]
+    const years = i === 0 ? firstDurYears : durations[i]
     const ms    = years * 365.25 * 24 * 60 * 60 * 1000
     const start = new Date(cursor)
     const end   = new Date(cursor.getTime() + ms)
