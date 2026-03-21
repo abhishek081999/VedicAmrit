@@ -6,7 +6,7 @@ import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
 
 // ── Prevent theme flash ───────────────────────────────────────
-const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark')}catch(e){}})();`
+const themeScript = `(function(){try{var t=localStorage.getItem('jyotish-theme');document.documentElement.setAttribute('data-theme',t==='light'?'light':t==='classic'?'classic':'dark')}catch(e){}})();`
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedicamrit.com'
 
