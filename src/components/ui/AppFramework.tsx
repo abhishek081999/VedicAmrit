@@ -45,7 +45,6 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
-
   useEffect(() => {
     const saved = localStorage.getItem('astro-nav-expanded')
     if (saved !== null) {
@@ -137,11 +136,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           >
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
-          {(!isSidenavOpen || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
-            <span className="fade-in" style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.02em' }}>
-              Vedic Amrit
-            </span>
-          )}
+          <span 
+            className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
+            style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)', letterSpacing: '0.02em' }}
+          >
+            Vedic Amrit
+          </span>
         </div>
 
         {/* Right: Actions */}

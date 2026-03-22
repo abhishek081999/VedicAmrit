@@ -1166,6 +1166,10 @@ select.input {
     margin-left: 0 !important;
   }
 
+  .hide-mobile {
+     display: none !important;
+  }
+
   /* Birth Details Form Drawer - Full width on mobile */
   .form-drawer {
     width: 100vw !important;
