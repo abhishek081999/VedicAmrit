@@ -28,8 +28,8 @@ const VerifySchema = z.object({
 })
 
 const PLAN_PRICES = {
-  vela: { monthly: 29900, yearly: 299000 },
-  hora: { monthly: 99900, yearly: 999000 },
+  vela: { monthly: 29900, yearly: 249900 },
+  hora: { monthly: 99900, yearly: 849900 },
 } as const
 
 function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {

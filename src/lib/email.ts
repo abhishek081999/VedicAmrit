@@ -39,3 +39,53 @@ export async function sendVerificationEmail(email: string, token: string) {
     return { success: false, error: err }
   }
 }
+export async function sendWelcomeEmail(email: string, plan: string, expiresAt: Date) {
+  const accountLink = `${baseUrl}/account`
+  const planLabel  = plan.charAt(0).toUpperCase() + plan.slice(1)
+  const expiryStr  = expiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: `Vedaansh <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      to: [email],
+      subject: `🪐 Welcome to ${planLabel}!`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h1 style="color: #c9a84c; text-align: center;">Welcome to ${planLabel}!</h1>
+          <p>Thank you for choosing Vedaansh. Your subscription has been activated successfully.</p>
+          
+          <div style="background: #fdfaf3; border: 1px solid #f2e9d1; padding: 20px; border-radius: 12px; margin: 25px 0;">
+            <p style="margin: 0; font-weight: bold; color: #c9a84c;">🎯 Your Subscription Details</p>
+            <ul style="list-style: none; padding: 0; margin: 15px 0 0 0;">
+              <li>Plan: <strong>${planLabel}</strong></li>
+              <li>Renew date: <strong>${expiryStr}</strong></li>
+            </ul>
+          </div>
+
+          <p>You now have full access to all ${planLabel} features, including advanced vargas, unlimited saves, and precise dasha periods.</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${accountLink}" 
+               style="background-color: #c9a84c; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 700;">
+              Go to My Account
+            </a>
+          </div>
+
+          <p style="font-size: 0.9rem; color: #666;">Namaste,<br>The Vedaansh Team</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="color: #999; font-size: 0.75rem; text-align: center;">© 2026 Vedaansh · Professional Jyotiṣa Platform</p>
+        </div>
+      `,
+    })
+
+    if (error) {
+      console.error('[email/welcome] resend error:', error)
+      return { success: false, error }
+    }
+
+    return { success: true, data }
+  } catch (err) {
+    console.error('[email/welcome] unexpected error:', err)
+    return { success: false, error: err }
+  }
+}

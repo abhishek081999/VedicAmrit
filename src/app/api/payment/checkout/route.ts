@@ -1,11 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-//  src/app/api/payment/checkout/route.ts
-//  POST /api/payment/checkout
-//  Creates a Razorpay order for Velā or Horā subscription.
-//  Returns { orderId, amount, currency, keyId } for the
-//  client to open the Razorpay checkout modal.
-// ─────────────────────────────────────────────────────────────
-
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import Razorpay from 'razorpay'
@@ -31,10 +23,10 @@ function getRazorpay(): Razorpay {
 }
 
 // ── Plan → amount map (paise = 1/100 of rupee) ───────────────
-
+// synced with src/app/pricing/page.tsx
 const PLAN_PRICES = {
-  vela: { monthly: 29900, yearly: 299000 },   // ₹299/mo, ₹2990/yr
-  hora: { monthly: 99900, yearly: 999000 },   // ₹999/mo, ₹9990/yr
+  vela: { monthly: 29900, yearly: 249900 },   // ₹299/mo, ₹2499/yr
+  hora: { monthly: 99900, yearly: 849900 },   // ₹999/mo, ₹8499/yr
 } as const
 
 // ── Input schema ──────────────────────────────────────────────
@@ -81,16 +73,21 @@ export async function POST(req: NextRequest) {
     // Create Razorpay customer if not already on file
     let customerId = user.razorpayCustomerId
     if (!customerId) {
-      const customer = await razorpay.customers.create({
-        name:  user.name,
-        email: user.email,
-        fail_existing: 0,
-      } as Parameters<typeof razorpay.customers.create>[0])
-      customerId = customer.id
-      await User.findByIdAndUpdate(user._id, { razorpayCustomerId: customerId })
+      try {
+        const customer = await razorpay.customers.create({
+          name:  user.name,
+          email: user.email,
+          fail_existing: 0,
+        } as Parameters<typeof razorpay.customers.create>[0])
+        customerId = customer.id
+        await User.findByIdAndUpdate(user._id, { razorpayCustomerId: customerId })
+      } catch (err) {
+        console.error('[payment/checkout] Customer creation failed', err)
+        // Non-blocking for now, continue with order
+      }
     }
 
-    // Create a one-time order (Razorpay subscription flow starts with an order)
+    // Create a one-time order
     const order = await razorpay.orders.create({
       amount:   amountPaise,
       currency: 'INR',
@@ -121,3 +118,4 @@ export async function POST(req: NextRequest) {
     )
   }
 }
+

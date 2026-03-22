@@ -209,31 +209,56 @@ export default function AccountPage() {
       <main style={{ flex: 1, maxWidth: 860, width: '100%', margin: '0 auto', padding: 'clamp(1.5rem,4vw,3rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
         {/* Profile hero */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
-            background: 'linear-gradient(135deg, rgba(201,168,76,0.3), rgba(139,124,246,0.3))',
-            border: '2px solid var(--border-bright)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-gold)',
-          }}>{initials}</div>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,4vw,2rem)', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.2rem 0' }}>
-              {user?.name ?? 'Vedic Soul'}
-            </h1>
-            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {user?.email}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
+              background: 'linear-gradient(135deg, rgba(201,168,76,0.3), rgba(139,124,246,0.3))',
+              border: '2px solid var(--border-bright)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-gold)',
+            }}>{initials}</div>
+            <div>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,4vw,2rem)', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.2rem 0' }}>
+                {user?.name ?? 'Vedic Soul'}
+              </h1>
+              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                {user?.email}
+              </div>
             </div>
-            <span style={{
-              display: 'inline-block', marginTop: '0.35rem',
-              padding: '0.15rem 0.6rem', borderRadius: 99,
-              background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.30)',
-              fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'var(--text-gold)', fontFamily: 'var(--font-display)',
-            }}>
-              {user?.plan ?? 'Kāla'} tier
-            </span>
           </div>
+          
+          {/* Subscription Section */}
+          <section style={{ 
+            background: 'var(--surface-1)', border: '1px solid var(--border)', 
+            borderRadius: 'var(--r-md)', padding: '0.75rem 1rem', display: 'flex', 
+            flexDirection: 'column', gap: '0.35rem', minWidth: 200,
+            boxShadow: 'var(--shadow-card-sm)' 
+          }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Plan</span>
+                <span style={{
+                  padding: '0.15rem 0.5rem', borderRadius: 6,
+                  background: user?.plan === 'kala' ? 'var(--surface-3)' : 'rgba(201,168,76,0.12)',
+                  border: `1px solid ${user?.plan === 'kala' ? 'var(--border)' : 'rgba(201,168,76,0.30)'}`,
+                  fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: user?.plan === 'kala' ? 'var(--text-secondary)' : 'var(--text-gold)', 
+                  fontFamily: 'var(--font-display)',
+                }}>
+                  {user?.plan ?? 'Kāla'}
+                </span>
+             </div>
+             {user?.plan !== 'kala' && user?.planExpiresAt && (
+               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+                 Expires: <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{new Date(user.planExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+               </div>
+             )}
+             {user?.plan === 'kala' && (
+               <Link href="/pricing" style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+                 Upgrade to Velā →
+               </Link>
+             )}
+          </section>
         </div>
 
         {/* Upgrade success banner */}
@@ -244,6 +269,7 @@ export default function AccountPage() {
             borderRadius: 'var(--r-md)', color: 'var(--teal)',
             fontFamily: 'var(--font-display)', fontSize: '0.9rem', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            animation: 'fadeIn 0.3s ease-out'
           }}>
             <span>{upgradeMsg}</span>
             <button

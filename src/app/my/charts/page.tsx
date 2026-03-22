@@ -25,6 +25,8 @@ interface SavedChart {
   isPublic:   boolean
   isPersonal: boolean
   slug:       string | null
+  views:      number
+  lastViewedAt: string | null
   createdAt:  string
 }
 
@@ -127,7 +129,12 @@ function ChartCard({
           <span className="badge badge-gold" style={{ fontSize: '0.62rem' }}>Personal</span>
         )}
         {chart.isPublic && (
-          <span className="badge badge-accent" style={{ fontSize: '0.62rem' }}>Public</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span className="badge badge-accent" style={{ fontSize: '0.62rem' }}>Public</span>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              👁 {chart.views ?? 0}
+            </span>
+          </div>
         )}
       </div>
 

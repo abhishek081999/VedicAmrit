@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select('name birthDate birthTime birthPlace latitude longitude timezone settings isPublic isPersonal slug createdAt')
+        .select('name birthDate birthTime birthPlace latitude longitude timezone settings isPublic isPersonal slug views lastViewedAt createdAt')
         .lean(),
       Chart.countDocuments({ userId: session.user.id }),
     ])

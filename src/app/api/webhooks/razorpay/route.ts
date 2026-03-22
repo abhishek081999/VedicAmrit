@@ -1,27 +1,9 @@
-// ─────────────────────────────────────────────────────────────
-//  src/app/api/webhooks/razorpay/route.ts
-//  POST /api/webhooks/razorpay
-//  Handles async Razorpay webhook events.
-//
-//  Configure in Razorpay Dashboard → Webhooks:
-//    URL: https://yourdomain.com/api/webhooks/razorpay
-//    Secret: set RAZORPAY_WEBHOOK_SECRET env var
-//    Events to enable:
-//      payment.captured
-//      subscription.activated
-//      subscription.charged
-//      subscription.cancelled
-//      subscription.completed
-//
-//  IMPORTANT: This route must NOT require auth — Razorpay calls
-//  it directly. Security comes from HMAC signature verification.
-// ─────────────────────────────────────────────────────────────
-
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import connectDB from '@/lib/db/mongodb'
 import { User } from '@/lib/db/models/User'
 import { Subscription } from '@/lib/db/models/Subscription'
+import { sendWelcomeEmail } from '@/lib/email'
 
 export const runtime = 'nodejs'
 
@@ -37,16 +19,6 @@ function verifyWebhookSignature(body: string, signature: string, secret: string)
 
 // ── Plan helpers ──────────────────────────────────────────────
 
-function planFromPlanId(planId: string): 'vela' | 'hora' | null {
-  if (planId.includes('vela')) return 'vela'
-  if (planId.includes('hora')) return 'hora'
-  return null
-}
-
-function intervalFromPlanId(planId: string): 'monthly' | 'yearly' {
-  return planId.includes('yearly') ? 'yearly' : 'monthly'
-}
-
 function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
   const d = new Date(date)
   if (interval === 'monthly') d.setMonth(d.getMonth() + 1)
@@ -54,39 +26,34 @@ function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {
   return d
 }
 
-// ── Event handlers ─────────────────────────────────────────────
-
 async function handlePaymentCaptured(payload: any) {
-  // payment.captured fires for one-time orders (our checkout flow)
-  // The verify route handles activation synchronously — this is a
-  // safety net for cases where the client callback failed.
   const payment   = payload?.payment?.entity
-  const orderId   = payment?.order_id
-  const paymentId = payment?.id
   const notes     = payment?.notes ?? {}
 
-  if (!notes.userId || !notes.plan) return   // not a subscription payment
+  if (!notes.userId || !notes.plan) return 
 
   await connectDB()
 
-  const existing = await Subscription.findOne({ providerSubscriptionId: paymentId })
-  if (existing?.status === 'active') return  // already activated by verify route
+  // Avoid duplicate processing if verify route already handled it
+  const existing = await Subscription.findOne({ providerSubscriptionId: payment.id })
+  if (existing?.status === 'active') return 
 
   const plan     = notes.plan     as 'vela' | 'hora'
   const interval = notes.interval as 'monthly' | 'yearly' ?? 'monthly'
   const now      = new Date()
   const expiry   = addInterval(now, interval)
-  const amount   = payment?.amount ?? 0
+  const amount   = payment.amount ?? 0
 
+  // 1. Update Subscription doc
   await Subscription.findOneAndUpdate(
-    { providerSubscriptionId: paymentId },
+    { providerSubscriptionId: payment.id },
     {
       $set: {
         userId:                 notes.userId,
         plan,
         provider:               'razorpay',
-        providerSubscriptionId: paymentId,
-        providerCustomerId:     orderId,
+        providerSubscriptionId: payment.id,
+        providerCustomerId:     payment.order_id,
         providerPlanId:         `${plan}_${interval}`,
         status:                 'active',
         interval,
@@ -98,91 +65,21 @@ async function handlePaymentCaptured(payload: any) {
       },
       $push: { events: { $each: [{ type: 'payment.captured', payload, receivedAt: now }], $slice: -10 } },
     },
-    { upsert: true },
+    { upsert: true }
   )
 
-  await User.findByIdAndUpdate(notes.userId, { plan, planExpiresAt: expiry })
-}
+  // 2. Upgrade User record
+  const user = await User.findByIdAndUpdate(notes.userId, { 
+    plan, 
+    planExpiresAt: expiry 
+  })
 
-async function handleSubscriptionCharged(payload: any) {
-  // Fires on successful renewal — extend expiry by one period
-  const sub    = payload?.subscription?.entity
-  const planId = sub?.plan_id ?? ''
-
-  if (!sub) return
-
-  await connectDB()
-
-  const plan     = planFromPlanId(planId)
-  const interval = intervalFromPlanId(planId)
-  const now      = new Date()
-  const expiry   = addInterval(now, interval)
-
-  const dbSub = await Subscription.findOneAndUpdate(
-    { providerSubscriptionId: sub.id },
-    {
-      $set: {
-        status:             'active',
-        currentPeriodStart: now,
-        currentPeriodEnd:   expiry,
-        cancelAtPeriodEnd:  false,
-      },
-      $push: { events: { $each: [{ type: 'subscription.charged', payload, receivedAt: now }], $slice: -10 } },
-    },
-    { new: true },
-  )
-
-  if (dbSub?.userId && plan) {
-    await User.findByIdAndUpdate(dbSub.userId, { plan, planExpiresAt: expiry })
+  // 3. Send Welcome Email
+  if (user?.email) {
+    await sendWelcomeEmail(user.email, plan, expiry)
   }
 }
 
-async function handleSubscriptionCancelled(payload: any) {
-  const sub = payload?.subscription?.entity
-  if (!sub) return
-
-  await connectDB()
-
-  const dbSub = await Subscription.findOneAndUpdate(
-    { providerSubscriptionId: sub.id },
-    {
-      $set: {
-        status:            'cancelled',
-        cancelAtPeriodEnd: true,
-        cancelledAt:       new Date(),
-      },
-      $push: { events: { $each: [{ type: 'subscription.cancelled', payload, receivedAt: new Date() }], $slice: -10 } },
-    },
-    { new: true },
-  )
-
-  // Don't downgrade immediately — let planExpiresAt handle it at period end
-  // The middleware checks planExpiresAt on each request
-  if (dbSub?.userId) {
-    console.log(`[webhook] Subscription cancelled for user ${dbSub.userId}, expires ${dbSub.currentPeriodEnd}`)
-  }
-}
-
-async function handleSubscriptionCompleted(payload: any) {
-  // Subscription ran its full term — downgrade to kala
-  const sub = payload?.subscription?.entity
-  if (!sub) return
-
-  await connectDB()
-
-  const dbSub = await Subscription.findOneAndUpdate(
-    { providerSubscriptionId: sub.id },
-    {
-      $set: { status: 'expired' },
-      $push: { events: { $each: [{ type: 'subscription.completed', payload, receivedAt: new Date() }], $slice: -10 } },
-    },
-    { new: true },
-  )
-
-  if (dbSub?.userId) {
-    await User.findByIdAndUpdate(dbSub.userId, { plan: 'kala', planExpiresAt: null })
-  }
-}
 
 // ── Main route handler ─────────────────────────────────────────
 
@@ -193,7 +90,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
   }
 
-  // Read raw body for signature verification
   const rawBody  = await req.text()
   const signature = req.headers.get('x-razorpay-signature') ?? ''
 
@@ -214,26 +110,16 @@ export async function POST(req: NextRequest) {
       case 'payment.captured':
         await handlePaymentCaptured(event.payload)
         break
-      case 'subscription.activated':
-      case 'subscription.charged':
-        await handleSubscriptionCharged(event.payload)
-        break
-      case 'subscription.cancelled':
-        await handleSubscriptionCancelled(event.payload)
-        break
-      case 'subscription.completed':
-        await handleSubscriptionCompleted(event.payload)
-        break
+      // You can add subscription.cancelled, etc. here later if using Recurring Subscriptions API
       default:
-        // Acknowledge unknown events — don't retry
         break
     }
 
     return NextResponse.json({ received: true })
 
   } catch (err) {
-    console.error(`[webhook/razorpay] Handler error for ${event.event}:`, err)
-    // Return 500 so Razorpay retries
+    console.error(`[webhook/razorpay] Handler error:`, err)
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 })
   }
 }
+

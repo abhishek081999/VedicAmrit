@@ -23,6 +23,8 @@ export interface IChart extends Document {
   isPersonal:boolean   // true = user's own birth chart
   slug:      string | null   // for public sharing
   notes:     Array<{ content: string; createdAt: Date }>
+  views:        number
+  lastViewedAt: Date | null
   cachedDataId: Types.ObjectId | null
   createdAt: Date
   updatedAt: Date
@@ -45,6 +47,8 @@ const ChartSchema = new Schema<IChart>({
     content:   { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
   }],
+  views:        { type: Number, default: 0 },
+  lastViewedAt: { type: Date,   default: null },
   cachedDataId: { type: Schema.Types.ObjectId, ref: 'ChartCache', default: null },
 }, {
   timestamps: true,

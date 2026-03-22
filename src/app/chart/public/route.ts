@@ -18,8 +18,15 @@ export async function GET(req: NextRequest) {
 
     await connectDB()
 
-    const chart = await Chart.findOne({ slug, isPublic: true })
-      .select('name birthDate birthTime birthPlace latitude longitude timezone settings slug createdAt')
+    const chart = await Chart.findOneAndUpdate(
+      { slug, isPublic: true },
+      { 
+        $inc: { views: 1 },
+        $set: { lastViewedAt: new Date() }
+      },
+      { new: true }
+    )
+      .select('name birthDate birthTime birthPlace latitude longitude timezone settings slug views lastViewedAt createdAt')
       .lean()
 
     if (!chart) {
