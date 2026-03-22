@@ -8,12 +8,12 @@ export async function sendVerificationEmail(email: string, token: string) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `Jyotish Platform <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
+      from: `Vedaansh <${process.env.FROM_EMAIL || 'onboarding@resend.dev'}>`,
       to: [email],
       subject: 'Verify your email address',
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #c9a84c;">🪐 Welcome to Jyotish Platform</h2>
+          <h2 style="color: #c9a84c;">🪐 Welcome to Vedaansh</h2>
           <p>Thank you for signing up! Please verify your email address to get started.</p>
           <div style="margin: 20px 0;">
             <a href="${verifyLink}" 
@@ -23,7 +23,7 @@ export async function sendVerificationEmail(email: string, token: string) {
           </div>
           <p style="color: #666; font-size: 0.8rem;">If you didn't create an account, you can ignore this email.</p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #999; font-size: 0.7rem;">© 2026 Jyotish Platform</p>
+          <p style="color: #999; font-size: 0.7rem;">© 2026 Vedaansh</p>
         </div>
       `,
     })

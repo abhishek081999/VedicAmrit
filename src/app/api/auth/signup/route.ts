@@ -64,8 +64,14 @@ export async function POST(req: Request) {
 
     await client.close()
 
-    // Send email
-    await sendVerificationEmail(email.toLowerCase(), verificationToken)
+    // Send verification email
+    const emailRes = await sendVerificationEmail(email.toLowerCase(), verificationToken)
+    
+    if (!emailRes.success) {
+      console.error('[signup] failed to send email:', emailRes.error)
+      // We don't fail the signup, but return success with a warning (or should we fail?)
+      // Let's return success but mentioned that delivery might be delayed/failed.
+    }
 
     return NextResponse.json({
       success: true,

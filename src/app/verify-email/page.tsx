@@ -1,36 +1,31 @@
 'use client'
-
 import { useEffect, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function VerifyEmailPage() {
-  const searchParams = useSearchParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const token = searchParams.get('token')
-
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-  const [message, setMessage] = useState('')
+  
+  const [status,  setStatus]  = useState<'loading' | 'success' | 'error'>('loading')
+  const [message, setMessage] = useState('Verifying your email address...')
 
   useEffect(() => {
     if (!token) {
       setStatus('error')
-      setMessage('No verification token provided.')
+      setMessage('Missing verification token.')
       return
     }
 
     async function verify() {
       try {
-        const res = await fetch('/api/auth/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        })
+        const res  = await fetch(`/api/auth/verify-email?token=${token}`)
         const data = await res.json()
-
+        
         if (data.success) {
           setStatus('success')
-          setMessage('Email verified successfully! You can now sign in.')
+          setMessage('Email verified! Redirecting to login...')
           setTimeout(() => router.push('/login'), 3000)
         } else {
           setStatus('error')
@@ -38,7 +33,7 @@ export default function VerifyEmailPage() {
         }
       } catch (err) {
         setStatus('error')
-        setMessage('A network error occurred.')
+        setMessage('Network error during verification.')
       }
     }
 
@@ -46,40 +41,26 @@ export default function VerifyEmailPage() {
   }, [token, router])
 
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg-deep)', padding: '2rem'
-    }}>
-      <div className="card" style={{ maxWidth: 400, width: '100%', textAlign: 'center' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-gold)', marginBottom: '1.5rem' }}>
-          Email Verification
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)', padding: '2rem' }}>
+      <div className="card fade-up" style={{ maxWidth: 420, width: '100%', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: '1.5rem' }}>
+          {status === 'loading' && '⌛'}
+          {status === 'success' && '✅'}
+          {status === 'error' && '❌'}
+        </div>
+
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
+          {status === 'loading' ? 'Verifying...' : status === 'success' ? 'Email Verified' : 'Verification Error'}
         </h1>
 
-        {status === 'loading' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            <div className="spin-loader" style={{ width: 40, height: 40, borderTopColor: 'var(--gold)' }} />
-            <p style={{ color: 'var(--text-muted)' }}>Verifying your email...</p>
-          </div>
-        )}
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: 1.6 }}>
+          {message}
+        </p>
 
-        {status === 'success' && (
-          <div className="fade-up">
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✨</div>
-            <p style={{ color: 'var(--text-primary)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>{message}</p>
-            <Link href="/login" className="btn btn-primary" style={{ display: 'inline-flex' }}>
-              Go to Login
-            </Link>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div className="fade-up">
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
-            <p style={{ color: 'var(--rose)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>{message}</p>
-            <Link href="/signup" className="btn btn-ghost" style={{ display: 'inline-flex' }}>
-              Back to Signup
-            </Link>
-          </div>
+        {status !== 'loading' && (
+          <Link href="/login" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+            Continue to Login
+          </Link>
         )}
       </div>
     </div>
