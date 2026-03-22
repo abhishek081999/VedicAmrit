@@ -415,7 +415,22 @@ code,
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* ── Buttons ────────────────────────────────────────────────── */
+/* ── Mobile Tab Scroll ────────────────────────────────────── */
+.mobile-tab-scroll {
+  display: flex !important;
+  gap: 0.5rem !important;
+  overflow-x: auto !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.mobile-tab-scroll::-webkit-scrollbar {
+  display: none;
+}
+.mobile-tab-scroll > button {
+  white-space: nowrap !important;
+  flex: 0 0 auto !important;
+}
 
 .btn {
   display: inline-flex;
@@ -998,9 +1013,14 @@ select.input {
   gap: 0.75rem;
 }
 
-@media (max-width: 600px) {
+.grid-responsive-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
   .grid-responsive-2 {
-    display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
   }
@@ -1211,8 +1231,28 @@ select.input {
   .chart-layout-grid {
     display: grid;
     grid-template-columns: 1fr 380px;
-    gap: 1.5rem;
+    gap: 2.5rem;
     align-items: start;
+    width: 100%;
+  }
+
+  .sticky-desktop {
+    position: sticky;
+    top: 5.5rem;
+    align-self: flex-start;
+  }
+}
+
+/* Tablet & Mobile tweaks for chart grid */
+@media (max-width: 1023px) {
+  .chart-layout-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  
+  .sticky-desktop {
+    position: static !important;
   }
 }
 

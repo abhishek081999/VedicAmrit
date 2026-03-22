@@ -8,8 +8,9 @@
 import React from 'react'
 import {
   GrahaData, LagnaData, RASHI_SHORT, NAKSHATRA_SHORT,
-  GRAHA_NAMES, Rashi
+  GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_SANSKRIT, Rashi, GrahaId
 } from '@/types/astrology'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -23,7 +24,8 @@ function fmtDMS(totalDeg: number) {
   const rshort = RASHI_SHORT[(rashiBase % 12 + 1) as Rashi]
   return {
     display: `${String(d).padStart(2, '0')} ${rshort} ${String(m).padStart(2, '0')}' ${String(s).padStart(2, '0')}"`,
-    rshort
+    rshort,
+    rashiIdx: (rashiBase % 12 + 1) as Rashi
   }
 }
 
@@ -79,7 +81,8 @@ function dignityBadge(dignity: string) {
 // ── Types ─────────────────────────────────────────────────────
 
 interface BodyInfo {
-  name: string
+  id?:    GrahaId | string
+  name:   string
   totalDeg: number
   isRetro?: boolean
   karaka?: string | null
@@ -98,6 +101,8 @@ interface GrahaTableProps {
 // ── Component ────────────────────────────────────────────────
 
 export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: GrahaTableProps) {
+  const { language } = useAppLayout()
+  const isSa = language === 'sa'
 
   // 1. Build a combined List of all bodies
   const bodies: BodyInfo[] = []
@@ -108,7 +113,8 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
     .filter(g => !limited || main9.includes(g.id))
     .forEach(g => {
     bodies.push({
-      name: GRAHA_NAMES[g.id],
+      id: g.id,
+      name: isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
       totalDeg: g.totalDegree,
       isRetro: g.isRetro,
       karaka: g.charaKaraka,
@@ -202,7 +208,10 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
 
                 {/* Rashi (Navamsha) */}
                 <td style={{ padding: '0.55rem 0.75rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-                  {dms.rshort} <span style={{ fontSize: '0.75rem', color: 'var(--primary-brand)', opacity: 0.7 }}>({RASHI_SHORT[nav]})</span>
+                  {isSa ? RASHI_SANSKRIT[dms.rashiIdx as Rashi] : dms.rshort}
+                  <span style={{ fontSize: '0.75rem', color: 'var(--primary-brand)', opacity: 0.7, marginLeft: 4 }}>
+                    ({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})
+                  </span>
                 </td>
 
                 {/* Dignity */}

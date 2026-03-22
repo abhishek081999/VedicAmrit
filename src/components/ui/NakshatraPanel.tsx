@@ -136,7 +136,7 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
         {/* RIGHT: Analysis panel */}
         <div style={{flex:'1 1 350px',width: '100%', minWidth:300,display:'flex',flexDirection:'column',gap:'1rem'}}>
           {/* Sub-tab bar */}
-          <div style={{display:'flex',gap:'3px',flexWrap:'wrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)'}}>
+          <div className="mobile-tab-scroll" style={{display:'flex',gap:'3px',flexWrap:'nowrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)', overflowX: 'auto'}}>
             {TABS.map(t=>(
               <button key={t.id} onClick={()=>setSubTab(t.id)} style={{
                 flex:'1 1 auto',padding:'0.42rem 0.5rem',

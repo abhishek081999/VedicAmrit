@@ -32,6 +32,7 @@ import { calculateAshtakavarga } from './ashtakavarga'
 import { detectYogas }           from './yogas'
 import { calcYoginiDasha }       from './dasha/yogini'
 import { calcCharaDasha }        from './dasha/chara'
+import { calcAshtottari }        from './dasha/ashtottari'
 import { calcVimshottari } from '@/lib/engine/dasha/vimshottari'
 import {
   getKarana, getNakshatra, getTithi,
@@ -317,7 +318,7 @@ export async function calculateChart(
     dashas: {
       vimshottari,
       yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, 2),
-      ashtottari: [],
+      ashtottari: calcAshtottari(moon.lonSidereal, birthUtc, 3),
       chara: calcCharaDasha(grahas, lagnaData, birthUtc, 2),
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },

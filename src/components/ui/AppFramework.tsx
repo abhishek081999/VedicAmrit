@@ -39,7 +39,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab } = useAppLayout()
+  const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
   const { chart, setIsFormOpen } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
@@ -151,6 +151,24 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <Link href="/my/charts" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Library</Link>
           </nav>
           <div className="hide-mobile" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+          
+          {/* Language Switcher */}
+          <div style={{ display: 'flex', background: 'var(--surface-3)', borderRadius: 'var(--r-sm)', padding: '2px', border: '1px solid var(--border-soft)' }}>
+            <button 
+              onClick={() => { const next = language === 'en' ? 'sa' : 'en'; setLanguage(next); }}
+              style={{
+                padding: '0.2rem 0.5rem', borderRadius: 'calc(var(--r-sm) - 1px)',
+                background: 'transparent', border: 'none',
+                fontSize: '0.65rem', fontWeight: 700, cursor: 'pointer',
+                color: language === 'en' ? 'var(--text-gold)' : 'var(--text-muted)',
+                fontFamily: 'var(--font-display)', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', gap: '4px'
+              }}
+            >
+              {language === 'en' ? 'EN' : 'सं'}
+            </button>
+          </div>
+
           <ThemeToggle />
         </div>
       </header>
