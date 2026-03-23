@@ -32,6 +32,7 @@ function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=t
 
 interface Props {
   vargas: Record<string,GrahaData[]>; vargaLagnas: Record<string,Rashi>
+  lagnas?: import('@/types/astrology').LagnaData
   ascRashi: Rashi; arudhas?: ArudhaData; userPlan?: UserPlan
   size?: number; moonNakIndex?: number; tithiNumber?: number; varaNumber?: number
   transitGrahas?: GrahaData[]; direction?: 'grid'|'column'
@@ -101,7 +102,7 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
 }
 
 export function VargaSwitcher({
-  vargas, vargaLagnas, ascRashi, arudhas, userPlan='kala',
+  vargas, vargaLagnas, ascRashi, arudhas, userPlan='kala', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid',
 }: Props) {
@@ -183,7 +184,7 @@ export function VargaSwitcher({
               <div style={{ display:'flex',justifyContent:'center',marginTop:'1rem' }}>
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={360}
-                  userPlan={userPlan} defaultStyle="north" arudhas={arudhas}
+                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={arudhas}
                   transitGrahas={transitGrahas} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
                 />

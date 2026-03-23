@@ -10,7 +10,9 @@ import React, { useState } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
-import type { GrahaData, Rashi, ChartStyle, ArudhaData } from '@/types/astrology'
+import { CircleChakra }         from './CircleChakra'
+import { BhavaChakra }          from './BhavaChakra'
+import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
 
 // ── Props ─────────────────────────────────────────────────────
 
@@ -23,6 +25,7 @@ interface ChakraSelectorProps {
   transitGrahas?: GrahaData[]  // transit planet overlay
   tithiNumber?:  number    // 1–30
   varaNumber?:   number    // 0=Sun … 6=Sat
+  lagnas?:       LagnaData
   defaultStyle?: ChartStyle
   size?:         number
   userPlan?:     'kala' | 'vela' | 'hora'
@@ -31,7 +34,7 @@ interface ChakraSelectorProps {
 // ── Style definitions ─────────────────────────────────────────
 
 const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string }[] = [
-  { id: 'north',         label: 'North Indian',  shortLabel: 'North', description: 'Houses fixed, signs rotate' },
+  { id: 'north',         label: 'North Indian',  shortLabel: 'North', description: 'Houses fixed, signs rotate',  tier: 'kala' } as const,
   { id: 'south',         label: 'South Indian',  shortLabel: 'South', description: 'Signs fixed, houses rotate' },
   { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',   description: '9×9 nakshatra wheel' },
 ]
@@ -43,6 +46,7 @@ const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: 
 export function ChakraSelector({
   ascRashi,
   grahas,
+  lagnas,
   moonNakIndex = 0,
   arudhas,
   tithiNumber  = 1,
@@ -96,11 +100,12 @@ export function ChakraSelector({
       }}>
         {STYLES.map((s) => {
           const active = style === s.id
+          const locked = s.tier === 'vela' && userPlan === 'kala'
           return (
             <button
               key={s.id}
-              onClick={() => setStyle(s.id as ChartStyle)}
-              title={s.description}
+              onClick={() => locked ? (window.location.href='/pricing') : setStyle(s.id as ChartStyle)}
+              title={locked ? `${s.label} requires Vela plan` : s.description}
               style={{
                 padding: '0.3rem 0.75rem',
                 fontSize: '0.82rem',
@@ -225,6 +230,35 @@ export function ChakraSelector({
             showVara={showVara}
             fontScale={fontScale}
           />
+        )}
+
+        {style === 'circle' && (
+          <CircleChakra
+            ascRashi={ascRashi} grahas={displayGrahas}
+            size={Math.round(size * chartScale)}
+            showDegrees={showDegrees} showNakshatra={showNakshatra}
+            showKaraka={showKaraka} showArudha={showArudha}
+            arudhas={arudhas} transitGrahas={transitGrahas}
+            fontScale={fontScale} planetScale={planetScale}
+          />
+        )}
+        {(style === 'bhava' || style === 'bhava_chalita') && lagnas && (
+          <BhavaChakra
+            ascRashi={ascRashi} ascDegree={lagnas.ascDegree}
+            cusps={style === 'bhava_chalita' ? lagnas.bhavalCusps : lagnas.cusps}
+            grahas={displayGrahas} size={Math.round(size * chartScale)}
+            showDegrees={showDegrees} showNakshatra={showNakshatra}
+            showKaraka={showKaraka} showArudha={showArudha}
+            arudhas={arudhas} transitGrahas={transitGrahas}
+            fontScale={fontScale} planetScale={planetScale}
+            showCuspDegrees={showDegrees}
+            label={style === 'bhava_chalita' ? 'Bhava Chalita' : 'Bhava Chakra'}
+          />
+        )}
+        {(style === 'bhava' || style === 'bhava_chalita') && !lagnas && (
+          <div style={{padding:'2rem',textAlign:'center',color:'var(--text-muted)',fontSize:'0.85rem'}}>
+            Bhava Chakra requires chart data.
+          </div>
         )}
       </div>
 
