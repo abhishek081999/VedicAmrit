@@ -11,7 +11,7 @@ import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
 import { CircleChakra }          from './CircleChakra'
-import { BhavaChakra }           from './BhavaChakra'
+
 import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
 
 // ── Props ─────────────────────────────────────────────────────
@@ -38,8 +38,7 @@ const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: 
   { id: 'south',         label: 'South Indian',  shortLabel: 'South',   description: 'Signs fixed, houses rotate' },
   { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',     description: '9×9 nakshatra wheel' },
   { id: 'circle',        label: 'Circle Wheel',  shortLabel: 'Circle',  description: '12 equal slices, ascendant at 9 o\'clock' },
-  { id: 'bhava',         label: 'Bhava Chakra',  shortLabel: 'Bhava',   description: 'Unequal houses from actual Placidus cusps', tier: 'vela' },
-  { id: 'bhava_chalita', label: 'Bhava Chalita', shortLabel: 'Chalita', description: 'Sripati Bhava Chalita midpoint wheel',       tier: 'vela' },
+
 ]
 
 
@@ -59,7 +58,7 @@ export function ChakraSelector({
   userPlan     = 'kala',
   transitGrahas = [],
 }: ChakraSelectorProps) {
-  const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle','bhava','bhava_chalita']
+  const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
     VALID_STYLES.includes(defaultStyle as ChartStyle) ? defaultStyle as ChartStyle : 'north'
   )
@@ -70,6 +69,7 @@ export function ChakraSelector({
   const [showTithi,     setShowTithi]     = useState(true)
   const [showVara,      setShowVara]      = useState(true)
   const [onlyNine,      setOnlyNine]      = useState(true)
+  const [showNatal,     setShowNatal]     = useState(true)
 
   // Typography scaling
   const [fontScale,     setFontScale]     = useState(1.10)
@@ -151,6 +151,9 @@ export function ChakraSelector({
               {arudhas && (
                 <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
               )}
+              {transitGrahas.length > 0 && (
+                <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
+              )}
             </>
           )}
           {isSBC && (
@@ -199,7 +202,7 @@ export function ChakraSelector({
         {style === 'south' && (
           <SouthIndianChakra
             ascRashi={ascRashi}
-            grahas={displayGrahas}
+            grahas={showNatal ? displayGrahas : []}
             arudhas={arudhas}
             transitGrahas={transitGrahas}
             showArudha={showArudha}
@@ -216,7 +219,7 @@ export function ChakraSelector({
         {style === 'north' && (
           <NorthIndianChakra
             ascRashi={ascRashi}
-            grahas={displayGrahas}
+            grahas={showNatal ? displayGrahas : []}
             arudhas={showArudha ? arudhas : undefined}
             transitGrahas={transitGrahas}
             size={Math.round(size * chartScale)}
@@ -231,7 +234,7 @@ export function ChakraSelector({
         )}
         {style === 'sarvatobhadra' && (
           <SarvatobhadraChakra
-            grahas={displayGrahas}
+            grahas={showNatal ? displayGrahas : []}
             moonNakIndex={moonNakIndex}
             tithiNumber={tithiNumber}
             varaNumber={varaNumber}
@@ -244,7 +247,7 @@ export function ChakraSelector({
 
         {style === 'circle' && (
           <CircleChakra
-            ascRashi={ascRashi} grahas={displayGrahas}
+            ascRashi={ascRashi} grahas={showNatal ? displayGrahas : []}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees} showNakshatra={showNakshatra}
             showKaraka={showKaraka} showArudha={showArudha}
@@ -252,24 +255,7 @@ export function ChakraSelector({
             fontScale={fontScale} planetScale={planetScale}
           />
         )}
-        {(style === 'bhava' || style === 'bhava_chalita') && lagnas && (
-          <BhavaChakra
-            ascRashi={ascRashi} ascDegree={lagnas.ascDegree}
-            cusps={style === 'bhava_chalita' ? lagnas.bhavalCusps : lagnas.cusps}
-            grahas={displayGrahas} size={Math.round(size * chartScale)}
-            showDegrees={showDegrees} showNakshatra={showNakshatra}
-            showKaraka={showKaraka} showArudha={showArudha}
-            arudhas={arudhas} transitGrahas={transitGrahas}
-            fontScale={fontScale} planetScale={planetScale}
-            showCuspDegrees={showDegrees}
-            label={style === 'bhava_chalita' ? 'Bhava Chalita' : 'Bhava Chakra'}
-          />
-        )}
-        {(style === 'bhava' || style === 'bhava_chalita') && !lagnas && (
-          <div style={{padding:'2rem',textAlign:'center',color:'var(--text-muted)',fontSize:'0.85rem'}}>
-            Bhava Chakra requires chart data.
-          </div>
-        )}
+
       </div>
 
       {/* ── Legend ────────────────────────────────────────── */}

@@ -34,7 +34,6 @@ const RATING_COL: Record<string,string> = {
 // ── Sub-tabs ──────────────────────────────────────────────────
 type SubTab='overview'|'navtara'|'bestdays'|'muhurta'|'panchaka'|'planet'|'compat'|'remedies'
 const TABS: {id:SubTab;label:string;icon:string}[] = [
-  {id:'overview', label:'Overview',   icon:'🌟'},
   {id:'navtara',  label:'Navtara',    icon:'🔯'},
   {id:'bestdays', label:'Best Days',  icon:'📅'},
   {id:'muhurta',  label:'Muhurta',    icon:'⚡'},
@@ -45,8 +44,14 @@ const TABS: {id:SubTab;label:string;icon:string}[] = [
 ]
 
 // ── Main ─────────────────────────────────────────────────────
-export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
-  const [subTab, setSubTab] = useState<SubTab>('overview')
+export function NakshatraPanel({ chart, initialTab = 'navtara' }: { chart: ChartOutput; initialTab?: SubTab }) {
+  const [subTab, setSubTab] = useState<SubTab>(initialTab === 'overview' ? 'navtara' : initialTab)
+
+  React.useEffect(() => {
+    if (initialTab) {
+      setSubTab(initialTab === 'overview' ? 'navtara' : initialTab)
+    }
+  }, [initialTab])
 
   const moon = chart.grahas.find(g => g.id === 'Mo')
   const birthNakIdx = moon?.nakshatraIndex ?? 0
@@ -106,12 +111,12 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
         </div>
       </div>
 
-      {/* ── Two-column layout: chart + panel ── */}
+      {/* ── Two-column layout: chart + permanent overview ── */}
       <div style={{display:'flex',gap:'1.5rem',alignItems:'flex-start',flexWrap:'wrap'}}>
 
         {/* LEFT: D1 Chart */}
-        <div style={{ flex: '1 1 auto', width: '100%', maxWidth: '100%', display: 'flex', justifyContent: 'center' }}>
-          <div className="card" style={{ padding: '1rem', width: '100%', maxWidth: 500 }}>
+        <div style={{ flex: '1 1 480px', maxWidth: '520px', display: 'flex', justifyContent: 'center' }}>
+          <div className="card" style={{ padding: '1rem', width: '100%' }}>
             <div style={{fontSize:'0.62rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.6rem'}}>
               D1 · Rashi Chart — Janma Lagna
             </div>
@@ -123,9 +128,9 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
               tithiNumber={tithiNum}
               varaNumber={varaNum}
               defaultStyle="north"
-              size={340} // Reduced base size for better mobile fit
+              size={360} 
             />
-            {/* Quick nakshatra badge per house */}
+            {/* Quick nakshatra badge */}
             <div style={{marginTop:'0.75rem',padding:'0.6rem',background:'var(--surface-2)',borderRadius:'var(--r-sm)',fontSize:'0.72rem',color:'var(--text-muted)',lineHeight:1.6}}>
               <span style={{color:'var(--gold)',fontWeight:600}}>Moon</span> in {chars.name} Pada {chars.pada} · 
               <span style={{color:'#818cf8',marginLeft:4}}>Nakshatra Lord: {GRAHA_NAMES[chars.lord]}</span>
@@ -133,37 +138,47 @@ export function NakshatraPanel({ chart }: { chart: ChartOutput }) {
           </div>
         </div>
 
-        {/* RIGHT: Analysis panel */}
-        <div style={{flex:'1 1 350px',width: '100%', minWidth:300,display:'flex',flexDirection:'column',gap:'1rem'}}>
-          {/* Sub-tab bar */}
-          <div className="mobile-tab-scroll" style={{display:'flex',gap:'3px',flexWrap:'nowrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)', overflowX: 'auto'}}>
-            {TABS.map(t=>(
-              <button key={t.id} onClick={()=>setSubTab(t.id)} style={{
-                flex:'1 1 auto',padding:'0.42rem 0.5rem',
-                background:subTab===t.id?'var(--surface-1)':'transparent',
-                border:'none',borderRadius:'calc(var(--r-md) - 2px)',cursor:'pointer',
-                color:subTab===t.id?'var(--text-gold)':'var(--text-muted)',
-                fontWeight:subTab===t.id?700:400,fontSize:'0.7rem',
-                boxShadow:subTab===t.id?'0 2px 8px rgba(0,0,0,.2)':'none',
-                transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:'0.25rem',
-              }}>
-                <span>{t.icon}</span><span style={{whiteSpace:'nowrap'}}>{t.label}</span>
-              </button>
-            ))}
+        {/* RIGHT: Permanent Overview Analysis + Tabs */}
+        <div style={{flex:'1 1 400px',width: '100%', minWidth:320,display:'flex',flexDirection:'column',gap:'1.25rem'}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+             <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--text-gold)', marginBottom: '0.25rem' }}>Janma Nakshatra Overview</div>
+             <OverviewTab chars={chars} />
           </div>
 
-          {/* Tab content */}
-          <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
-            {subTab==='overview'  && <OverviewTab chars={chars} />}
-            {subTab==='navtara'   && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
-            {subTab==='bestdays'  && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
-            {subTab==='muhurta'   && <MuhurtaTab nakIdx={birthNakIdx} />}
-            {subTab==='panchaka'  && <PanchakaTab grahas={chart.grahas} />}
-            {subTab==='planet'    && <PlanetTab positions={planetPos} moonNakIdx={birthNakIdx} />}
-            {subTab==='compat'    && <CompatTab birthNakIdx={birthNakIdx} />}
-            {subTab==='remedies'  && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
+          <div style={{ height: '1px', background: 'var(--border-soft)', margin: '0.5rem 0' }} />
+
+          {/* BOTTOM: Analysis Tabs (Dynamic content) */}
+          <div style={{display:'flex',flexDirection:'column',gap:'1.25rem'}}>
+            {/* Sub-tab bar */}
+            <div className="mobile-tab-scroll" style={{display:'flex',gap:'3px',flexWrap:'nowrap',background:'var(--surface-3)',borderRadius:'var(--r-md)',padding:'4px',border:'1px solid var(--border-soft)', overflowX: 'auto'}}>
+              {TABS.map(t=>(
+                <button key={t.id} onClick={()=>setSubTab(t.id)} style={{
+                  flex:'1 1 auto',padding:'0.42rem 0.5rem',
+                  background:subTab===t.id?'var(--surface-1)':'transparent',
+                  border:'none',borderRadius:'calc(var(--r-md) - 2px)',cursor:'pointer',
+                  color:subTab===t.id?'var(--text-gold)':'var(--text-muted)',
+                  fontWeight:subTab===t.id?700:400,fontSize:'0.7rem',
+                  boxShadow:subTab===t.id?'0 2px 8px rgba(0,0,0,.2)':'none',
+                  transition:'all 0.2s',display:'flex',alignItems:'center',justifyContent:'center',gap:'0.25rem',
+                }}>
+                  <span>{t.icon}</span><span style={{whiteSpace:'nowrap'}}>{t.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Tab content */}
+            <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+              {subTab==='navtara'   && <NavtaraTab navtara={navtara} birthNakIdx={birthNakIdx} />}
+              {subTab==='bestdays'  && <BestDaysTab birthNakIdx={birthNakIdx} moonLon={moonLon} />}
+              {subTab==='muhurta'   && <MuhurtaTab nakIdx={birthNakIdx} />}
+              {subTab==='panchaka'  && <PanchakaTab grahas={chart.grahas} />}
+              {subTab==='planet'    && <PlanetTab positions={planetPos} moonNakIdx={birthNakIdx} />}
+              {subTab==='compat'    && <CompatTab birthNakIdx={birthNakIdx} />}
+              {subTab==='remedies'  && <RemediesTab remedy={remedy} nakIdx={birthNakIdx} />}
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   )

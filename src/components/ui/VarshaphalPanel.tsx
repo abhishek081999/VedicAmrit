@@ -166,6 +166,7 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
               vargas={result.chart.vargas}
               vargaLagnas={result.chart.vargaLagnas ?? {}}
               ascRashi={result.chart.lagnas.ascRashi}
+              lagnas={result.chart.lagnas}
               arudhas={result.chart.arudhas}
               userPlan="kala"
               moonNakIndex={result.chart.grahas.find((g: GrahaData) => g.id === 'Mo')?.nakshatraIndex ?? 0}

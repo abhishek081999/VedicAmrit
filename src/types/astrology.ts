@@ -93,13 +93,12 @@ export const AYANAMSHA_NAMES: Record<AyanamshaMode, string> = {
 
 // ── House Systems ────────────────────────────────────────────
 
-export type HouseSystem = 'whole_sign' | 'placidus' | 'equal' | 'bhava_chalita'
+export type HouseSystem = 'whole_sign' | 'placidus' | 'equal'
 
 export const HOUSE_SYSTEM_NAMES: Record<HouseSystem, string> = {
   whole_sign:    'Whole Sign',
   placidus:      'Placidus',
   equal:         'Equal House',
-  bhava_chalita: 'Bhava Chalita (Sripati)',
 }
 
 // ── Node Mode ─────────────────────────────────────────────────
@@ -129,7 +128,7 @@ export type Dignity =
 
 // ── Chart Settings ───────────────────────────────────────────
 
-export type ChartStyle = 'south' | 'north' | 'circle' | 'bhava' | 'bhava_chalita' | 'sarvatobhadra'
+export type ChartStyle = 'south' | 'north' | 'circle' | 'sarvatobhadra'
 
 export interface ChartSettings {
   ayanamsha:    AyanamshaMode
@@ -209,11 +208,7 @@ export interface LagnaData {
   sriLagna:     number
   varnadaLagna: number
 
-  // House cusps (12 values, sidereal degrees)
   cusps:        number[]
-
-  // Bhava Chalita cusps (if applicable)
-  bhavalCusps:  number[]
 }
 
 // ── Nakshatra Info ───────────────────────────────────────────
@@ -395,7 +390,7 @@ export type UserPlan = 'kala' | 'vela' | 'hora'
 export const PLAN_LIMITS: Record<UserPlan, { charts: number; vargas: string[]; dashas: string[] }> = {
   kala: {
     charts: 0,  // no save
-    vargas: ['D1','D9','D60'],
+    vargas: ['D1','D9','D10'],
     dashas: ['vimshottari'],
   },
   vela: {

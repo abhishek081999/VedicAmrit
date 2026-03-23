@@ -362,6 +362,7 @@ export default function PublicChartPage() {
                   vargas={chart.vargas}
                   vargaLagnas={chart.vargaLagnas}
                   ascRashi={ascRashi ?? 1}
+                  lagnas={chart.lagnas}
                   arudhas={chart.arudhas}
                   userPlan="kala"
                   moonNakIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}

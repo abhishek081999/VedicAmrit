@@ -11,14 +11,25 @@ const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'dashboard', label: 'Dashboard',   icon: '◫', path: '/' },
 ]
 
+const NAKSHATRA_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'nakshatra-overview', label: 'Overview',  icon: '🌟', path: '/' },
+  { id: 'nakshatra-navtara',  label: 'Navtara',   icon: '🔯', path: '/' },
+  { id: 'nakshatra-bestdays', label: 'Best Days', icon: '📅', path: '/' },
+  { id: 'nakshatra-muhurta',  label: 'Muhurta',   icon: '⚡', path: '/' },
+  { id: 'nakshatra-panchaka', label: 'Panchaka',  icon: '🔥', path: '/' },
+  { id: 'nakshatra-planet',   label: 'Planet',    icon: '✦', path: '/' },
+  { id: 'nakshatra-compat',   label: 'Compat',    icon: '🔗', path: '/' },
+  { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: '/' },
+]
+
 const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
   { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
   { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
-  { id: 'arudhas',   label: 'Āruḍhas',     icon: '☯', path: '/' },
+
   { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
-  { id: 'nakshatra', label: 'Nakṣatra',    icon: '🌙', path: '/' },
+
   { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
 ]
 
@@ -40,9 +51,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
-  const { chart, setIsFormOpen } = useChart()
+  const { chart, isFormOpen, setIsFormOpen } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
+  const [isNakshatraOpen, setIsNakshatraOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   useEffect(() => {
@@ -53,6 +65,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     const savedP = localStorage.getItem('panchang-nav-expanded')
     if (savedP !== null) {
       setIsPanchangOpen(savedP === 'true')
+    }
+    const savedN = localStorage.getItem('nakshatra-nav-expanded')
+    if (savedN !== null) {
+      setIsNakshatraOpen(savedN === 'true')
     }
   }, [])
 
@@ -68,6 +84,14 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     setIsPanchangOpen(prev => {
       const next = !prev
       localStorage.setItem('panchang-nav-expanded', String(next))
+      return next
+    })
+  }
+
+  const toggleNakshatraOpen = () => {
+    setIsNakshatraOpen(prev => {
+      const next = !prev
+      localStorage.setItem('nakshatra-nav-expanded', String(next))
       return next
     })
   }
@@ -208,7 +232,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             width: 250, flexShrink: 0,
             background: 'var(--surface-2)',
             borderRight: '1px solid var(--border)',
-            zIndex: 300, display: 'flex', flexDirection: 'column',
+            zIndex: 1500, display: 'flex', flexDirection: 'column',
             position: 'fixed', top: 0, left: 0, bottom: 0,
             transform: isSidenavOpen ? 'translateX(0)' : 'translateX(-100%)',
             transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)',
@@ -318,6 +342,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             </div>
 
             <button
+              onClick={toggleNakshatraOpen}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
+                fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+                width: '100%'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <span style={{ fontSize: '1.1rem' }}>🌙</span>
+                <span style={{ fontWeight: 600, letterSpacing: '0.01em' }}>Nakṣatra</span>
+              </div>
+              <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isNakshatraOpen ? '▲' : '▼'}</span>
+            </button>
+            <div style={{
+              overflow: 'hidden',
+              maxHeight: isNakshatraOpen ? '800px' : '0',
+              transition: 'max-height 0.3s ease-in-out',
+              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+            }}>
+              {NAKSHATRA_TABS.map(t => renderTab(t, true))}
+            </div>
+
+            <button
               onClick={togglePanchangOpen}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
@@ -366,7 +415,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           className="main-content"
           style={{
             flex: 1, display: 'flex', flexDirection: 'column', position: 'relative',
-            zIndex: 1, overflowY: 'auto', minWidth: 0,
+            zIndex: isFormOpen ? 1200 : 1, overflowY: 'auto', minWidth: 0,
             transition: 'margin-left 0.4s cubic-bezier(0.16,1,0.3,1)',
             scrollBehavior: 'smooth'
           }}

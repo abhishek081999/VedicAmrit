@@ -497,6 +497,19 @@ code,
   transform: translateY(-1px);
 }
 
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-soft);
+}
+
+.btn-secondary:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+  background: var(--surface-3);
+  transform: translateY(-1px);
+}
+
 .btn-accent {
   background: linear-gradient(135deg, var(--accent-dim), var(--accent));
   color: white;
@@ -524,8 +537,10 @@ code,
   border-radius: var(--r-md);
   padding: 0.65rem 0.9rem;
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 1rem;
   color: var(--text-primary);
+  -webkit-appearance: none;
+  appearance: none;
   transition:
     border-color 0.2s,
     box-shadow 0.2s,
@@ -549,10 +564,22 @@ code,
   opacity: 0.75;
 }
 
-/* Fix date/time input text color in light mode */
 .input[type="date"],
 .input[type="time"] {
   color: var(--text-primary);
+  min-height: 2.75rem;
+  background: var(--surface-2);
+}
+
+.input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+[data-theme="light"] .input::-webkit-calendar-picker-indicator,
+[data-theme="classic"] .input::-webkit-calendar-picker-indicator {
+  filter: invert(0);
 }
 
 select.input {
@@ -1378,4 +1405,4 @@ select.input {
     page-break-before: always;
     break-before: page;
   }
-}
+}

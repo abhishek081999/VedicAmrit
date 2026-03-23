@@ -224,10 +224,10 @@ export function CircleChakra({
                 <text key={`t-${g.id}`}
                   x={px} y={py}
                   textAnchor="middle" dominantBaseline="central"
-                  fontSize={pf - 1} fontWeight={600}
+                  fontSize={pf - 2} fontWeight={600}
                   fill="rgba(139,124,246,0.9)"
                 >
-                  {GRAHA_SHORT[g.id] ?? g.id}
+                  {GRAHA_SHORT[g.id] ?? g.id}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
                 </text>
               )
             })}

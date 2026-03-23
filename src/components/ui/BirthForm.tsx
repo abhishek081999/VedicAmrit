@@ -88,8 +88,6 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchCache = useRef<Map<string, LocationResult[]>>(new Map())
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const jhdRef = useRef<HTMLInputElement>(null)
-  const [jhdMsg, setJhdMsg] = useState<string|null>(null)
   const didAutoSubmit = useRef(false)
 
   // ── Pre-fill and Auto-submit from URL ────────────────────────
@@ -254,86 +252,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   // ── Core calculation ──────────────────────────────────────
 
 
-  // ── JHD / SJS file import ────────────────────────────────
-  function parseJHD(text: string) {
-    setJhdMsg(null)
-    try {
-      const lines: Record<string,string> = {}
-      for (const line of text.split(/\r?\n/)) {
-        const eq = line.indexOf('='); if (eq === -1) continue
-        lines[line.slice(0,eq).trim().toLowerCase()] = line.slice(eq+1).trim()
-      }
-      if (lines['name']||lines['fullname']) setName(lines['name']||lines['fullname'])
-      const rd = lines['date']||lines['birthdate']||''
-      if (rd) {
-        const p = rd.split(/[\/\-\.]+/)
-        if (p.length===3) {
-          let y,m,d
-          if (p[0].length===4) [y,m,d]=p
-          else if (parseInt(p[2])>31) [m,d,y]=p
-          else [d,m,y]=p
-          setDate(`${y.padStart(4,'0')}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`)
-        }
-      }
-      const rt = lines['time']||lines['birthtime']||''
-      if (rt) {
-        const tp = rt.split(':')
-        if (tp.length>=2) setTime(`${tp[0].padStart(2,'0')}:${tp[1].padStart(2,'0')}:${(tp[2]??'00').padStart(2,'0')}`)
-      }
-      const latS = lines['lat']||lines['latitude']||''
-      const lngS = lines['lon']||lines['long']||lines['longitude']||''
-      if (latS) setLat(parseFloat(latS))
-      if (lngS) setLng(parseFloat(lngS))
-      if (lines['place']||lines['city']) setPlace(lines['place']||lines['city'])
-      const tzS = lines['tz']||lines['timezone']||''
-      if (tzS) {
-        const off = parseFloat(tzS)
-        if (Math.abs(off-5.5)<0.1) setTz('Asia/Kolkata')
-        else if (Math.abs(off-5.75)<0.1) setTz('Asia/Kathmandu')
-        else if (Math.abs(off)<0.1) setTz('UTC')
-      }
-      setJhdMsg('✓ Imported')
-    } catch { setJhdMsg('Could not parse file') }
-  }
 
-  function parseSJS(text: string) {
-    setJhdMsg(null)
-    try {
-      const m = text.match(/<person([^>]+)>/i); if (!m) throw new Error()
-      const attrs = m[1]
-      const attr = (k: string) => { const r = attrs.match(new RegExp(`${k}="([^"]*)"`, 'i')); return r?r[1]:'' }
-      const n = attr('name')||attr('fullname'); if (n) setName(n)
-      const rd = attr('birthdate')||attr('date')
-      if (rd) {
-        const p = rd.split(/[\/\-\.]+/)
-        if (p.length===3) {
-          let y,m2,d
-          if (p[0].length===4) [y,m2,d]=p
-          else if (parseInt(p[2])>31) [m2,d,y]=p
-          else [d,m2,y]=p
-          setDate(`${y.padStart(4,'0')}-${m2.padStart(2,'0')}-${d.padStart(2,'0')}`)
-        }
-      }
-      const rt = attr('birthtime')||attr('time')
-      if (rt) { const tp=rt.split(':'); if (tp.length>=2) setTime(`${tp[0].padStart(2,'0')}:${tp[1].padStart(2,'0')}:${(tp[2]??'00').padStart(2,'0')}`)}
-      const latS = attr('lat')||attr('latitude'); const lngS = attr('lon')||attr('lng')||attr('longitude')
-      if (latS) setLat(parseFloat(latS)); if (lngS) setLng(parseFloat(lngS))
-      const city = attr('city')||attr('place'); if (city) setPlace(city)
-      setJhdMsg('✓ Imported')
-    } catch { setJhdMsg('Could not parse SJS file') }
-  }
-
-  function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      if (file.name.endsWith('.sjs') || text.trim().startsWith('<')) parseSJS(text)
-      else parseJHD(text)
-    }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
 
   async function submitChart(
     nameVal: string, dateVal: string, timeVal: string,
@@ -446,35 +365,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   // ── Render ────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', overflow: 'hidden' }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', overflow: 'visible' }}>
       
 
-      {/* JHD / SJS File Import */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <input ref={jhdRef} type="file" accept=".jhd,.sjs,.txt" onChange={handleFileImport} style={{ display: 'none' }} />
-        <button
-          type="button"
-          onClick={() => jhdRef.current?.click()}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-            padding: '0.3rem 0.7rem',
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)', cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontSize: '0.78rem',
-            color: 'var(--text-secondary)', transition: 'all 0.15s',
-          }}
-        >
-          📂 Import .jhd / .sjs
-        </button>
-        {jhdMsg && (
-          <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-display)', color: jhdMsg.startsWith('✓') ? 'var(--teal)' : 'var(--rose)' }}>
-            {jhdMsg}
-          </span>
-        )}
-        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-          Jagannatha Hora / Sri Jyoti Star
-        </span>
-      </div>
+
 
       {/* Name Field */}
       <div style={{ width: '100%' }}>

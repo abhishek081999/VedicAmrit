@@ -372,7 +372,7 @@ export default function ComparePage() {
                       {chart.meta.name}
                       <span style={{ fontWeight:400,color:'var(--text-muted)',marginLeft:6,fontSize:'0.72rem' }}>{chart.meta.birthDate}</span>
                     </div>
-                    <VargaSwitcher vargas={chart.vargas} vargaLagnas={chart.vargaLagnas??{}} ascRashi={chart.lagnas.ascRashi} arudhas={chart.arudhas} userPlan={userPlan} direction="column" />
+                    <VargaSwitcher vargas={chart.vargas} vargaLagnas={chart.vargaLagnas??{}} ascRashi={chart.lagnas.ascRashi} lagnas={chart.lagnas} arudhas={chart.arudhas} userPlan={userPlan} direction="column" />
                   </div>
                 ))}
               </div>

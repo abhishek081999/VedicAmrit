@@ -189,6 +189,8 @@ export async function calculateChart(
 
   // Houses
   const houses = calcHouses(jd, input.latitude, input.longitude, settings.ayanamsha, settings.houseSystem)
+  
+
 
   // Karakas — stamp roles onto grahas
   const karakas = calcCharaKarakas(
@@ -245,7 +247,6 @@ export async function calculateChart(
     sriLagna:         sriLagnaVal,
     varnadaLagna:     varnadaVal,
     cusps:            houses.cuspsSidereal,
-    bhavalCusps:      houses.bhavasidereal,
   }
 
   // Vargas
@@ -297,7 +298,6 @@ export async function calculateChart(
       sriLagna:         lagnaData.sriLagna,
       varnadaLagna:     lagnaData.varnadaLagna,
       cusps:            lagnaData.cusps,
-      bhavalCusps:      lagnaData.bhavalCusps,
     },
     arudhas: {
       AL: bhavaArudhas.AL, A2: bhavaArudhas.A2,

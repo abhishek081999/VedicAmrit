@@ -451,17 +451,14 @@ export default function HomePage() {
             </div>
            
             {/* ── Nakshatra: full-width workspace (replaces two-column layout) ── */}
-            {activeTab.startsWith('nakshatra-') && (
+            {(activeTab === " nakshatra\ || activeTab.startsWith(\nakshatra-\)) && (
               <div className="card fade-up" style={{ padding: '1.25rem', width: '100%' }}>
-                <NakshatraPanel 
-                  chart={chart} 
-                  initialTab={activeTab.replace('nakshatra-', '') as any} 
-                />
+                <NakshatraPanel chart={chart} />
               </div>
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when nakshatra workspace active */}
-             {!activeTab.startsWith('nakshatra-') && <div className="chart-layout-grid">
+              {activeTab !== 'nakshatra' && !activeTab.startsWith('nakshatra-') && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 
@@ -750,6 +747,8 @@ export default function HomePage() {
                         <VarshaphalPanel natalChart={chart} />
                      </div>
                   )}
+
+
 
                   {activeTab === 'arudhas' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>

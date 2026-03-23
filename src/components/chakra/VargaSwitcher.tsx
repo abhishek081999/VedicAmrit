@@ -9,12 +9,12 @@ interface VargaMeta { name: string; full: string; topic: string; tier: 'kala'|'v
 const VARGA_META: VargaMeta[] = [
   { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'kala' },
   { name:'D9',  full:'Navamsha',        topic:'Spouse & marriage — inner self, manifests after 35',   tier:'kala' },
-  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'kala' },
+  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'vela' },
   { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'vela' },
   { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'vela' },
   { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'vela' },
   { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'vela' },
-  { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'vela' },
+  { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'kala' },
   { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'vela' },
   { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'vela' },
   { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'vela' },
@@ -185,7 +185,7 @@ export function VargaSwitcher({
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={360}
                   userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={arudhas}
-                  transitGrahas={transitGrahas} moonNakIndex={moonNakIndex}
+                  transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
                 />
               </div>
