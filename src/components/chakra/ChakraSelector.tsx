@@ -9,9 +9,10 @@
 import React, { useState } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
+import { EastIndianChakra }      from './EastIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
-import { CircleChakra }         from './CircleChakra'
-import { BhavaChakra }          from './BhavaChakra'
+import { CircleChakra }          from './CircleChakra'
+import { BhavaChakra }           from './BhavaChakra'
 import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
 
 // ── Props ─────────────────────────────────────────────────────
@@ -33,10 +34,14 @@ interface ChakraSelectorProps {
 
 // ── Style definitions ─────────────────────────────────────────
 
-const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string }[] = [
-  { id: 'north',         label: 'North Indian',  shortLabel: 'North', description: 'Houses fixed, signs rotate',  tier: 'kala' } as const,
-  { id: 'south',         label: 'South Indian',  shortLabel: 'South', description: 'Signs fixed, houses rotate' },
-  { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',   description: '9×9 nakshatra wheel' },
+const STYLES: { id: ChartStyle; label: string; shortLabel: string; description: string; tier?: string }[] = [
+  { id: 'north',         label: 'North Indian',  shortLabel: 'North',   description: 'Houses fixed, signs rotate' },
+  { id: 'south',         label: 'South Indian',  shortLabel: 'South',   description: 'Signs fixed, houses rotate' },
+  { id: 'east',          label: 'East Indian',   shortLabel: 'East',    description: 'Bengali / Odisha fixed-sign grid' },
+  { id: 'sarvatobhadra', label: 'Sarvatobhadra', shortLabel: 'SBC',     description: '9×9 nakshatra wheel' },
+  { id: 'circle',        label: 'Circle Wheel',  shortLabel: 'Circle',  description: '12 equal slices, ascendant at 9 o\'clock' },
+  { id: 'bhava',         label: 'Bhava Chakra',  shortLabel: 'Bhava',   description: 'Unequal houses from actual Placidus cusps', tier: 'vela' },
+  { id: 'bhava_chalita', label: 'Bhava Chalita', shortLabel: 'Chalita', description: 'Sripati Bhava Chalita midpoint wheel',       tier: 'vela' },
 ]
 
 
@@ -104,22 +109,27 @@ export function ChakraSelector({
           return (
             <button
               key={s.id}
-              onClick={() => locked ? (window.location.href='/pricing') : setStyle(s.id as ChartStyle)}
-              title={locked ? `${s.label} requires Vela plan` : s.description}
+              onClick={() => locked ? (window.location.href = '/pricing') : setStyle(s.id as ChartStyle)}
+              title={locked ? `${s.label} — requires Velā plan` : s.description}
               style={{
-                padding: '0.3rem 0.75rem',
-                fontSize: '0.82rem',
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.8rem',
                 fontFamily: 'Cormorant Garamond, serif',
                 letterSpacing: '0.04em',
                 cursor: 'pointer',
                 border: '1px solid',
                 borderRadius: '4px',
                 transition: 'all 0.15s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                opacity: locked ? 0.55 : 1,
                 background: active ? 'var(--gold-faint)' : 'transparent',
-                borderColor: active ? 'var(--gold)' : 'var(--border)',
+                borderColor: active ? 'var(--gold)' : locked ? 'var(--border-soft)' : 'var(--border)',
                 color: active ? 'var(--gold)' : 'var(--text-muted)',
               }}
             >
+              {locked && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
               {s.shortLabel}
             </button>
           )
@@ -216,6 +226,16 @@ export function ChakraSelector({
             planetScale={planetScale}
             infoScale={infoScale}
             arudhaScale={arudhaScale}
+          />
+        )}
+        {style === 'east' && (
+          <EastIndianChakra
+            ascRashi={ascRashi}
+            grahas={displayGrahas}
+            size={Math.round(size * chartScale)}
+            showDegrees={showDegrees}
+            showNakshatra={showNakshatra}
+            showKaraka={showKaraka}
           />
         )}
 
