@@ -103,67 +103,106 @@ Vedaansh/
 │   │   │   └── calendar/page.tsx     # Monthly Panchang calendar
 │   │   ├── muhurta/page.tsx          # Muhurta Finder (7 purposes)
 │   │   ├── my/charts/page.tsx        # Saved charts dashboard
-│   │   ├── chart/[slug]/page.tsx     # Public share page (SSR)
+│   │   ├── chart/[slug]/             # Public share page (SSR)
+│   │   │   ├── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── metadata.tsx
+│   │   │   └── opengraph-image.tsx
 │   │   ├── account/page.tsx          # User preferences + account
 │   │   ├── pricing/page.tsx          # Subscription tiers
 │   │   ├── login/ signup/ verify-email/
 │   │   └── api/
-│   │       ├── chart/                # calculate, save, list, delete
+│   │       ├── chart/                # calculate, save, list, delete, export
+│   │       │   ├── calculate/        # Main chart calculation endpoint
+│   │       │   ├── save/             # Save chart to MongoDB
+│   │       │   ├── list/             # Paginated chart list
+│   │       │   ├── delete/           # Delete chart
 │   │       │   ├── notes/            # Per-chart annotations
+│   │       │   ├── export/           # PDF export (Velā+)
 │   │       │   ├── public/           # GET by slug (no auth)
 │   │       │   ├── toggle-public/    # Share toggle
 │   │       │   └── varshaphal/       # Solar Return calculation
 │   │       ├── panchang/             # Daily Panchang + calendar
 │   │       ├── atlas/search/         # 5.1M location FTS5 search
-│   │       └── user/me/              # GET profile, PATCH preferences
+│   │       ├── auth/                 # NextAuth.js + custom auth
+│   │       │   ├── [...nextauth]/    # NextAuth.js handler
+│   │       │   ├── signup/           # Email/password registration
+│   │       │   ├── verify/           # Email verification
+│   │       │   ├── verify-email/     # Verify email token
+│   │       │   └── refresh-plan/     # Refresh user plan in session
+│   │       ├── payment/              # Razorpay integration
+│   │       │   ├── checkout/         # Create payment order
+│   │       │   └── verify/           # Verify payment
+│   │       ├── user/me/              # GET profile, PATCH preferences
+│   │       └── webhooks/razorpay/    # Razorpay webhook handler
 │   ├── lib/
 │   │   ├── engine/                   # 🔑 Core Jyotish engine (pure TS)
-│   │   │   ├── ephemeris.ts
-│   │   │   ├── ayanamsha.ts
-│   │   │   ├── houses.ts
-│   │   │   ├── nakshatra.ts
-│   │   │   ├── vargas.ts
-│   │   │   ├── arudhas.ts
-│   │   │   ├── karakas.ts
-│   │   │   ├── dignity.ts
-│   │   │   ├── shadbala.ts
-│   │   │   ├── ashtakavarga.ts
-│   │   │   ├── yogas.ts
-│   │   │   ├── ashtakoot.ts
-│   │   │   ├── varshaphal.ts
-│   │   │   ├── sunrise.ts
-│   │   │   ├── calculator.ts
-│   │   │   └── dasha/
-│   │   │       ├── vimshottari.ts
-│   │   │       ├── yogini.ts
-│   │   │       └── chara.ts
+│   │   │   ├── ephemeris.ts          # Swiss Ephemeris wrapper
+│   │   │   ├── ayanamsha.ts          # 7 ayanamsha modes
+│   │   │   ├── houses.ts             # House systems (Whole, Placidus, etc.)
+│   │   │   ├── nakshatra.ts          # Nakshatra, Tithi, Yoga, Karana
+│   │   │   ├── nakshatraAdvanced.ts  # Advanced nakshatra calculations
+│   │   │   ├── nakshatraRemedies.ts  # Nakshatra-based remedies
+│   │   │   ├── vargas.ts             # All 41 varga schemes (D1-D150)
+│   │   │   ├── arudhas.ts            # Bhava & Graha Arudhas
+│   │   │   ├── karakas.ts            # Chara Karakas (7/8 schemes)
+│   │   │   ├── dignity.ts            # Planetary dignity calculations
+│   │   │   ├── shadbala.ts           # All 6 strength components
+│   │   │   ├── ashtakavarga.ts       # BAV + SAV calculations
+│   │   │   ├── yogas.ts              # 6 yoga categories
+│   │   │   ├── ashtakoot.ts          # 36-point Gun Milan
+│   │   │   ├── varshaphal.ts         # Solar Return calculations
+│   │   │   ├── sunrise.ts            # Sunrise/sunset calculations
+│   │   │   ├── calculator.ts         # Main orchestrator
+│   │   │   └── dasha/                # Dasha systems
+│   │   │       ├── vimshottari.ts    # 120yr Vimshottari (6 levels)
+│   │   │       ├── yogini.ts         # 36yr Yogini Dasha
+│   │   │       └── chara.ts          # Jaimini Chara Dasha
 │   │   ├── db/
 │   │   │   ├── mongodb.ts            # MongoClient singleton
-│   │   │   └── models/               # User, Chart, ChartCache, Subscription
+│   │   │   └── models/               # User, Chart, Subscription
+│   │   ├── atlas/                    # Geo atlas SQLite + FTS5
+│   │   ├── pdf/                      # PDF generation utilities
 │   │   ├── redis.ts                  # Upstash Redis client
-│   │   └── email.ts                  # Resend client
+│   │   ├── email.ts                  # Resend client
+│   │   └── env.ts                    # Environment validation
 │   ├── components/
 │   │   ├── chakra/                   # SVG chart renderers
-│   │   │   ├── NorthIndianChakra.tsx # Diamond kite + transit overlay
-│   │   │   ├── SouthIndianChakra.tsx # 4×4 grid + transit overlay
-│   │   │   ├── SarvatobhadraChakra.tsx
-│   │   │   ├── VargaSwitcher.tsx     # D1 gold + side-by-side compare
-│   │   │   └── ChakraSelector.tsx
+│   │   │   ├── NorthIndianChakra.tsx # Diamond kite style
+│   │   │   ├── SouthIndianChakra.tsx # 4×4 grid style
+│   │   │   ├── EastIndianChakra.tsx  # Eastern style
+│   │   │   ├── CircleChakra.tsx      # Circular chart
+│   │   │   ├── SarvatobhadraChakra.tsx # SBC 9×9 grid
+│   │   │   ├── BhavaChakra.tsx       # Bhava Chalita view
+│   │   │   ├── ChakraSelector.tsx    # Style switcher
+│   │   │   └── VargaSwitcher.tsx     # Varga selection
 │   │   ├── dasha/
 │   │   │   └── DashaTree.tsx         # 6-level expandable tree
-│   │   └── ui/
-│   │       ├── AppFramework.tsx      # Collapsible sidebar (15 tabs)
-│   │       ├── BirthForm.tsx         # + JHD/SJS file import
-│   │       ├── GrahaTable.tsx
-│   │       ├── ShadbalaTable.tsx
-│   │       ├── AshtakavargaGrid.tsx
-│   │       ├── YogaList.tsx
-│   │       ├── TransitOverlay.tsx
-│   │       ├── VarshaphalPanel.tsx
-│   │       ├── ChartNotes.tsx
-│   │       └── ThemeToggle.tsx       # Dark / Light / Classic
-│   └── types/
-│       └── astrology.ts              # All TypeScript domain types
+│   │   ├── dashboard/
+│   │   │   └── PersonalDayCard.tsx   # Daily panchang card
+│   │   ├── providers/                # React context providers
+│   │   │   ├── ChartProvider.tsx
+│   │   │   ├── LayoutProvider.tsx
+│   │   │   └── SessionProvider.tsx
+│   │   └── ui/                       # UI components
+│   │       ├── AppFramework.tsx      # Collapsible sidebar
+│   │       ├── BirthForm.tsx         # Chart input form
+│   │       ├── LocationPicker.tsx    # Atlas search component
+│   │       ├── GrahaTable.tsx        # Planet positions table
+│   │       ├── ShadbalaTable.tsx     # Shadbala display
+│   │       ├── ShadbalaVisuals.tsx   # Visual strength bars
+│   │       ├── AshtakavargaGrid.tsx  # BAV/SAV grids
+│   │       ├── YogaList.tsx          # Detected yogas
+│   │       ├── NakshatraPanel.tsx    # Nakshatra details
+│   │       ├── TransitOverlay.tsx    # Transit planet overlay
+│   │       ├── VarshaphalPanel.tsx   # Solar Return panel
+│   │       ├── ChartNotes.tsx        # Per-chart annotations
+│   │       ├── ExportPdfButton.tsx   # PDF export trigger
+│   │       ├── ThemeToggle.tsx       # Dark/Light/Classic
+│   │       └── JsonLd.tsx            # SEO structured data
+│   ├── types/
+│   │   └── astrology.ts              # All TypeScript domain types
+│   └── auth.ts                       # NextAuth.js configuration
 ├── __tests__/                        # Vitest engine tests
 ├── scripts/seed-atlas.ts
 └── ephe/                             # Swiss Ephemeris .se1 data files
@@ -175,6 +214,8 @@ Vedaansh/
 
 | Route | Status | Description |
 |---|---|---|
+| Route | Status | Description |
+|---|---|---|
 | `POST /api/chart/calculate` | ✅ | Zod validation → swisseph → all engines → Redis cache (24h) |
 | `POST /api/chart/save` | ✅ | Save to MongoDB, optional public slug generation |
 | `GET /api/chart/list` | ✅ | Paginated with search, authenticated user only |
@@ -183,13 +224,17 @@ Vedaansh/
 | `GET /api/chart/public` | ✅ | Fetch public chart by slug — no auth required |
 | `POST /api/chart/toggle-public` | ✅ | Toggle `isPublic`, generate/remove slug |
 | `POST /api/chart/varshaphal` | ✅ | Solar Return for given year — bisection search |
+| `POST /api/chart/export` | ✅ | PDF chart export (Velā+) |
 | `GET /api/panchang` | ✅ | Full Panchang for any date + location, Redis cached 24h |
 | `GET /api/atlas/search` | ✅ | Location typeahead — 5.1M GeoNames via SQLite FTS5 |
 | `GET /api/user/me` | ✅ | User profile + personal chart + preferences |
 | `PATCH /api/user/me` | ✅ | Update user preferences |
 | `POST /api/auth/signup` | ✅ | Email/password registration with bcrypt |
 | `POST /api/auth/verify` | ✅ | Email verification token check |
+| `POST /api/auth/verify-email` | ✅ | Verify email with token |
+| `POST /api/auth/refresh-plan` | ✅ | Refresh user plan in session after upgrade |
 | `POST /api/payment/checkout` | ✅ | Razorpay order creation for Velā/Horā |
+| `POST /api/payment/verify` | ✅ | Verify Razorpay payment signature |
 | `POST /api/webhooks/razorpay` | ✅ | Activate subscription on payment success |
 
 ---
@@ -222,6 +267,7 @@ cp .env.example .env.local
 | `AUTH_URL` | ✅ | App base URL (`http://localhost:3000` or production domain) |
 | `AUTH_GOOGLE_ID` | ✅ | Google OAuth client ID |
 | `AUTH_GOOGLE_SECRET` | ✅ | Google OAuth client secret |
+| `AUTH_TRUST_HOST` | — | Set to `true` for development |
 | `UPSTASH_REDIS_REST_URL` | — | Upstash Redis URL (enables caching) |
 | `UPSTASH_REDIS_REST_TOKEN` | — | Upstash Redis token |
 | `RAZORPAY_KEY_ID` | — | Razorpay key (required for paid tiers) |
@@ -284,18 +330,20 @@ The test suite uses Vitest with reference chart fixtures in `__tests__/fixtures/
 | 2 — Atlas + Auth + DB | Weeks 9–13 | ✅ Complete | MongoDB live, NextAuth, 5.1M atlas |
 | 3 — Frontend + Chakras | Weeks 14–21 | ✅ Complete | All SVG renderers, Dasha tree, full UI |
 | 4 — Panchang + Launch | Weeks 22–26 | ✅ Complete | Kāla free tier live |
-| 5 — Velā Features | Weeks 27–35 | 🕒 In Progress | Razorpay, PDF export, Narayana/Ashtottari Dasha |
-| 6 — Horā Vargas & Dashas | Weeks 36–47 | ⏳ Planned | 41 vargas in UI, 30+ Dasha systems |
+| 5 — Velā Features | Weeks 27–35 | ✅ Complete | Razorpay payments, PDF export, all Velā features |
+| 6 — Horā Vargas & Dashas | Weeks 36–47 | 🕒 In Progress | 41 vargas in UI, 30+ Dasha systems |
 | 7 — Horā Advanced Views | Weeks 48–57 | ⏳ Planned | Bhava Chakra, Astrocartography, Pravesh charts |
 | 8 — Scale + Polish | Weeks 58–64 | ⏳ Planned | i18n, PWA, admin dashboard, load testing |
 
 ### Immediate Next Steps
 
-- [x] **Razorpay payment integration** — `/api/payment/checkout` + webhook → `user.plan` upgrade `[REVENUE]`
-- [x] **Panchang/Muhurta location picker** — replace hardcoded Delhi with Atlas search `[UX]`
-- [ ] **PDF chart export** — print-quality PDF with chart image, planet table, Dasha tree (Velā) `[VELĀ]`
+- [x] **Razorpay payment integration** — Complete with checkout, verify, and webhook handlers `[REVENUE]`
+- [x] **Panchang/Muhurta location picker** — Atlas search with 5.1M GeoNames `[UX]`
+- [x] **PDF chart export** — Print-quality PDF with chart image, planet table, Dasha tree `[VELĀ]`
+- [x] **Email verification** — Resend integration for secure signup `[AUTH]`
 - [ ] **Ashtottari Dasha** — 108-year cycle, conditional per nakshatra `[ENGINE]`
-- [ ] **Sanskrit / English language toggle** — i18n skeleton exists; add Sanskrit name substitution `[i18n]`
+- [ ] **Narayana Dasha** — Jaimini system for longevity analysis `[ENGINE]`
+- [ ] **Sanskrit / English language toggle** — i18n infrastructure ready `[i18n]`
 
 ---
 
@@ -314,4 +362,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.1 · March 2026 · github.com/abhishek081999/Vedaansh*
+*v2.2 · March 2026 · github.com/abhishek081999/Vedaansh*
