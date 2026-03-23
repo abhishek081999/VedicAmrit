@@ -324,10 +324,25 @@ export interface ChartOutput {
   vargaLagnas: Record<string, Rashi>          // ascendant sign in each varga chart
   dashas:    Record<DashaSystem, DashaNode[]>
   panchang:  PanchangData
-  upagrahas:    Record<string, GrahaData>
-  shadbala:     ShadbalaResult
+  upagrahas: Record<string, GrahaData>
+  shadbala:  ShadbalaResult
+  vimsopaka: import('@/lib/engine/vimsopaka').VimsopakaBalaResult
   ashtakavarga?: AshtakavargaResult
   yogas?:        YogaResult[]
+}
+
+// ── Vimsopaka Bala ──────────────────────────────────────────
+
+export interface VimsopakaSchemeResult {
+  scores: Record<GrahaId, number>
+  total: number
+}
+
+export interface VimsopakaResult {
+  shadvarga:      Record<GrahaId, number>
+  saptavarga:     Record<GrahaId, number>
+  dashavarga:     Record<GrahaId, number>
+  shodashavarga:  Record<GrahaId, number>
 }
 
 
@@ -360,6 +375,37 @@ export interface ShadbalaPlanet {
   required:       number
   ratio:          number
   isStrong:       boolean
+  details?: {
+    sthana?: {
+      uccha: number
+      saptavargaja: number
+      ojhayugma: number
+      kendradi: number
+      drekkana: number
+    }
+    dig?: {
+      targetDegree: number
+      angularDistance: number
+    }
+    kala?: {
+      natha: number
+      paksha: number
+      tribhaga: number
+      vaara: number
+      ayana: number
+      isDayBirth: boolean
+    }
+    chesta?: {
+      method: 'retrograde_max' | 'luminary_constant' | 'speed_ratio'
+      speedAbs: number
+      meanSpeed: number
+    }
+    drik?: {
+      benefic: number
+      malefic: number
+      net: number
+    }
+  }
 }
 
 export interface ShadbalaResult {

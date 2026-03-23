@@ -5,14 +5,13 @@
 //  Unit: Rupas (1 Rupa = 60 Shashtiamsas)
 // ─────────────────────────────────────────────────────────────
 
-import type { GrahaData, LagnaData, Rashi, GrahaId } from '@/types/astrology'
+import type { GrahaData, LagnaData, GrahaId } from '@/types/astrology'
 import { 
   D1, D2, D3, D7, D9, D12, D30 
 } from './vargas'
 import { 
   NATURAL_FRIENDS, 
   NATURAL_ENEMIES, 
-  OWN_SIGNS, 
   MOOLATRIKONA_SIGN,
   EXALTATION_SIGN,
   EXALTATION_DEGREE
@@ -33,6 +32,37 @@ export interface ShadbalaPlanet {
   required:     number   // Minimum required Rupas
   ratio:        number   // total / required
   isStrong:     boolean
+  details?: {
+    sthana?: {
+      uccha: number
+      saptavargaja: number
+      ojhayugma: number
+      kendradi: number
+      drekkana: number
+    }
+    dig?: {
+      targetDegree: number
+      angularDistance: number
+    }
+    kala?: {
+      natha: number
+      paksha: number
+      tribhaga: number
+      vaara: number
+      ayana: number
+      isDayBirth: boolean
+    }
+    chesta?: {
+      method: 'retrograde_max' | 'luminary_constant' | 'speed_ratio'
+      speedAbs: number
+      meanSpeed: number
+    }
+    drik?: {
+      benefic: number
+      malefic: number
+      net: number
+    }
+  }
 }
 
 export interface ShadbalaResult {
@@ -110,8 +140,17 @@ function getCompoundDignity(planet: GrahaId, rashi: number, allGrahas: GrahaData
 
 // ── 1. Sthana Bala ──────────────────────────────────────────
 
-function sthanaBala(g: GrahaData, allGrahas: GrahaData[], ascSign: number): number {
+function sthanaBala(
+  g: GrahaData,
+  allGrahas: GrahaData[],
+  ascSign: number,
+): { total: number; breakdown: ShadbalaPlanet['details']['sthana'] } {
   let bala = 0
+  let uccha = 0
+  let saptavargaja = 0
+  let ojhayugma = 0
+  let kendradi = 0
+  let drekkana = 0
 
   // (a) Uccha Bala (Max 60)
   const exalt = EXALTATION_DEGREE[g.id] ?? 0
@@ -119,7 +158,8 @@ function sthanaBala(g: GrahaData, allGrahas: GrahaData[], ascSign: number): numb
   const debilLon = (exaltLon + 180) % 360
   
   let diff = norm(g.totalDegree - debilLon)
-  bala += (diff / 180) * 60
+  uccha = (diff / 180) * 60
+  bala += uccha
 
   // (b) Saptavargaja Bala
   const vargas = [
@@ -132,43 +172,65 @@ function sthanaBala(g: GrahaData, allGrahas: GrahaData[], ascSign: number): numb
   vargas.forEach(v => {
     const sign = v.fn(g.totalDegree)
     if (v.name === 'D1' && MOOLATRIKONA_SIGN[g.id] === sign) {
-        sapta += 45
+      sapta += 45
     } else {
-        sapta += getCompoundDignity(g.id as GrahaId, sign, allGrahas)
+      sapta += getCompoundDignity(g.id as GrahaId, sign, allGrahas)
     }
   })
-  bala += sapta
+  saptavargaja = sapta
+  bala += saptavargaja
 
   // (c) Ojhayugma Bala
   const isOddRashi = g.rashi % 2 !== 0
   const isOddNav = D9(g.totalDegree) % 2 !== 0
   if (['Su', 'Ma', 'Ju', 'Me', 'Sa'].includes(g.id)) {
-    if (isOddRashi) bala += 15
-    if (isOddNav)   bala += 15
+    if (isOddRashi) ojhayugma += 15
+    if (isOddNav)   ojhayugma += 15
   } else {
-    if (!isOddRashi) bala += 15
-    if (!isOddNav)   bala += 15
+    if (!isOddRashi) ojhayugma += 15
+    if (!isOddNav)   ojhayugma += 15
   }
+  bala += ojhayugma
 
   // (d) Kendradi Bala
   const house = (g.rashi - ascSign + 12) % 12 + 1
-  if ([1, 4, 7, 10].includes(house)) bala += 60
-  else if ([2, 5, 8, 11].includes(house)) bala += 30
-  else bala += 15
+  if ([1, 4, 7, 10].includes(house)) kendradi = 60
+  else if ([2, 5, 8, 11].includes(house)) kendradi = 30
+  else kendradi = 15
+  bala += kendradi
 
   // (e) Drekkana Bala
   const decanate = Math.floor(g.degree / 10)
-  if (['Su', 'Ma', 'Ju'].includes(g.id) && decanate === 0) bala += 15
-  if (['Mo', 'Ve'].includes(g.id) && decanate === 2) bala += 15
-  if (['Me', 'Sa'].includes(g.id) && decanate === 1) bala += 15
+  if (['Su', 'Ma', 'Ju'].includes(g.id) && decanate === 0) drekkana += 15
+  if (['Mo', 'Ve'].includes(g.id) && decanate === 2) drekkana += 15
+  if (['Me', 'Sa'].includes(g.id) && decanate === 1) drekkana += 15
+  bala += drekkana
 
-  return bala
+  return {
+    total: bala,
+    breakdown: {
+      uccha,
+      saptavargaja,
+      ojhayugma,
+      kendradi,
+      drekkana,
+    },
+  }
 }
 
 // ── 2. Dig Bala ──────────────────────────────────────────────
 
-function digBala(g: GrahaData, ascDeg: number, cusps: number[]): number {
-  if (!cusps || cusps.length < 12) return 30
+function digBala(
+  g: GrahaData,
+  ascDeg: number,
+  cusps: number[],
+): { total: number; breakdown: ShadbalaPlanet['details']['dig'] } {
+  if (!cusps || cusps.length < 12) {
+    return {
+      total: 30,
+      breakdown: { targetDegree: ascDeg, angularDistance: 90 },
+    }
+  }
   const DIG_POINTS: Record<string, number> = {
     Su: cusps[9], Ma: cusps[9], // H10
     Mo: cusps[3], Ve: cusps[3], // H4
@@ -177,7 +239,13 @@ function digBala(g: GrahaData, ascDeg: number, cusps: number[]): number {
   }
   const target = DIG_POINTS[g.id] ?? cusps[0]
   let diff = degDiff(g.totalDegree, target)
-  return (180 - diff) / 3
+  return {
+    total: (180 - diff) / 3,
+    breakdown: {
+      targetDegree: target,
+      angularDistance: diff,
+    },
+  }
 }
 
 // ── 3. Kala Bala ─────────────────────────────────────────────
@@ -190,7 +258,7 @@ function kalaBala(
   moonLon: number,
   sunLon: number,
   weekday: number,
-): number {
+): { total: number; breakdown: ShadbalaPlanet['details']['kala'] } {
   const birthMs = birthDate.getTime()
   const isDaytime = birthMs >= sunrise.getTime() && birthMs <= sunset.getTime()
 
@@ -224,26 +292,66 @@ function kalaBala(
 
   let vaara = (GRAHA_ORDER[weekday] === g.id) ? 45 : 0
   let ayana = 30 
-  return natho + paksha + tribhaga + vaara + ayana
+  return {
+    total: natho + paksha + tribhaga + vaara + ayana,
+    breakdown: {
+      natha: natho,
+      paksha,
+      tribhaga,
+      vaara,
+      ayana,
+      isDayBirth: isDaytime,
+    },
+  }
 }
 
 // ── 4. Chesta Bala ──────────────────────────────────────────
 
-function chestaBala(g: GrahaData): number {
-  if (g.isRetro) return 60
-  if (g.id === 'Su' || g.id === 'Mo') return 30
+function chestaBala(g: GrahaData): { total: number; breakdown: ShadbalaPlanet['details']['chesta'] } {
+  if (g.isRetro) {
+    return {
+      total: 60,
+      breakdown: {
+        method: 'retrograde_max',
+        speedAbs: Math.abs(g.speed ?? 0),
+        meanSpeed: 0,
+      },
+    }
+  }
+  if (g.id === 'Su' || g.id === 'Mo') {
+    return {
+      total: 30,
+      breakdown: {
+        method: 'luminary_constant',
+        speedAbs: Math.abs(g.speed ?? 0),
+        meanSpeed: 0,
+      },
+    }
+  }
   const speed = Math.abs(g.speed ?? 1)
   const MEAN_SPEED: Record<string, number> = {
     Ma: 0.524, Me: 1.383, Ju: 0.083, Ve: 1.200, Sa: 0.034,
   }
   const mean = MEAN_SPEED[g.id] ?? 1
-  return Math.min(60, (mean / speed) * 30)
+  return {
+    total: Math.min(60, (mean / speed) * 30),
+    breakdown: {
+      method: 'speed_ratio',
+      speedAbs: speed,
+      meanSpeed: mean,
+    },
+  }
 }
 
 // ── 6. Drik Bala ────────────────────────────────────────────
 
-function drikBala(g: GrahaData, allGrahas: GrahaData[]): number {
+function drikBala(
+  g: GrahaData,
+  allGrahas: GrahaData[],
+): { total: number; breakdown: ShadbalaPlanet['details']['drik'] } {
   let bala = 0
+  let benefic = 0
+  let malefic = 0
   for (const other of allGrahas) {
     if (other.id === g.id) continue
     const dist = norm(other.totalDegree - g.totalDegree)
@@ -255,9 +363,24 @@ function drikBala(g: GrahaData, allGrahas: GrahaData[]): number {
     else if (dist > 150 && dist <= 180) pts = 45 + (dist - 150) / 2
     
     const isBenefic = ['Ju', 'Ve', 'Me', 'Mo'].includes(other.id)
-    bala += isBenefic ? pts / 4 : -pts / 4
+    if (isBenefic) {
+      const add = pts / 4
+      benefic += add
+      bala += add
+    } else {
+      const sub = pts / 4
+      malefic += sub
+      bala -= sub
+    }
   }
-  return bala
+  return {
+    total: bala,
+    breakdown: {
+      benefic,
+      malefic,
+      net: bala,
+    },
+  }
 }
 
 // ── Main Calculator ───────────────────────────────────────────
@@ -282,12 +405,18 @@ export function calculateShadbala(
     const g = grahas.find(gr => gr.id === id)
     if (!g) continue
 
-    const sthan  = sthanaBala(g, grahas, ascSign)
-    const dig    = digBala(g, ascDeg, lagnas.cusps ?? [])
-    const kala   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
-    const chesta = chestaBala(g)
+    const sthanOut  = sthanaBala(g, grahas, ascSign)
+    const digOut    = digBala(g, ascDeg, lagnas.cusps ?? [])
+    const kalaOut   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
+    const chestaOut = chestaBala(g)
     const naisar = NAISARGIKA_SHASH[id] ?? 30
-    const drik   = drikBala(g, grahas)
+    const drikOut   = drikBala(g, grahas)
+
+    const sthan = sthanOut.total
+    const dig = digOut.total
+    const kala = kalaOut.total
+    const chesta = chestaOut.total
+    const drik = drikOut.total
 
     const totalShash = sthan + dig + kala + chesta + naisar + drik
     const total      = totalShash / 60
@@ -307,6 +436,37 @@ export function calculateShadbala(
       required, 
       ratio: +ratio.toFixed(3), 
       isStrong: ratio >= 1.0,
+      details: {
+        sthana: {
+          uccha: +(sthanOut.breakdown?.uccha ?? 0).toFixed(3),
+          saptavargaja: +(sthanOut.breakdown?.saptavargaja ?? 0).toFixed(3),
+          ojhayugma: +(sthanOut.breakdown?.ojhayugma ?? 0).toFixed(3),
+          kendradi: +(sthanOut.breakdown?.kendradi ?? 0).toFixed(3),
+          drekkana: +(sthanOut.breakdown?.drekkana ?? 0).toFixed(3),
+        },
+        dig: {
+          targetDegree: +(digOut.breakdown?.targetDegree ?? 0).toFixed(3),
+          angularDistance: +(digOut.breakdown?.angularDistance ?? 0).toFixed(3),
+        },
+        kala: {
+          natha: +(kalaOut.breakdown?.natha ?? 0).toFixed(3),
+          paksha: +(kalaOut.breakdown?.paksha ?? 0).toFixed(3),
+          tribhaga: +(kalaOut.breakdown?.tribhaga ?? 0).toFixed(3),
+          vaara: +(kalaOut.breakdown?.vaara ?? 0).toFixed(3),
+          ayana: +(kalaOut.breakdown?.ayana ?? 0).toFixed(3),
+          isDayBirth: Boolean(kalaOut.breakdown?.isDayBirth),
+        },
+        chesta: {
+          method: chestaOut.breakdown?.method ?? 'speed_ratio',
+          speedAbs: +(chestaOut.breakdown?.speedAbs ?? 0).toFixed(4),
+          meanSpeed: +(chestaOut.breakdown?.meanSpeed ?? 0).toFixed(4),
+        },
+        drik: {
+          benefic: +(drikOut.breakdown?.benefic ?? 0).toFixed(3),
+          malefic: +(drikOut.breakdown?.malefic ?? 0).toFixed(3),
+          net: +(drikOut.breakdown?.net ?? 0).toFixed(3),
+        },
+      },
     }
   }
 

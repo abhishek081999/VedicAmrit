@@ -106,7 +106,7 @@ export function VargaSwitcher({
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid',
 }: Props) {
-  const [selected, setSelected] = useState<string[]>(['D1','D9'])
+  const [selected, setSelected] = useState<string[]>(['D1', 'D9', 'D10'])
   const available = VARGA_META.filter(v => v.name in vargas || v.tier==='kala')
 
   function handleClick(meta: VargaMeta) {

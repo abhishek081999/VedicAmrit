@@ -18,6 +18,7 @@ import { AshtakavargaGrid }   from '@/components/ui/AshtakavargaGrid'
 import { YogaList }           from '@/components/ui/YogaList'
 import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
+import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
 import { PlanetsWorkspace } from '@/components/ui/PlanetsWorkspace'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
 import { HousePanel } from '@/components/ui/HousePanel'
@@ -720,16 +721,6 @@ export default function HomePage() {
                      </div>
                   )}
 
-                  {activeTab === 'ashtakavarga' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Aṣṭakavarga</h3>
-                        {chart.ashtakavarga
-                          ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Recalculate chart to see Aṣṭakavarga.</p>
-                        }
-                     </div>
-                  )}
-
                   {activeTab === 'yogas' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Graha Yogas</h3>
@@ -740,27 +731,94 @@ export default function HomePage() {
                      </div>
                   )}
 
-                  {activeTab === 'shadbala' && (
-                   <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                     <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Ṣaḍbala Strength</div>
-                     {chart.shadbala
-                       ? <ShadbalaTable shadbala={chart.shadbala} />
-                       : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Shadbala.</div>
-                     }
-                   </div>
-                 )}
-
-
-
                   {activeTab === 'arudhas' && (
                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Bhāva Āruḍhas</h3>
                         <ArudhaPanel arudhas={chart.arudhas} />
                      </div>
                   )}
-               </div>
+
+                  {activeTab === 'shadbala' && (
+                    <div className="card fade-up" style={{ padding: '1rem' }}>
+                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
+                        Ṣaḍbala Quick Widget
+                      </div>
+                      {chart.shadbala ? (
+                        <ShadbalaTable
+                          shadbala={chart.shadbala}
+                          hideDetails={true}
+                          preferClassicCharts={true}
+                          variant="widget"
+                        />
+                      ) : (
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+                          Shadbala data unavailable.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'vimsopaka' && (
+                    <div className="card fade-up" style={{ padding: '1rem' }}>
+                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
+                        Viṁśopaka Quick View
+                      </div>
+                      {chart.vimsopaka ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+                              {chart.vimsopaka.planets[chart.vimsopaka.strongest]?.shodasvarga.toFixed(1)}
+                            </div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Strongest: {chart.vimsopaka.strongest}</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--rose)' }}>
+                              {chart.vimsopaka.planets[chart.vimsopaka.weakest]?.shodasvarga.toFixed(1)}
+                            </div>
+                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Weakest: {chart.vimsopaka.weakest}</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
+                          Vimsopaka data unavailable.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
              </div>}  {/* end chart-layout-grid conditional */}
 
+               {/* BOTTOM: Full-width Shadbala below charts */}
+               {activeTab === 'shadbala' && (
+                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
+                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Ṣaḍbala Strength</div>
+                   {chart.shadbala
+                     ? <ShadbalaTable shadbala={chart.shadbala} />
+                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Shadbala.</div>
+                   }
+                 </div>
+               )}
+
+               {/* BOTTOM: Full-width Ashtakavarga below charts */}
+               {activeTab === 'ashtakavarga' && (
+                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
+                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Aṣṭakavarga Intelligence</div>
+                   {chart.ashtakavarga
+                     ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Aṣṭakavarga.</div>
+                   }
+                 </div>
+               )}
+
+                {/* BOTTOM: Full-width Vimsopaka below charts */}
+                {activeTab === 'vimsopaka' && (
+                  <div className="card fade-up" style={{ padding: '0.1rem', marginTop: '1.5rem' }}>
+                    {chart.vimsopaka
+                      ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Viṁśopaka data unavailable — recalculate chart.</div>
+                    }
+                  </div>
+                )}
 
                {/* BOTTOM: Dashboard Extended Details (Full width Diagnostics) */}
                {activeTab === 'dashboard' && (
@@ -783,8 +841,16 @@ export default function HomePage() {
                     <div className="card fade-up" style={{ padding: '1.5rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Planetary Strengths (Shadbala)</h3>
                         {chart.shadbala 
-                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} />
+                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} />
                           : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
+                        }
+                    </div>
+
+                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
+                        <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
+                        {chart.vimsopaka 
+                          ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
                         }
                     </div>
 

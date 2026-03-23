@@ -5,6 +5,7 @@
 //         → vargas → arudhas → karakas → dignity → dasha → panchang
 // ─────────────────────────────────────────────────────────────
 
+import { calculateVimsopaka } from './vimsopaka'
 import { calculateShadbala } from './shadbala'
 import type { ShadbalaResult } from '@/types/astrology'
 import { getSunriseSunset } from './sunrise'
@@ -272,6 +273,9 @@ export async function calculateChart(
     vargaLagnas[vname] = fn(houses.ascendantSidereal) as Rashi
   }
 
+  // Vimsopaka Bala
+  const vimsopaka = calculateVimsopaka(grahas, vargas)
+
   // Dashas
   const dashaDepth = plan === 'kala' ? 4 : 6
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
@@ -346,6 +350,7 @@ export async function calculateChart(
       moon.totalDegree,
       sun.totalDegree,
     ) as ShadbalaResult),
+    vimsopaka,
     ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
     yogas: detectYogas(grahas, lagnaData),
   }

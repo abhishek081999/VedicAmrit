@@ -14,8 +14,9 @@ import { useParams } from 'next/navigation'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { GrahaTable }    from '@/components/ui/GrahaTable'
 import { DashaTree }     from '@/components/dasha/DashaTree'
-import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
-import { ThemeToggle }   from '@/components/ui/ThemeToggle'
+import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
+import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
+import { ThemeToggle }      from '@/components/ui/ThemeToggle'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
 
@@ -34,13 +35,14 @@ interface SavedChart {
   createdAt:  string
 }
 
-type Tab = 'chart' | 'planets' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala'
+type Tab = 'chart' | 'planets' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'vimsopaka'
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'chart',   label: 'Chart',    emoji: '◯' },
   { id: 'planets', label: 'Planets',  emoji: '✦' },
   { id: 'dasha',   label: 'Daśā',     emoji: '⏳' },
   { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
+  { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
   { id: 'panchang',label: 'Pañcāṅga', emoji: '📅' },
   { id: 'arudhas', label: 'Āruḍhas',  emoji: '☯' },
 ]
@@ -403,6 +405,15 @@ export default function PublicChartPage() {
                 <div className="card">
                   <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Strength</div>
                   <ShadbalaTable shadbala={chart.shadbala} />
+                </div>
+              )}
+
+              {tab === 'vimsopaka' && (
+                <div className="card" style={{ padding: '0.1rem' }}>
+                  {chart.vimsopaka
+                    ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} />
+                    : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Viṁśopaka data unavailable.</div>
+                  }
                 </div>
               )}
             </div>

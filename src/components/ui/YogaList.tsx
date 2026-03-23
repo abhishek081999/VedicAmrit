@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
+import { useState } from 'react'
 import type { YogaResult, YogaCategory } from '@/types/astrology'
 
 const CATEGORY_CONFIG: Record<YogaCategory, { label: string; color: string; bg: string; icon: string }> = {
@@ -28,7 +29,7 @@ const STRENGTH_CONFIG = {
 
 const CATEGORY_ORDER: YogaCategory[] = ['mahapurusha','raja','dhana','special','viparita','lunar']
 
-function YogaCard({ yoga }: { yoga: YogaResult; key?: number }) {
+function YogaCard({ yoga }: { yoga: YogaResult }) {
   const cat = CATEGORY_CONFIG[yoga.category]
   const str = STRENGTH_CONFIG[yoga.strength]
 
@@ -110,6 +111,8 @@ function YogaCard({ yoga }: { yoga: YogaResult; key?: number }) {
 }
 
 export function YogaList({ yogas }: { yogas: YogaResult[] }) {
+  const [showAll, setShowAll] = useState(false)
+  
   if (!yogas?.length) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
@@ -118,73 +121,102 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
     )
   }
 
-  // Group by category
+  // Flatten for limiting
+  const visibleLimit = 3
+  const displayYogas = showAll ? yogas : yogas.slice(0, visibleLimit)
+
+  // Group by category (only for the ones we DISPLAY)
   const grouped = CATEGORY_ORDER.reduce<Record<string, YogaResult[]>>((acc, cat) => {
-    const items = yogas.filter(y => y.category === cat)
+    const items = displayYogas.filter(y => y.category === cat)
     if (items.length) acc[cat] = items
     return acc
   }, {})
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
       {/* Summary */}
       <div style={{
         display: 'flex', gap: '0.6rem', flexWrap: 'wrap',
         padding: '0.75rem 1rem',
-        background: 'var(--surface-2)', border: '1px solid var(--border)',
+        background: 'var(--surface-2)', border: '1px solid var(--border-bright)',
         borderRadius: 'var(--r-md)',
         alignItems: 'center',
       }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-          {yogas.length} Yoga{yogas.length !== 1 ? 's' : ''} detected
-        </span>
-        <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
-        {yogas.filter(y => y.strength === 'strong').length > 0 && (
-          <span style={{ fontSize: '0.78rem', color: 'var(--teal)', fontFamily: 'var(--font-display)' }}>
-            ● {yogas.filter(y => y.strength === 'strong').length} strong
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+            {yogas.length} Classical Yogas
           </span>
+          <div style={{ width: 1, height: 16, background: 'var(--border)' }} />
+          {yogas.filter(y => y.strength === 'strong').length > 0 && (
+            <span style={{ fontSize: '0.74rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--teal)' }} />
+              {yogas.filter(y => y.strength === 'strong').length} Strong
+            </span>
+          )}
+        </div>
+
+        {!showAll && yogas.length > visibleLimit && (
+          <button 
+            onClick={() => setShowAll(true)}
+            style={{ 
+              background: 'var(--gold-faint)', border: '1px solid var(--gold)', borderRadius: 'var(--r-sm)',
+              color: 'var(--text-gold)', padding: '0.25rem 0.6rem', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer'
+            }}
+          >
+            Show All ({yogas.length})
+          </button>
         )}
-        {yogas.filter(y => y.strength === 'moderate').length > 0 && (
-          <span style={{ fontSize: '0.78rem', color: 'var(--gold)', fontFamily: 'var(--font-display)' }}>
-            ● {yogas.filter(y => y.strength === 'moderate').length} moderate
-          </span>
+        {showAll && (
+           <button 
+             onClick={() => setShowAll(false)}
+             style={{ 
+               background: 'var(--surface-3)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)',
+               color: 'var(--text-muted)', padding: '0.25rem 0.6rem', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer'
+             }}
+           >
+             Show Less
+           </button>
         )}
-        {Object.keys(grouped).map(cat => (
-          <span key={cat} style={{
-            padding: '0.1rem 0.45rem', borderRadius: 99, fontSize: '0.68rem',
-            background: CATEGORY_CONFIG[cat as YogaCategory].bg,
-            color: CATEGORY_CONFIG[cat as YogaCategory].color,
-            fontFamily: 'var(--font-display)', fontWeight: 600,
-          }}>
-            {CATEGORY_CONFIG[cat as YogaCategory].icon} {grouped[cat].length} {CATEGORY_CONFIG[cat as YogaCategory].label}
-          </span>
-        ))}
       </div>
 
       {/* Grouped yoga cards */}
-      {CATEGORY_ORDER.map(cat => {
-        const items = grouped[cat]
-        if (!items?.length) return null
-        const cfg = CATEGORY_CONFIG[cat]
-        return (
-          <div key={cat}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              marginBottom: '0.6rem',
-            }}>
-              <span style={{ fontSize: '0.9rem' }}>{cfg.icon}</span>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: cfg.color }}>
-                {cfg.label}
-              </span>
-              <div style={{ flex: 1, height: 1, background: `${cfg.color}33` }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {CATEGORY_ORDER.map(cat => {
+          const items = grouped[cat]
+          if (!items?.length) return null
+          const cfg = CATEGORY_CONFIG[cat]
+          return (
+            <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+              }}>
+                <span style={{ fontSize: '0.85rem' }}>{cfg.icon}</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: cfg.color }}>
+                  {cfg.label}
+                </span>
+                <div style={{ flex: 1, height: 1, background: `${cfg.color}22` }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {items.map((yoga, i) => <YogaCard key={`${cat}-${i}`} yoga={yoga} />)}
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {items.map((yoga, i) => <YogaCard key={i} yoga={yoga} />)}
-            </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+
+      {!showAll && yogas.length > visibleLimit && (
+        <button 
+          onClick={() => setShowAll(true)}
+          style={{ 
+            width: '100%', padding: '0.75rem', border: '1px dashed var(--gold)', borderRadius: 'var(--r-md)',
+            background: 'var(--gold-faint)', color: 'var(--text-gold)', fontWeight: 700, fontSize: '0.8rem',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+          }}
+        >
+          View More Yogas (+{yogas.length - visibleLimit})
+        </button>
+      )}
 
       <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', textAlign: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-soft)' }}>
         Per BPHS, Phaladeepika & Saravali · Strength depends on planetary dignity, house position and aspects
