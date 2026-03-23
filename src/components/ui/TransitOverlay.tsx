@@ -161,7 +161,7 @@ export function TransitOverlay({ natalChart, onTransitLoad }: TransitOverlayProp
               background: 'rgba(139,124,246,0.12)', border: '1px solid rgba(139,124,246,0.25)',
               fontFamily: 'var(--font-mono)', color: 'var(--accent)',
             }}>
-              {GRAHA_SYMBOL[g.id]} {g.rashiIndex ? `H${g.rashiIndex}` : g.id}
+              {GRAHA_SYMBOL[g.id]} {g.rashi ? `H${g.rashi}` : g.id}
               {g.isRetro ? <span style={{ color: 'var(--rose)', marginLeft: 2 }}>℞</span> : ''}
             </span>
           ))}

@@ -87,11 +87,11 @@ export const NAKSHATRA_SHAKTI: string[] = [
 
 /** Nature: Chara (movable), Sthira (fixed), Misra (mixed/dual) */
 export const NAKSHATRA_NATURE: ('Chara' | 'Sthira' | 'Mridu' | 'Tikshna' | 'Ugra' | 'Mixed')[] = [
-  'Chara','Ugra','Misra (Mixed)','Sthira','Mridu',
-  'Tikshna','Misra (Mixed)','Mridu','Tikshna','Ugra',
+  'Chara','Ugra','Mixed','Sthira','Mridu',
+  'Tikshna','Mixed','Mridu','Tikshna','Ugra',
   'Ugra','Mridu','Chara','Mridu','Chara',
-  'Misra (Mixed)','Mridu','Tikshna','Tikshna','Ugra',
-  'Misra (Mixed)','Mridu','Chara','Chara','Ugra',
+  'Mixed','Mridu','Tikshna','Tikshna','Ugra',
+  'Mixed','Mridu','Chara','Chara','Ugra',
   'Sthira','Mridu',
 ]
 

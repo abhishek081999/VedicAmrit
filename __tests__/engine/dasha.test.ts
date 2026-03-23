@@ -173,7 +173,7 @@ describe('Chara Dasha', () => {
     for (const maha of dashas) {
       if (maha.children.length > 0) {
         // The antardasha label must NOT start with the same sign as the maha
-        expect(maha.children[0].label).not.toBe(maha.label.split(' ')[0])
+        expect(maha.children[0].label).not.toBe((maha.label ?? '').split(' ')[0])
       }
     }
   })

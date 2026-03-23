@@ -69,6 +69,58 @@ function ChartCard({
   const [deleting,   setDeleting]   = useState(false)
   const [toggling,   setToggling]   = useState(false)
   const [showNotes,  setShowNotes]  = useState(false)
+  const [exporting,  setExporting]  = useState(false)
+
+  async function handleExportPdf() {
+    setExporting(true)
+    try {
+      // Step 1: recalculate the chart
+      const calcRes = await fetch('/api/chart/calculate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       chart.name,
+          birthDate:  chart.birthDate,
+          birthTime:  chart.birthTime,
+          birthPlace: chart.birthPlace,
+          latitude:   chart.latitude,
+          longitude:  chart.longitude,
+          timezone:   chart.timezone,
+          settings:   chart.settings,
+        }),
+      })
+      const calcJson = await calcRes.json()
+      if (!calcJson.success) throw new Error('Calculation failed')
+
+      // Step 2: export to HTML
+      const exportRes = await fetch('/api/chart/export', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(calcJson.data),
+      })
+      if (!exportRes.ok) {
+        const err = await exportRes.json().catch(() => ({}))
+        if (err.upgradeRequired) { window.location.href = '/pricing?highlight=vela'; return }
+        throw new Error(err.error || 'Export failed')
+      }
+
+      const html = await exportRes.text()
+      const blob = new Blob([html], { type: 'text/html' })
+      const url  = URL.createObjectURL(blob)
+      const tab  = window.open(url, '_blank')
+      if (!tab) {
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${chart.name.replace(/[^a-z0-9]/gi,'_')}-jyotish.html`
+        a.click()
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 8000)
+    } catch (e: any) {
+      alert(e.message || 'Export failed. Please try again.')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   async function handleTogglePublic() {
     setToggling(true)
@@ -167,6 +219,27 @@ function ChartCard({
           style={{ flex: 1, minWidth: 100, justifyContent: 'center', fontSize: '0.82rem' }}
         >
           Open Chart
+        </button>
+
+        {/* Export PDF */}
+        <button
+          onClick={handleExportPdf}
+          disabled={exporting}
+          title="Export chart as PDF"
+          style={{
+            padding: '0.3rem 0.65rem',
+            background: 'rgba(139,92,246,0.08)',
+            border: '1px solid rgba(139,92,246,0.25)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '0.78rem',
+            color: 'var(--text-accent, #8b5cf6)',
+            cursor: exporting ? 'wait' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            transition: 'all 0.15s',
+            opacity: exporting ? 0.6 : 1,
+          }}
+        >
+          {exporting ? '⏳' : '⬇'} PDF
         </button>
 
         {/* Make Public / Share toggle */}

@@ -150,11 +150,11 @@ async function main() {
   const BATCH   = 10_000
 
   // Use a transaction for performance (10k rows per commit)
-  let insertBatch = db.transaction((rows: Parameters<typeof insertLocation['run']>[]) => {
+  let insertBatch = db.transaction((rows: any[][]) => {
     for (const row of rows) insertLocation.run(...row)
   })
 
-  let batch: Parameters<typeof insertLocation['run']>[][] = []
+  let batch: any[][] = []
 
   const processLine = (line: string) => {
     if (!line.trim()) return

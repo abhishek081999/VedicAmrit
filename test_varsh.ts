@@ -29,6 +29,8 @@ async function run() {
         name:       `Varshaphal test`,
         birthDate:  dateStr,
         birthTime:  timeStr,
+        utcDate:    dateStr,
+        utcTime:    timeStr,
         birthPlace: "New Delhi, Delhi, IN",
         latitude:   28.6139,
         longitude:  77.209,

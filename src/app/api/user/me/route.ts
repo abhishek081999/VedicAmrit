@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const [user, personalChart] = await Promise.all([
+    const [user, personalChartRaw] = await Promise.all([
       User.findById(session.user.id).select('-passwordHash').lean(),
       Chart.findOne({ userId: session.user.id, isPersonal: true }).lean(),
     ])
@@ -29,6 +29,8 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
+
+    const personalChart = personalChartRaw as any
 
     return NextResponse.json({
       success: true,

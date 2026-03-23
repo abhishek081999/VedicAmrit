@@ -19,6 +19,7 @@ import { YogaList }           from '@/components/ui/YogaList'
 import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
+import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'
@@ -420,6 +421,7 @@ export default function HomePage() {
                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                    </button>
                  )}
+                 <ExportPdfButton chart={chart} compact />
                  <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm" style={{ background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-bright)' }}>
                    ✎ Edit Details
                  </button>

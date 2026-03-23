@@ -29,7 +29,7 @@ const PROTECTED_API = [
 
 // Routes requiring Velā+ plan
 const VELA_ROUTES = ['/muhurta']
-const VELA_API    = ['/api/muhurta']
+const VELA_API    = ['/api/muhurta', '/api/chart/export']
 
 // Routes requiring Horā plan
 const HORA_ROUTES  = ['/research']

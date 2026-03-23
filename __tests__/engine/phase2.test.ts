@@ -189,11 +189,11 @@ describe('Panchang with sweph', () => {
 describe('Vela vargas completeness', () => {
   const J2000 = toJulianDay(2000, 1, 1, 12)
   const ayan  = getAyanamsha(J2000, 'lahiri')
-  const ids: Array<Exclude<GrahaId,'Ke'>> = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra']
+  const ids: GrahaId[] = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra']
 
   for (const id of ids) {
     it(`${id} — all 16 Vela vargas valid`, () => {
-      const sid = toSidereal(getPlanetPosition(J2000, SWISSEPH_IDS[id]).longitude, ayan)
+      const sid = toSidereal(getPlanetPosition(J2000, (SWISSEPH_IDS as any)[id]).longitude, ayan)
       const res = calcVargas(sid, VELA_VARGAS)
       for (const [n, v] of Object.entries(res)) {
         expect(v, n).toBeGreaterThanOrEqual(1)
@@ -211,12 +211,12 @@ describe('Chara Karakas edge cases', () => {
   it('no two karakas share same graha', () => {
     const J2000 = toJulianDay(2000, 1, 1, 12)
     const ayan  = getAyanamsha(J2000, 'lahiri')
-    const ids: Array<Exclude<GrahaId,'Ke'>> = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra']
-    const g = ids.map((id) => {
-      const sid = toSidereal(getPlanetPosition(J2000, SWISSEPH_IDS[id]).longitude, ayan)
+    const ids: GrahaId[] = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra']
+    const g: Array<{ id: GrahaId; lonSidereal: number; degree: number }> = ids.map((id) => {
+      const sid = toSidereal(getPlanetPosition(J2000, (SWISSEPH_IDS as any)[id]).longitude, ayan)
       return { id, lonSidereal: sid, degree: degreeInSign(sid) }
     })
-    g.push({ id: 'Ke', lonSidereal: 0, degree: 0 })
+    g.push({ id: 'Ke' as GrahaId, lonSidereal: 0, degree: 0 })
     const k = calcCharaKarakas(g, 8)
     const assigned = [k.AK,k.AmK,k.BK,k.MK,k.PK,k.PiK,k.GK,k.DK].filter(Boolean)
     expect(new Set(assigned).size).toBe(assigned.length)
@@ -293,7 +293,7 @@ describe('Full calculator integration', () => {
   it('calculates a complete chart', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
-      name:'Test', birthDate:'2000-01-01', birthTime:'12:00:00',
+      name:'Test', birthDate:'2000-01-01', birthTime:'12:00:00', utcDate:'2000-01-01', utcTime:'12:00:00',
       birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC',
     }, 'kala')
     expect(r.grahas).toHaveLength(9)
@@ -305,7 +305,7 @@ describe('Full calculator integration', () => {
   it('stamps dignity on every graha', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
-      name:'Test', birthDate:'1990-06-15', birthTime:'14:00:00',
+      name:'Test', birthDate:'1990-06-15', birthTime:'14:00:00', utcDate:'1990-06-15', utcTime:'14:00:00',
       birthPlace:'Delhi', latitude:28.6139, longitude:77.209, timezone:'UTC',
     }, 'kala')
     const valid = ['exalted','moolatrikona','own','neutral','debilitated']
@@ -315,7 +315,7 @@ describe('Full calculator integration', () => {
   it('stamps karaka roles on eligible grahas', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
-      name:'Test', birthDate:'1985-04-15', birthTime:'06:00:00',
+      name:'Test', birthDate:'1985-04-15', birthTime:'06:00:00', utcDate:'1985-04-15', utcTime:'06:00:00',
       birthPlace:'Chennai', latitude:13.0827, longitude:80.2707, timezone:'UTC',
     }, 'kala')
     const roles = ['AK','AmK','BK','MK','PK','PiK','GK','DK']
@@ -326,7 +326,7 @@ describe('Full calculator integration', () => {
 
   it('Hora plan gets more vargas than Kala', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
-    const input = { name:'Test', birthDate:'2000-06-15', birthTime:'12:00:00',
+    const input = { name:'Test', birthDate:'2000-06-15', birthTime:'12:00:00', utcDate:'2000-06-15', utcTime:'12:00:00',
       birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC' }
     const kala = await calculateChart(input, 'kala')
     const hora = await calculateChart(input, 'hora')
@@ -336,7 +336,7 @@ describe('Full calculator integration', () => {
   it('Vimshottari has 9 periods summing ~120 years', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const r = await calculateChart({
-      name:'Test', birthDate:'1980-01-01', birthTime:'12:00:00',
+      name:'Test', birthDate:'1980-01-01', birthTime:'12:00:00', utcDate:'1980-01-01', utcTime:'12:00:00',
       birthPlace:'Kolkata', latitude:22.5726, longitude:88.3639, timezone:'UTC',
     }, 'kala')
     expect(r.dashas.vimshottari).toHaveLength(9)

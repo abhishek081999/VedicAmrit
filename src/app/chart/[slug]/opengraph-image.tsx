@@ -13,14 +13,15 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 export default async function OGImage({ params }: { params: { slug: string } }) {
   try {
     await connectDB()
-    const chart = await Chart.findOne({ slug: params.slug, isPublic: true })
+    const chartRaw = await Chart.findOne({ slug: params.slug, isPublic: true })
       .select('name birthDate birthPlace').lean()
 
+    const chart = chartRaw as any
     const name  = chart?.name      ?? 'Vedic Chart'
     const date  = chart?.birthDate
       ? (() => { const d = new Date(chart.birthDate + 'T12:00:00Z'); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}` })()
       : ''
-    const place = (chart as any)?.birthPlace ?? ''
+    const place = chart?.birthPlace ?? ''
 
     return new ImageResponse(
       <div

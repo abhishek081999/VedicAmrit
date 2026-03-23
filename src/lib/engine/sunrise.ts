@@ -19,6 +19,10 @@ const SEFLG_SWIEPH         = 2
 const ATPRESS              = 1013.25   // average atmospheric pressure (mbar)
 const ATTEMP               = 15        // average temperature (°C)
 
+// sweph types are incomplete — cast to any for rise_trans
+const swephAny = sweph as any
+const SE_SUN = swephAny.SE_SUN ?? 0
+
 /**
  * Calculate true astronomical sunrise for a given date and location.
  * Returns a Date in UTC. Falls back to 6:00 AM local if sweph fails.
@@ -37,11 +41,11 @@ export function getSunrise(
     const d = midnightLocal.getUTCDate()
     const jdMidnight = toJulianDay(y, m, d, 0)
 
-    const geopos = [lng, lat, 0]   // sweph: [longitude, latitude, altitude]
+    const geopos: [number, number, number] = [lng, lat, 0]   // sweph: [longitude, latitude, altitude]
 
-    const result = sweph.rise_trans(
+    const result = swephAny.rise_trans(
       jdMidnight,
-      sweph.SE_SUN,
+      SE_SUN,
       '',
       SEFLG_SWIEPH,
       SE_CALC_RISE,
@@ -77,11 +81,11 @@ export function getSunset(
     const d = midnightLocal.getUTCDate()
     const jdMidnight = toJulianDay(y, m, d, 0)
 
-    const geopos = [lng, lat, 0]
+    const geopos: [number, number, number] = [lng, lat, 0]
 
-    const result = sweph.rise_trans(
+    const result = swephAny.rise_trans(
       jdMidnight,
-      sweph.SE_SUN,
+      SE_SUN,
       '',
       SEFLG_SWIEPH,
       SE_CALC_SET,

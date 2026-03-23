@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         latitude,
         longitude,
         timezone:   'UTC',
-        settings:   settings as ChartSettings,
+        settings:   settings as unknown as ChartSettings,
       },
       'hora',   // compute all features
     )

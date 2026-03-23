@@ -199,7 +199,8 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
+// next-auth v5 beta: JWT types live in 'next-auth' not 'next-auth/jwt'
+declare module 'next-auth' {
   interface JWT {
     plan: 'kala' | 'vela' | 'hora'
     id:   string
