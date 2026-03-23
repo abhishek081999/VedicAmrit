@@ -5,6 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { ThemeToggle }   from '@/components/ui/ThemeToggle'
 import { BirthForm }     from '@/components/ui/BirthForm'
+import { useSession } from 'next-auth/react'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { DashaTree }     from '@/components/dasha/DashaTree'
 import { AshtakavargaGrid } from '@/components/ui/AshtakavargaGrid'
@@ -146,6 +147,8 @@ const GRAHA_SYM: Record<string,string> = { Su:'☀',Mo:'☽',Ma:'♂',Me:'☿',J
 type View = 'compat' | 'charts' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'ashtakoot' | 'all'
 
 export default function ComparePage() {
+  const { data: session } = useSession()
+  const userPlan = ((session?.user as any)?.plan ?? 'kala') as 'kala' | 'vela' | 'hora'
   const [step,   setStep]   = useState<'a'|'b'|'done'>('a')
   const [chartA, setChartA] = useState<ChartOutput|null>(null)
   const [chartB, setChartB] = useState<ChartOutput|null>(null)
@@ -369,7 +372,7 @@ export default function ComparePage() {
                       {chart.meta.name}
                       <span style={{ fontWeight:400,color:'var(--text-muted)',marginLeft:6,fontSize:'0.72rem' }}>{chart.meta.birthDate}</span>
                     </div>
-                    <VargaSwitcher vargas={chart.vargas} vargaLagnas={chart.vargaLagnas??{}} ascRashi={chart.lagnas.ascRashi} arudhas={chart.arudhas} userPlan="kala" direction="column" />
+                    <VargaSwitcher vargas={chart.vargas} vargaLagnas={chart.vargaLagnas??{}} ascRashi={chart.lagnas.ascRashi} arudhas={chart.arudhas} userPlan={userPlan} direction="column" />
                   </div>
                 ))}
               </div>

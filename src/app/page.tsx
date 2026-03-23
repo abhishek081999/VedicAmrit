@@ -261,6 +261,7 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 
 export default function HomePage() {
   const { data: session, status } = useSession()
+  const userPlan = ((session?.user as any)?.plan ?? 'kala') as 'kala' | 'vela' | 'hora'
   const { activeTab } = useAppLayout()
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
@@ -455,6 +456,7 @@ export default function HomePage() {
                      vargaLagnas={chart.vargaLagnas ?? {}}
                      ascRashi={chart.lagnas.ascRashi}
                      arudhas={chart.arudhas}
+                     userPlan={userPlan}
                      moonNakIndex={moonNakIndex}
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
