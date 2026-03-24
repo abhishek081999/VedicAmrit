@@ -43,6 +43,25 @@ const ChartInputSchema = z.object({
 
 type ChartInput = z.infer<typeof ChartInputSchema>
 
+function parseCachedChart(cached: unknown): any | null {
+  if (!cached) return null
+  if (typeof cached === 'string') {
+    try {
+      return JSON.parse(cached)
+    } catch {
+      return null
+    }
+  }
+  if (typeof cached === 'object') return cached
+  return null
+}
+
+function hasVimsopakaData(chartData: any): boolean {
+  if (!chartData || typeof chartData !== 'object') return false
+  const planets = chartData?.vimsopaka?.planets
+  return !!planets && typeof planets === 'object' && Object.keys(planets).length > 0
+}
+
 // ── Timezone conversion ───────────────────────────────────────
 
 /**
@@ -108,13 +127,15 @@ export async function POST(req: NextRequest) {
       redis.get(cacheKey)
     ])
 
-    if (cached) {
+    const cachedChart = parseCachedChart(cached)
+
+    if (cachedChart && hasVimsopakaData(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation
       // but are stored in meta. We want to return the name from input.
       const finalData = {
-        ...(cached as any),
+        ...cachedChart,
         meta: {
-          ...(cached as any).meta,
+          ...cachedChart.meta,
           name:       input.name,
           birthDate:  input.birthDate,
           birthTime:  input.birthTime,
