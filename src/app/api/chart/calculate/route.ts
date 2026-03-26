@@ -62,6 +62,27 @@ function hasVimsopakaData(chartData: any): boolean {
   return !!planets && typeof planets === 'object' && Object.keys(planets).length > 0
 }
 
+function hasAdvancedFeatures(chartData: any): boolean {
+  // Check if grahas have the new advanced feature fields
+  const grahas = chartData?.grahas
+  if (!grahas || !Array.isArray(grahas) || grahas.length === 0) return false
+  
+  // Check first graha for the new fields
+  const firstGraha = grahas[0]
+  const hasGrahaFeatures = !!(
+    firstGraha.gandanta && 
+    firstGraha.yuddha && 
+    firstGraha.pushkara && 
+    firstGraha.mrityuBhaga
+  )
+  
+  // Check for yogiPoint
+  const hasYogiPoint = !!chartData.yogiPoint
+  const hasInterpretation = !!chartData.interpretation && Array.isArray(chartData.interpretation?.topInsights)
+  
+  return hasGrahaFeatures && hasYogiPoint && hasInterpretation
+}
+
 // ── Timezone conversion ───────────────────────────────────────
 
 /**
@@ -129,7 +150,7 @@ export async function POST(req: NextRequest) {
 
     const cachedChart = parseCachedChart(cached)
 
-    if (cachedChart && hasVimsopakaData(cachedChart)) {
+    if (cachedChart && hasVimsopakaData(cachedChart) && hasAdvancedFeatures(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation
       // but are stored in meta. We want to return the name from input.
       const finalData = {

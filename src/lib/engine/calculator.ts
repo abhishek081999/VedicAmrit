@@ -24,7 +24,7 @@ import {
 import { calcHouses } from '@/lib/engine/houses'
 import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
-import { getDignity } from '@/lib/engine/dignity'
+import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
   VARGA_FUNCTIONS,
   KALA_VARGAS, VELA_VARGAS, ALL_VARGAS,
@@ -52,7 +52,13 @@ import {
   type GrahaId,
   type Rashi,
   type UserPlan,
+  type YuddhaResult,
 } from '@/types/astrology'
+import { checkGandanta } from './gandanta'
+import { checkPushkara } from './pushkara'
+import { checkMrityuBhaga } from './mrityuBhaga'
+import { calculateYogiPoint } from './yogiPoint'
+import { buildChartInterpretation } from './advancedInterpretation'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -86,7 +92,8 @@ function buildGrahas(
     'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'
   ]
 
-  const grahas: GrahaData[] = order.map((id): GrahaData => {
+  // First pass: calculate all positions without gandanta/yuddha
+  const tempGrahas = order.map((id) => {
     const swId = id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id]
     const pos = getPlanetPosition(jd, swId)
     const lonSidereal = toSidereal(pos.longitude, ayanamsha)
@@ -131,6 +138,20 @@ function buildGrahas(
     }
   })
 
+  // Get Mercury and Venus for Yuddha calculation
+  const mercury = tempGrahas.find((g) => g.id === 'Me')!
+  const venus = tempGrahas.find((g) => g.id === 'Ve')!
+  const yuddhaResult = checkYuddha(mercury.lonSidereal, venus.lonSidereal)
+
+  // Second pass: add gandanta, yuddha, pushkara, mrityuBhaga to all planets
+  const grahas: GrahaData[] = tempGrahas.map((g): GrahaData => ({
+    ...g,
+    gandanta: checkGandanta(g.lonSidereal),
+    yuddha: getYuddhaForPlanet(g.id, mercury.lonSidereal, venus.lonSidereal),
+    pushkara: checkPushkara(g.lonSidereal),
+    mrityuBhaga: checkMrityuBhaga(g.lonSidereal),
+  }))
+
   // Ketu
   const rahu = grahas.find((g) => g.id === 'Ra')!
   const ketuLonSid = ketuLongitude(rahu.lonSidereal)
@@ -164,6 +185,10 @@ function buildGrahas(
     dignity: kDig,
     avastha: { baladi: kBaladi, jagradadi: (kDig === 'exalted' || kDig === 'own') ? 'Jāgrat' : 'Swapna' },
     charaKaraka: null,
+    gandanta: checkGandanta(ketuLonSid),
+    yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: yuddhaResult.degreeDifference, orb: yuddhaResult.orb },
+    pushkara: checkPushkara(ketuLonSid),
+    mrityuBhaga: checkMrityuBhaga(ketuLonSid),
   })
 
   return grahas
@@ -276,6 +301,25 @@ export async function calculateChart(
   // Vimsopaka Bala
   const vimsopaka = calculateVimsopaka(grahas, vargas)
 
+  // Yogi Point (prosperity analysis)
+  const yogiPoint = calculateYogiPoint(sun.lonSidereal, moon.lonSidereal)
+  const shadbala = (calculateShadbala(
+    grahas,
+    lagnaData,
+    birthUtc,
+    sunrise,
+    sunset,
+    moon.totalDegree,
+    sun.totalDegree,
+  ) as ShadbalaResult)
+  const interpretation = buildChartInterpretation({
+    grahas,
+    shadbala,
+    yogiPoint,
+    houses,
+    houseSystem: settings.houseSystem,
+  })
+
   // Dashas
   const dashaDepth = plan === 'kala' ? 4 : 6
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
@@ -341,17 +385,11 @@ export async function calculateChart(
       rahuKalam, gulikaKalam, yamaganda, abhijitMuhurta: abhijit, horaTable: [],
     },
     upagrahas: {},
-    shadbala: (calculateShadbala(
-      grahas,
-      lagnaData,
-      birthUtc,
-      sunrise,
-      sunset,
-      moon.totalDegree,
-      sun.totalDegree,
-    ) as ShadbalaResult),
+    shadbala,
     vimsopaka,
     ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
     yogas: detectYogas(grahas, lagnaData),
+    yogiPoint,
+    interpretation,
   }
 }

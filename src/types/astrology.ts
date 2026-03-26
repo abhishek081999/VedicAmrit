@@ -99,6 +99,7 @@ export const HOUSE_SYSTEM_NAMES: Record<HouseSystem, string> = {
   whole_sign:    'Whole Sign',
   placidus:      'Placidus',
   equal:         'Equal House',
+  bhava_chalita: 'Bhava Chalita',
 }
 
 // ── Node Mode ─────────────────────────────────────────────────
@@ -125,6 +126,94 @@ export type Dignity =
   | 'enemy'
   | 'great_enemy'
   | 'debilitated'
+
+// ── Gandanta (Karmic Knots) ───────────────────────────────────
+
+export type GandantaType = 'revati-ashwini' | 'ashlesha-magha' | 'jyeshtha-mula'
+
+export type GandantaSeverity = 'exact' | 'near' | 'none'
+
+export type GandantaPosition = 'end-of-water' | 'beginning-of-fire' | null
+
+export interface GandantaResult {
+  isGandanta: boolean
+  type: GandantaType | null
+  severity: GandantaSeverity
+  position: GandantaPosition
+  distanceFromJunction: number | null  // Degrees from exact gandanta point
+  rashi: Rashi
+  nakshatraIndex: number
+  degreeInNakshatra: number
+}
+
+// ── Yuddha (Planetary War) ────────────────────────────────────
+
+export interface YuddhaResult {
+  isWarring: boolean
+  planets: ['Me', 'Ve'] | []
+  winner: 'Me' | 'Ve' | null
+  loser: 'Me' | 'Ve' | null
+  degreeDifference: number  // Distance between the two planets
+  orb: number  // Max orb for war (1°)
+}
+
+// ── Puṣkara Aṃśa (Auspicious Degrees) ──────────────────────────
+
+export type PushkaraType = 'pushkara_bhaga' | 'pushkara_navamsha'
+
+export interface PushkaraResult {
+  isPushkara: boolean
+  type: PushkaraType | null
+  zone: 1 | 2 | null
+  rashi: Rashi
+  degreeInSign: number
+  navamsha: number
+  isPushkaraNavamsha: boolean
+  distanceFromCenter: number | null
+  remedy: string | null
+}
+
+// ── Mṛtyu Bhāga (Death Degrees) ────────────────────────────────
+
+export type MrityuSeverity = 'exact' | 'near' | 'wide' | 'none'
+
+export interface MrityuBhagaResult {
+  isMrityuBhaga: boolean
+  severity: MrityuSeverity
+  rashi: Rashi
+  degreeInSign: number
+  mrityuDegree: number
+  distanceFromMrityu: number
+  interpretation: string | null
+  remedy: string | null
+}
+
+// ── Yogi Point System ──────────────────────────────────────────
+
+export interface YogiPointResult {
+  yogiPoint: number
+  yogiRashi: Rashi
+  yogiDegreeInSign: number
+  yogiGraha: GrahaId
+  
+  sahayogiPoint: number
+  sahayogiRashi: Rashi
+  sahayogiDegreeInSign: number
+  sahayogiGraha: GrahaId
+  
+  avayogiPoint: number
+  avayogiRashi: Rashi
+  avayogiDegreeInSign: number
+  avayogiGraha: GrahaId
+  
+  interpretation: {
+    yogi: string
+    sahayogi: string
+    avayogi: string
+  }
+  
+  remedy: string
+}
 
 // ── Chart Settings ───────────────────────────────────────────
 
@@ -190,6 +279,10 @@ export interface GrahaData {
     jagradadi:  string   // Jagrat, Swapna, Sushupti
   }
   charaKaraka:  string | null
+  gandanta:     GandantaResult    // Karmic knot detection
+  yuddha:       YuddhaResult      // Planetary war status
+  pushkara:     PushkaraResult    // Auspicious degrees
+  mrityuBhaga:  MrityuBhagaResult // Death-inflicting degrees
 }
 
 // ── Lagna Data ───────────────────────────────────────────────
@@ -329,6 +422,33 @@ export interface ChartOutput {
   vimsopaka: import('@/lib/engine/vimsopaka').VimsopakaBalaResult
   ashtakavarga?: AshtakavargaResult
   yogas?:        YogaResult[]
+  yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
+  interpretation: ChartInterpretation
+}
+
+// ── Chart Interpretation ───────────────────────────────────────
+
+export type InterpretationTone = 'supportive' | 'caution' | 'mixed'
+export type InterpretationCategory = 'strength' | 'vulnerability' | 'special' | 'summary'
+
+export interface InterpretationInsight {
+  id: string
+  title: string
+  message: string
+  tone: InterpretationTone
+  category: InterpretationCategory
+  priority: number // Higher means shown earlier
+  relatedGrahas: GrahaId[]
+  house?: number
+  actions?: string[]
+}
+
+export interface ChartInterpretation {
+  headline: string
+  strengths: InterpretationInsight[]
+  cautions: InterpretationInsight[]
+  special: InterpretationInsight[]
+  topInsights: InterpretationInsight[]
 }
 
 // ── Vimsopaka Bala ──────────────────────────────────────────

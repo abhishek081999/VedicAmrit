@@ -144,7 +144,7 @@ function sthanaBala(
   g: GrahaData,
   allGrahas: GrahaData[],
   ascSign: number,
-): { total: number; breakdown: ShadbalaPlanet['details']['sthana'] } {
+): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['sthana'] } {
   let bala = 0
   let uccha = 0
   let saptavargaja = 0
@@ -224,7 +224,7 @@ function digBala(
   g: GrahaData,
   ascDeg: number,
   cusps: number[],
-): { total: number; breakdown: ShadbalaPlanet['details']['dig'] } {
+): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['dig'] } {
   if (!cusps || cusps.length < 12) {
     return {
       total: 30,
@@ -258,7 +258,7 @@ function kalaBala(
   moonLon: number,
   sunLon: number,
   weekday: number,
-): { total: number; breakdown: ShadbalaPlanet['details']['kala'] } {
+): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['kala'] } {
   const birthMs = birthDate.getTime()
   const isDaytime = birthMs >= sunrise.getTime() && birthMs <= sunset.getTime()
 
@@ -307,7 +307,7 @@ function kalaBala(
 
 // ── 4. Chesta Bala ──────────────────────────────────────────
 
-function chestaBala(g: GrahaData): { total: number; breakdown: ShadbalaPlanet['details']['chesta'] } {
+function chestaBala(g: GrahaData): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['chesta'] } {
   if (g.isRetro) {
     return {
       total: 60,
@@ -348,7 +348,7 @@ function chestaBala(g: GrahaData): { total: number; breakdown: ShadbalaPlanet['d
 function drikBala(
   g: GrahaData,
   allGrahas: GrahaData[],
-): { total: number; breakdown: ShadbalaPlanet['details']['drik'] } {
+): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['drik'] } {
   let bala = 0
   let benefic = 0
   let malefic = 0

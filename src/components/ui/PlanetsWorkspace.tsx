@@ -3,6 +3,9 @@ import React, { useMemo } from 'react'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GrahaTable } from '@/components/ui/GrahaTable'
 import { PlanetDetailCard } from '@/components/ui/PlanetDetailCard'
+import { AdvancedAnalysisPanel } from '@/components/ui/AdvancedAnalysisPanel'
+import { YogiPointPanel } from '@/components/ui/YogiPointPanel'
+import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
 import { getGraNakPositions, getNakshatraCharacteristics } from '@/lib/engine/nakshatraAdvanced'
 import { NAKSHATRA_NAMES as NAK_NAMES, RASHI_NAMES } from '@/types/astrology'
 import type { ChartOutput, Rashi } from '@/types/astrology'
@@ -116,6 +119,28 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
             />
           ))}
         </div>
+      </div>
+
+      {/* ── Yogi Point System ──────────────────────────────────── */}
+      {chart.yogiPoint && (
+        <div style={{ marginTop: '1rem' }}>
+          <YogiPointPanel 
+            yogiPoint={chart.yogiPoint} 
+            grahas={chart.grahas.map(g => ({ id: g.id, lonSidereal: g.lonSidereal, name: g.name }))}
+          />
+        </div>
+      )}
+
+      {/* ── Interpretation Layer ───────────────────────────────── */}
+      {chart.interpretation && (
+        <div style={{ marginTop: '1rem' }}>
+          <InterpretationPanel interpretation={chart.interpretation} />
+        </div>
+      )}
+
+      {/* ── Advanced Analysis: Gandanta, Pushkara, Mrityu ───────── */}
+      <div style={{ marginTop: '1rem' }}>
+        <AdvancedAnalysisPanel grahas={chart.grahas} />
       </div>
     </div>
   )

@@ -17,6 +17,7 @@ import { DashaTree }     from '@/components/dasha/DashaTree'
 import { ShadbalaTable }    from '@/components/ui/ShadbalaTable'
 import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
 import { ThemeToggle }      from '@/components/ui/ThemeToggle'
+import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
 import type { ChartOutput, Rashi } from '@/types/astrology'
 import { RASHI_NAMES }      from '@/types/astrology'
 
@@ -35,11 +36,12 @@ interface SavedChart {
   createdAt:  string
 }
 
-type Tab = 'chart' | 'planets' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'vimsopaka'
+type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'vimsopaka'
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'chart',   label: 'Chart',    emoji: '◯' },
   { id: 'planets', label: 'Planets',  emoji: '✦' },
+  { id: 'interpretation', label: 'Interpretation', emoji: '✧' },
   { id: 'dasha',   label: 'Daśā',     emoji: '⏳' },
   { id: 'shadbala',label: 'Ṣaḍbala',  emoji: '⚖' },
   { id: 'vimsopaka',label: 'Viṁśopaka',emoji: '⑳' },
@@ -374,6 +376,21 @@ export default function PublicChartPage() {
               {tab === 'planets' && (
                 <div className="card">
                   <GrahaTable grahas={chart.grahas} />
+                </div>
+              )}
+
+              {tab === 'interpretation' && (
+                <div className="card">
+                  <div className="label-caps" style={{ marginBottom: '0.85rem' }}>
+                    Interpretation Layer
+                  </div>
+                  {chart.interpretation ? (
+                    <InterpretationPanel interpretation={chart.interpretation} />
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      Interpretation Layer is unavailable for this chart.
+                    </div>
+                  )}
                 </div>
               )}
 

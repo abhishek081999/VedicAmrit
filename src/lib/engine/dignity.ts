@@ -5,7 +5,7 @@
 //  Source: Brihat Parashara Hora Shastra
 // ─────────────────────────────────────────────────────────────
 
-import type { GrahaId, Rashi, Dignity } from '@/types/astrology'
+import type { GrahaId, Rashi, Dignity, YuddhaResult } from '@/types/astrology'
 
 // ── Exaltation signs and exact degrees ───────────────────────
 
@@ -191,4 +191,93 @@ export function naturalRelationship(
   if (NATURAL_FRIENDS[graha]?.includes(other)) return 'friend'
   if (NATURAL_ENEMIES[graha]?.includes(other)) return 'enemy'
   return 'neutral'
+}
+
+// ── Yuddha (Planetary War) ────────────────────────────────────
+
+/**
+ * Planetary War (Yuddha) Rules (from Phaladipika)
+ * 
+ * When Mercury and Venus are within 1° of each other, they are in war.
+ * The planet with higher longitude wins the war.
+ * 
+ * Effects:
+ * - Winner: Gains strength, positive results enhanced
+ * - Loser: Becomes weak, significations suffer
+ * 
+ * Note: Some texts say the war orb differs:
+ * - Mercury: 1° orb
+ * - Venus: 0.5° orb (some say 1°)
+ * 
+ * We use 1° for both as the most common interpretation.
+ */
+
+const YUDDHA_ORB = 1.0  // degrees
+
+/**
+ * Check if Mercury and Venus are in planetary war
+ * 
+ * @param mercuryLon - Sidereal longitude of Mercury
+ * @param venusLon - Sidereal longitude of Venus
+ * @returns YuddhaResult with war status and winner
+ */
+export function checkYuddha(mercuryLon: number, venusLon: number): YuddhaResult {
+  // Calculate angular distance
+  let diff = Math.abs(mercuryLon - venusLon) % 360
+  if (diff > 180) diff = 360 - diff
+  
+  // Not in war if distance exceeds orb
+  if (diff > YUDDHA_ORB) {
+    return {
+      isWarring: false,
+      planets: [],
+      winner: null,
+      loser: null,
+      degreeDifference: diff,
+      orb: YUDDHA_ORB,
+    }
+  }
+  
+  // In war - determine winner (higher longitude wins)
+  const mercuryNormalized = ((mercuryLon % 360) + 360) % 360
+  const venusNormalized = ((venusLon % 360) + 360) % 360
+  
+  // Winner is the one with higher longitude
+  const winner = mercuryNormalized > venusNormalized ? 'Me' : 'Ve'
+  const loser = winner === 'Me' ? 'Ve' : 'Me'
+  
+  return {
+    isWarring: true,
+    planets: ['Me', 'Ve'],
+    winner,
+    loser,
+    degreeDifference: diff,
+    orb: YUDDHA_ORB,
+  }
+}
+
+/**
+ * Get Yuddha result for a specific planet
+ * Returns null if the planet is not involved in war
+ */
+export function getYuddhaForPlanet(
+  planetId: GrahaId,
+  mercuryLon: number,
+  venusLon: number,
+): YuddhaResult {
+  const result = checkYuddha(mercuryLon, venusLon)
+  
+  // Only Me and Ve can be in war
+  if (planetId !== 'Me' && planetId !== 'Ve') {
+    return {
+      isWarring: false,
+      planets: [],
+      winner: null,
+      loser: null,
+      degreeDifference: result.degreeDifference,
+      orb: YUDDHA_ORB,
+    }
+  }
+  
+  return result
 }

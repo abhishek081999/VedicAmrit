@@ -20,6 +20,7 @@ import { TransitOverlay }     from '@/components/ui/TransitOverlay'
 import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
 import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
 import { PlanetsWorkspace } from '@/components/ui/PlanetsWorkspace'
+import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
 import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
 import { HousePanel } from '@/components/ui/HousePanel'
 import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
@@ -456,7 +457,7 @@ export default function HomePage() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house') && (
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation') && (
               <div className={`${(activeTab === 'planets' || activeTab === 'house') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
@@ -467,6 +468,8 @@ export default function HomePage() {
                     <PlanetsWorkspace chart={chart} />
                   ) : activeTab === 'house' ? (
                     <HousePanel chart={chart} />
+                ) : activeTab === 'interpretation' ? (
+                  <InterpretationPanel interpretation={chart.interpretation} />
                   ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}

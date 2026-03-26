@@ -115,6 +115,10 @@ describe('Chara Dasha', () => {
       dignity: 'neutral' as any,
       avastha: { baladi: '', jagradadi: '' },
       charaKaraka: null,
+      gandanta: { isGandanta: false, type: null, severity: 'none', position: null, distanceFromJunction: null, rashi: 1 as Rashi, nakshatraIndex: 0, degreeInNakshatra: 0 },
+      yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
+      pushkara: { isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0, navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null },
+      mrityuBhaga: { isMrityuBhaga: false, severity: 'none', rashi: 1 as Rashi, degreeInSign: 0, mrityuDegree: 0, distanceFromMrityu: 0, interpretation: null, remedy: null },
     }))
   }
 
@@ -253,6 +257,10 @@ describe('Ashtakavarga', () => {
       rashiName: '', degree: positions[i] % 30, totalDegree: positions[i],
       nakshatraIndex: 0, nakshatraName: '', pada: 1,
       dignity: 'neutral' as any, avastha: { baladi: '', jagradadi: '' }, charaKaraka: null,
+      gandanta: { isGandanta: false, type: null, severity: 'none', position: null, distanceFromJunction: null, rashi: 1 as Rashi, nakshatraIndex: 0, degreeInNakshatra: 0 },
+      yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
+      pushkara: { isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0, navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null },
+      mrityuBhaga: { isMrityuBhaga: false, severity: 'none', rashi: 1 as Rashi, degreeInSign: 0, mrityuDegree: 0, distanceFromMrityu: 0, interpretation: null, remedy: null },
     }))
   }
 

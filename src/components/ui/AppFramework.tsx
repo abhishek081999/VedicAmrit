@@ -24,6 +24,7 @@ const NAKSHATRA_TABS: { id: string; label: string; icon: string; path?: string }
 
 const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
   { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
+  { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
   { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
   { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
   { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },

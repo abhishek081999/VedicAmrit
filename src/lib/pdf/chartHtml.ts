@@ -48,6 +48,14 @@ function capitalize(s: string): string {
   return s.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 function toDeg(totalDeg: number): number {
   return ((totalDeg % 360) + 360) % 360
 }
@@ -488,6 +496,53 @@ function buildShadbalaHTML(chart: ChartOutput): string {
     </table>`
 }
 
+// ── Interpretation HTML ─────────────────────────────────────────────
+function buildInterpretationHTML(chart: ChartOutput): string {
+  if (!chart.interpretation?.topInsights?.length) {
+    return '<p style="color:#888">Interpretation Layer data unavailable.</p>'
+  }
+
+  const tone = (t: string) => {
+    if (t === 'supportive') return { bg: '#e6fffa', border: '#0f6e56', text: '#0f6e56' }
+    if (t === 'caution') return { bg: '#ffe4ea', border: '#b91c1c', text: '#b91c1c' }
+    return { bg: '#f3e8ff', border: '#7c3aed', text: '#5b21b6' }
+  }
+
+  const cards = chart.interpretation.topInsights.map((ins) => {
+    const c = tone(ins.tone)
+    const actionsHtml = ins.actions?.length
+      ? `<div style="margin-top:10px;font-size:11px;color:#666;line-height:1.55">
+          <strong style="color:#111">Practical Actions:</strong> ${escapeHtml(ins.actions.join(' · '))}
+        </div>`
+      : ''
+
+    return `
+      <div style="border:1px solid ${c.border};background:${c.bg};border-radius:6px;padding:12px 12px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px">
+          <div style="font-weight:800;color:#111;font-size:12px">${escapeHtml(ins.title)}</div>
+          <div style="font-size:10px;color:${c.text};text-transform:uppercase;font-weight:800;letter-spacing:.06em;white-space:nowrap">
+            ${escapeHtml(ins.category)}
+          </div>
+        </div>
+        <div style="font-size:11px;color:#444;line-height:1.6">
+          ${escapeHtml(ins.message)}
+        </div>
+        ${actionsHtml}
+      </div>
+    `
+  }).join('')
+
+  return `
+    <div style="margin-top:18px">
+      <h2 style="margin-top:0;font-size:14px;color:#1e3a5f">Interpretation Layer</h2>
+      <div style="font-size:11px;color:#666;margin-bottom:12px">
+        <strong>Headline:</strong> ${escapeHtml(chart.interpretation.headline)}
+      </div>
+      ${cards}
+    </div>
+  `
+}
+
 // ── Yogas HTML ────────────────────────────────────────────────
 
 function buildYogasHTML(chart: ChartOutput): string {
@@ -881,6 +936,8 @@ export function generateChartHTML(chart: ChartOutput): string {
     Weakest: <strong>${chart.shadbala?.weakest || '—'}</strong>
   </p>
   ${buildShadbalaHTML(chart)}
+
+  ${buildInterpretationHTML(chart)}
 
   <div class="page-footer">
     <span>Vedaansh Jyotish Platform</span>

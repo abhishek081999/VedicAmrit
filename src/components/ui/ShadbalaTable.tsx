@@ -643,7 +643,7 @@ export function ShadbalaTable({
                   <>
                     {Object.entries(activePlanet.details.kala).filter(([k]) => k !== 'isDayBirth').map(([k, v]) => (
                       <div key={k} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
-                        <span>{k}</span><span>{Number(v / 60).toFixed(3)} R</span>
+                        <span>{k}</span><span>{(Number(v) / 60).toFixed(3)} R</span>
                       </div>
                     ))}
                     <div style={{ marginTop: '0.2rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>

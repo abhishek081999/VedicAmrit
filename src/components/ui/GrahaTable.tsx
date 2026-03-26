@@ -11,6 +11,7 @@ import {
   GRAHA_NAMES, GRAHA_SANSKRIT, RASHI_SANSKRIT, Rashi, GrahaId
 } from '@/types/astrology'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
+import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -153,6 +154,36 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
 
   return (
     <div style={{ overflowX: 'auto', width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
+      {/* Legend for condition badges */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '1rem', 
+        padding: '0.5rem 0.75rem', 
+        background: 'var(--surface-2)', 
+        borderBottom: '1px solid var(--border-soft)',
+        fontSize: '0.65rem',
+        color: 'var(--text-muted)',
+      }}>
+        <span style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Special Conditions:</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span style={{ background: 'rgba(224,123,142,0.15)', color: 'var(--rose)', padding: '1px 4px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 600 }}>G</span>
+          <span>Gandanta</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span style={{ background: 'rgba(78,205,196,0.12)', color: 'var(--teal)', padding: '1px 4px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 600 }}>P</span>
+          <span>Puṣkara</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span style={{ background: 'rgba(245,158,66,0.12)', color: 'var(--amber)', padding: '1px 4px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 600 }}>M</span>
+          <span>Mṛtyu Bhāga</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <span style={{ background: 'rgba(78,205,196,0.15)', color: 'var(--teal)', padding: '1px 4px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 600 }}>YW</span>
+          <span style={{ background: 'rgba(224,123,142,0.15)', color: 'var(--rose)', padding: '1px 4px', borderRadius: 3, fontSize: '0.6rem', fontWeight: 600 }}>YL</span>
+          <span>Yuddha (W=Wins, L=Loses)</span>
+        </span>
+      </div>
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', background: 'var(--surface-1)' }}>
         <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
           <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
@@ -194,6 +225,11 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
                       </span>
                     )}
                   </div>
+                  {/* Condition badges for main grahas */}
+                  {(() => {
+                    const graha = b.id ? grahas.find(g => g.id === b.id) : undefined
+                    return graha ? <ConditionBadges graha={graha} /> : null
+                  })()}
                 </td>
 
                 {/* Longitude */}

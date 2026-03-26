@@ -26,6 +26,9 @@ const PLANET_NAMES: Record<GrahaId, string> = {
   Sa: 'Saturn',
   Ra: 'Rahu',
   Ke: 'Ketu',
+  Ur: 'Uranus',
+  Ne: 'Neptune',
+  Pl: 'Pluto',
 }
 
 const VARGA_LABELS: Record<string, string> = {
