@@ -31,10 +31,10 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    // Check if plan has expired — downgrade to kala if so
+    // Check if plan has expired — downgrade to free if so
     const effectivePlan = (() => {
-      if (user.plan === 'kala') return 'kala'
-      if (user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) return 'kala'
+      if (user.plan === 'free') return 'free'
+      if (user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) return 'free'
       return user.plan
     })()
 

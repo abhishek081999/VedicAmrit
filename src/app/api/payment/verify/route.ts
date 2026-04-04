@@ -23,13 +23,13 @@ const VerifySchema = z.object({
   paymentId: z.string().min(1),
   orderId:   z.string().min(1),
   signature: z.string().min(1),
-  plan:      z.enum(['vela', 'hora']),
+  plan:      z.enum(['gold', 'platinum']),
   interval:  z.enum(['monthly', 'yearly']),
 })
 
 const PLAN_PRICES = {
-  vela: { monthly: 29900, yearly: 249900 },
-  hora: { monthly: 99900, yearly: 849900 },
+  gold: { monthly: 29900, yearly: 249900 },
+  platinum: { monthly: 99900, yearly: 849900 },
 } as const
 
 function addInterval(date: Date, interval: 'monthly' | 'yearly'): Date {

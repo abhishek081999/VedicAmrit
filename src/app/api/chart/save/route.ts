@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  POST /api/chart/save
 //  Saves a calculated chart to MongoDB for the logged-in user.
-//  Enforces per-plan chart limits: Kāla=3, Velā=1008, Horā=∞
+//  Enforces per-plan chart limits: Free=3, Gold=1008, Platinum=∞
 //  Returns { success, chartId, slug }
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from 'next/server'
@@ -16,9 +16,9 @@ export const runtime = 'nodejs'
 
 // ── Per-plan chart save limits ────────────────────────────────
 const CHART_LIMITS: Record<string, number> = {
-  kala: 3,
-  vela: 1008,
-  hora: Infinity,
+  free: 3,
+  gold: 1008,
+  platinum: Infinity,
 }
 
 const SaveSchema = z.object({
@@ -53,13 +53,13 @@ export async function POST(req: NextRequest) {
     // ── Plan-based limit check ────────────────────────────────
     if (userId) {
       const user  = await User.findById(userId).select('plan planExpiresAt').lean()
-      const plan  = (user as any)?.plan ?? 'kala'
+      const plan  = (user as any)?.plan ?? 'free'
 
-      // Check planExpiresAt — downgrade to kala if subscription lapsed
+      // Check planExpiresAt — downgrade to free if subscription lapsed
       const effectivePlan = (() => {
-        if (plan === 'kala') return 'kala'
+        if (plan === 'free') return 'free'
         const expiry = (user as any)?.planExpiresAt
-        if (expiry && new Date(expiry) < new Date()) return 'kala'
+        if (expiry && new Date(expiry) < new Date()) return 'free'
         return plan
       })()
 
@@ -70,9 +70,9 @@ export async function POST(req: NextRequest) {
         if (count >= limit) {
           return NextResponse.json({
             success: false,
-            error:   `Chart limit reached. ${effectivePlan === 'kala'
-              ? 'Kāla plan allows up to 3 saved charts. Upgrade to Velā for 1,008.'
-              : 'Velā plan allows up to 1,008 saved charts. Upgrade to Horā for unlimited.'}`,
+            error:   `Chart limit reached. ${effectivePlan === 'free'
+              ? 'Free plan allows up to 3 saved charts. Upgrade to Gold for 1,008.'
+              : 'Gold plan allows up to 1,008 saved charts. Upgrade to Platinum for unlimited.'}`,
             limitReached: true,
             currentCount: count,
             limit,

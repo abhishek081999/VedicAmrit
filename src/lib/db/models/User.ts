@@ -84,7 +84,7 @@ const UserSchema = new Schema<IUser>({
   email:        { type: String, required: true, unique: true, lowercase: true, trim: true },
   name:         { type: String, required: true, trim: true },
   image:        { type: String, default: null },
-  plan:         { type: String, enum: ['kala','vela','hora'], default: 'kala' },
+  plan:         { type: String, enum: ['free','gold','platinum'], default: 'free' },
   planExpiresAt:{ type: Date,   default: null },
 
   passwordHash:   { type: String, default: null, select: false },
@@ -111,13 +111,13 @@ UserSchema.index({ oauthProvider: 1, oauthId: 1 })
 // ── Methods ───────────────────────────────────────────────────
 
 UserSchema.methods.isPlanActive = function(): boolean {
-  if (this.plan === 'kala') return true
+  if (this.plan === 'free') return true
   if (!this.planExpiresAt) return false
   return this.planExpiresAt > new Date()
 }
 
 UserSchema.methods.canAddDevice = function(): boolean {
-  if (this.plan === 'kala') return false
+  if (this.plan === 'free') return false
   return this.devices.length < 3
 }
 

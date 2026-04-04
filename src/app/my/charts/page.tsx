@@ -101,7 +101,7 @@ function ChartCard({
       })
       if (!exportRes.ok) {
         const err = await exportRes.json().catch(() => ({}))
-        if (err.upgradeRequired) { window.location.href = '/pricing?highlight=vela'; return }
+        if (err.upgradeRequired) { window.location.href = '/pricing?highlight=gold'; return }
         throw new Error(err.error || 'Export failed')
       }
 

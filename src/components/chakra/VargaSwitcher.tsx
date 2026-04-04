@@ -4,30 +4,30 @@ import { useState } from 'react'
 import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData } from '@/types/astrology'
 
-interface VargaMeta { name: string; full: string; topic: string; tier: 'kala'|'vela'|'hora' }
+interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
 const VARGA_META: VargaMeta[] = [
-  { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'kala' },
-  { name:'D9',  full:'Navamsha',        topic:'Spouse & marriage — inner self, manifests after 35',   tier:'kala' },
-  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'vela' },
-  { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'vela' },
-  { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'vela' },
-  { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'vela' },
-  { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'vela' },
-  { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'kala' },
-  { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'vela' },
-  { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'vela' },
-  { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'vela' },
-  { name:'D24', full:'Chaturvimsamsha', topic:'Education — learning, academic achievements',          tier:'vela' },
-  { name:'D27', full:'Saptavimsamsha',  topic:'Innate strength — inherent qualities, talents',        tier:'vela' },
-  { name:'D30', full:'Trimsamsha',      topic:'Obstacles — negative influences, karmic challenges',   tier:'vela' },
-  { name:'D40', full:'Khavedamsha',     topic:'Life events and mother — auspicious or inauspicious',  tier:'vela' },
-  { name:'D45', full:'Akshavedamsha',   topic:'All life matters and father — comprehensive',          tier:'vela' },
-  { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'hora' },
+  { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'free' },
+  { name:'D9',  full:'Navamsha',        topic:'Spouse & marriage — inner self, manifests after 35',   tier:'free' },
+  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'gold' },
+  { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'gold' },
+  { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'gold' },
+  { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'gold' },
+  { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'gold' },
+  { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'free' },
+  { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'gold' },
+  { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'gold' },
+  { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'gold' },
+  { name:'D24', full:'Chaturvimsamsha', topic:'Education — learning, academic achievements',          tier:'gold' },
+  { name:'D27', full:'Saptavimsamsha',  topic:'Innate strength — inherent qualities, talents',        tier:'gold' },
+  { name:'D30', full:'Trimsamsha',      topic:'Obstacles — negative influences, karmic challenges',   tier:'gold' },
+  { name:'D40', full:'Khavedamsha',     topic:'Life events and mother — auspicious or inauspicious',  tier:'gold' },
+  { name:'D45', full:'Akshavedamsha',   topic:'All life matters and father — comprehensive',          tier:'gold' },
+  { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'platinum' },
 ]
 
-function planLevel(plan: UserPlan) { return plan==='hora'?2:plan==='vela'?1:0 }
-function tierLevel(tier: VargaMeta['tier']) { return tier==='hora'?2:tier==='vela'?1:0 }
+function planLevel(plan: UserPlan) { return plan==='platinum'?2:plan==='gold'?1:0 }
+function tierLevel(tier: VargaMeta['tier']) { return tier==='platinum'?2:tier==='gold'?1:0 }
 function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=tierLevel(meta.tier) }
 
 interface Props {
@@ -42,11 +42,11 @@ function Pill({ meta, plan, state, onClick }: {
   meta:VargaMeta; plan:UserPlan; state:'primary'|'secondary'|'none'; onClick:()=>void
 }) {
   const unlocked = isUnlocked(meta, plan)
-  const tierLabel = meta.tier === 'hora' ? 'Hora' : 'Vela'
+  const tierDisplayName = meta.tier === 'platinum' ? 'Platinum' : meta.tier === 'gold' ? 'Gold' : 'Free'
   return (
     <button
       onClick={onClick}
-      title={unlocked ? `${meta.full} — ${meta.topic}` : `Requires ${tierLabel} plan`}
+      title={unlocked ? `${meta.full} — ${meta.topic}` : `Requires ${tierDisplayName} plan`}
       style={{
         padding:'0.22rem 0.6rem', fontSize:'0.78rem',
         fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
@@ -63,13 +63,13 @@ function Pill({ meta, plan, state, onClick }: {
 }
 
 function UpgradeNudge({ plan }: { plan: UserPlan }) {
-  if (plan !== 'kala') return null
+  if (plan !== 'free') return null
   return (
     <div style={{ display:'flex',alignItems:'center',gap:'0.6rem',padding:'0.4rem 0.75rem',
       background:'rgba(184,134,11,0.05)',border:'1px solid rgba(184,134,11,0.18)',
       borderRadius:'var(--r-md)',fontSize:'0.72rem',color:'var(--text-muted)' }}>
       <span>&#x1F512;</span>
-      <span>D2&ndash;D45 require <strong style={{color:'var(--text-gold)'}}>Vela</strong> plan</span>
+      <span>D2&ndash;D45 require <strong style={{color:'var(--text-gold)'}}>Gold</strong> plan</span>
       <a href="/pricing" style={{ marginLeft:'auto',padding:'0.18rem 0.6rem',
         background:'var(--gold-faint)',border:'1px solid var(--gold)',
         borderRadius:'var(--r-sm)',color:'var(--text-gold)',
@@ -102,12 +102,12 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
 }
 
 export function VargaSwitcher({
-  vargas, vargaLagnas, ascRashi, arudhas, userPlan='kala', lagnas,
+  vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid',
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
-  const available = VARGA_META.filter(v => v.name in vargas || v.tier==='kala')
+  const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
 
   function handleClick(meta: VargaMeta) {
     if (!isUnlocked(meta, userPlan)) { window.location.href='/pricing'; return }
@@ -130,9 +130,9 @@ export function VargaSwitcher({
     }
   }
 
-  const kalaV = available.filter(v => v.tier === 'kala')
-  const velaV = available.filter(v => v.tier === 'vela')
-  const horaV = available.filter(v => v.tier === 'hora')
+  const freeV = available.filter(v => v.tier === 'free')
+  const goldV = available.filter(v => v.tier === 'gold')
+  const platinumV = available.filter(v => v.tier === 'platinum')
   const visible = selected.filter(name => {
     const meta = VARGA_META.find(v => v.name === name)
     return meta ? isUnlocked(meta, userPlan) : true
@@ -154,14 +154,14 @@ export function VargaSwitcher({
   return (
     <div style={{ display:'flex',flexDirection:'column',gap:'1.25rem' }}>
       <div style={{ display:'flex',flexDirection:'column',gap:'0.55rem' }}>
-        <TierRow label="Free" items={kalaV} labelColor="var(--text-muted)" />
-        {velaV.length > 0 && (
-          <TierRow label="Vela" items={velaV}
-            labelColor={userPlan !== 'kala' ? 'var(--text-gold)' : 'var(--text-muted)'} />
+        <TierRow label="Free" items={freeV} labelColor="var(--text-muted)" />
+        {goldV.length > 0 && (
+          <TierRow label="Gold" items={goldV}
+            labelColor={userPlan !== 'free' ? 'var(--text-gold)' : 'var(--text-muted)'} />
         )}
-        {horaV.length > 0 && (
-          <TierRow label="Hora" items={horaV}
-            labelColor={userPlan === 'hora' ? 'var(--teal)' : 'var(--text-muted)'} />
+        {platinumV.length > 0 && (
+          <TierRow label="Platinum" items={platinumV}
+            labelColor={userPlan === 'platinum' ? 'var(--teal)' : 'var(--text-muted)'} />
         )}
         <UpgradeNudge plan={userPlan} />
       </div>
@@ -172,7 +172,7 @@ export function VargaSwitcher({
         gap: '1.5rem', marginTop: '0.5rem',
       }}>
         {visible.map((name, idx) => {
-          const meta = VARGA_META.find(v => v.name === name) ?? { name, full:name, topic:'', tier:'kala' as const }
+          const meta = VARGA_META.find(v => v.name === name) ?? { name, full:name, topic:'', tier:'free' as const }
           const { grahas, varAscRashi } = chartProps(name)
           return (
             <div key={name} className="fade-up" style={{

@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       name,
       email:               email.toLowerCase(),
       passwordHash:        pwHash,
-      plan:                'kala',
+      plan:                'free',
       emailVerified:       null,
       verificationToken,
       verificationExpires,

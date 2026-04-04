@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────
 //  src/components/ui/ExportPdfButton.tsx
 //  PDF export button — calls /api/chart/export, opens in
-//  new tab. Shows upgrade prompt for Kāla users.
+//  new tab. Shows upgrade prompt for Free users.
 // ─────────────────────────────────────────────────────────────
 
 import React, { useState } from 'react'
@@ -18,16 +18,16 @@ interface Props {
 
 export function ExportPdfButton({ chart, compact = false, style }: Props) {
   const { data: session } = useSession()
-  const plan = (session?.user as any)?.plan ?? 'kala'
+  const plan = (session?.user as any)?.plan ?? 'free'
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
 
   async function handleExport() {
     setError(null)
 
-    // Kāla users → redirect to pricing
-    if (plan === 'kala') {
-      window.location.href = '/pricing?highlight=vela'
+    // Free users → redirect to pricing
+    if (plan === 'free') {
+      window.location.href = '/pricing?highlight=gold'
       return
     }
 
@@ -42,7 +42,7 @@ export function ExportPdfButton({ chart, compact = false, style }: Props) {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         if (data.upgradeRequired) {
-          window.location.href = '/pricing?highlight=vela'
+          window.location.href = '/pricing?highlight=gold'
           return
         }
         throw new Error(data.error || 'Export failed')
@@ -74,23 +74,23 @@ export function ExportPdfButton({ chart, compact = false, style }: Props) {
     }
   }
 
-  const isKala = plan === 'kala'
+  const isFree = plan === 'free'
 
   return (
     <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
       <button
         onClick={handleExport}
         disabled={loading}
-        title={isKala ? 'PDF export requires Velā plan' : `Export ${chart.meta.name} as PDF`}
+        title={isFree ? 'PDF export requires Gold plan' : `Export ${chart.meta.name} as PDF`}
         style={{
           display:        'inline-flex',
           alignItems:     'center',
           gap:            6,
           padding:        compact ? '5px 10px' : '7px 16px',
           borderRadius:   'var(--r-sm, 6px)',
-          border:         `1px solid ${isKala ? 'var(--border-soft, #ccc)' : 'var(--border-accent, #8b5cf6)'}`,
-          background:     isKala ? 'transparent' : 'rgba(139,92,246,0.08)',
-          color:          isKala ? 'var(--text-muted, #888)' : 'var(--text-accent, #8b5cf6)',
+          border:         `1px solid ${isFree ? 'var(--border-soft, #ccc)' : 'var(--border-accent, #8b5cf6)'}`,
+          background:     isFree ? 'transparent' : 'rgba(139,92,246,0.08)',
+          color:          isFree ? 'var(--text-muted, #888)' : 'var(--text-accent, #8b5cf6)',
           cursor:         loading ? 'wait' : 'pointer',
           fontSize:       compact ? '0.7rem' : '0.8rem',
           fontWeight:     600,
@@ -106,10 +106,10 @@ export function ExportPdfButton({ chart, compact = false, style }: Props) {
             <span style={{ fontSize: 14 }}>⏳</span>
             {!compact && 'Preparing…'}
           </>
-        ) : isKala ? (
+        ) : isFree ? (
           <>
             <span style={{ fontSize: 14 }}>🔒</span>
-            {compact ? 'PDF' : 'PDF Export (Velā)'}
+            {compact ? 'PDF' : 'PDF Export (Gold)'}
           </>
         ) : (
           <>

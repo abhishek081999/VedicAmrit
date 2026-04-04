@@ -134,7 +134,8 @@ export default function AccountPage() {
         if (data.success && data.plan) {
           // Update the NextAuth JWT token with the new plan
           await update({ plan: data.plan })
-          setUpgradeMsg(`✓ Plan upgraded to ${data.plan === 'vela' ? 'Velā' : 'Horā'} successfully!`)
+          const planLabel = data.plan === 'gold' ? 'Gold' : data.plan === 'platinum' ? 'Platinum' : 'Free'
+          setUpgradeMsg(`✓ Plan upgraded to ${planLabel} successfully!`)
           // Remove the query param without full reload
           router.replace('/account', { scroll: false })
         }
@@ -239,23 +240,23 @@ export default function AccountPage() {
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Plan</span>
                 <span style={{
                   padding: '0.15rem 0.5rem', borderRadius: 6,
-                  background: user?.plan === 'kala' ? 'var(--surface-3)' : 'rgba(201,168,76,0.12)',
-                  border: `1px solid ${user?.plan === 'kala' ? 'var(--border)' : 'rgba(201,168,76,0.30)'}`,
+                  background: user?.plan === 'free' ? 'var(--surface-3)' : 'rgba(201,168,76,0.12)',
+                  border: `1px solid ${user?.plan === 'free' ? 'var(--border)' : 'rgba(201,168,76,0.30)'}`,
                   fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: user?.plan === 'kala' ? 'var(--text-secondary)' : 'var(--text-gold)', 
+                  color: user?.plan === 'free' ? 'var(--text-secondary)' : 'var(--text-gold)', 
                   fontFamily: 'var(--font-display)',
                 }}>
-                  {user?.plan ?? 'Kāla'}
+                  {user?.plan === 'free' ? 'Free' : user?.plan === 'gold' ? 'Gold' : user?.plan === 'platinum' ? 'Platinum' : user?.plan}
                 </span>
              </div>
-             {user?.plan !== 'kala' && user?.planExpiresAt && (
+             {user?.plan !== 'free' && user?.planExpiresAt && (
                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                  Expires: <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{new Date(user.planExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                </div>
              )}
-             {user?.plan === 'kala' && (
+             {user?.plan === 'free' && (
                <Link href="/pricing" style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
-                 Upgrade to Velā →
+                 Upgrade to Gold →
                </Link>
              )}
           </section>

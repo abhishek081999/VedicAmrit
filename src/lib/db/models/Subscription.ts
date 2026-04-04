@@ -19,7 +19,7 @@ export interface ISubscription extends Document {
   _id:      Types.ObjectId
   userId:   Types.ObjectId
 
-  plan:     UserPlan          // 'vela' | 'hora'
+  plan:     UserPlan          // 'gold' | 'platinum'
   provider: PaymentProvider
 
   // Provider-specific IDs
@@ -55,7 +55,7 @@ export interface ISubscription extends Document {
 
 const SubscriptionSchema = new Schema<ISubscription>({
   userId:   { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-  plan:     { type: String, enum: ['vela','hora'], required: true },
+  plan:     { type: String, enum: ['gold','platinum'], required: true },
   provider: { type: String, enum: ['razorpay','stripe'], required: true },
 
   providerSubscriptionId: { type: String, required: true, unique: true },

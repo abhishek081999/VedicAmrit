@@ -267,7 +267,7 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 
 export default function HomePage() {
   const { data: session, status } = useSession()
-  const userPlan = ((session?.user as any)?.plan ?? 'kala') as 'kala' | 'vela' | 'hora'
+  const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const { activeTab } = useAppLayout()
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)

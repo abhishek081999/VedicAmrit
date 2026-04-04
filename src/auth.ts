@@ -86,7 +86,7 @@ async function verifyCredentials(
       email: user.email,
       name:  user.name,
       image: user.image ?? null,
-      plan:  user.plan ?? 'kala',
+      plan:  user.plan ?? 'free',
     }
   } catch (err) {
     console.error('[auth] verifyCredentials error:', err)
@@ -134,7 +134,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user, trigger, session }) {
       // On sign-in, embed plan into token
       if (user) {
-        token.plan  = (user as any).plan  ?? 'kala'
+        token.plan  = (user as any).plan  ?? 'free'
         token.id    = user.id
       }
 
@@ -149,7 +149,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       // Expose plan and id in the client-facing session
       if (session.user) {
-        (session.user as any).plan = token.plan ?? 'kala'
+        (session.user as any).plan = token.plan ?? 'free'
         ;(session.user as any).id  = token.id   ?? token.sub
       }
       return session
@@ -171,7 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           { email: user.email },
           { 
             $set: { emailVerified: new Date() },
-            $setOnInsert: { plan: 'kala', preferences: {}, devices: [] } 
+            $setOnInsert: { plan: 'free', preferences: {}, devices: [] } 
           },
           { upsert: true }, // Ensure user exists or create if missing (though events:createUser implies they're created)
         )
@@ -194,7 +194,7 @@ declare module 'next-auth' {
       email: string
       name:  string
       image: string | null
-      plan:  'kala' | 'vela' | 'hora'
+      plan:  'free' | 'gold' | 'platinum'
     }
   }
 }
@@ -202,7 +202,7 @@ declare module 'next-auth' {
 // next-auth v5 beta: JWT types live in 'next-auth' not 'next-auth/jwt'
 declare module 'next-auth' {
   interface JWT {
-    plan: 'kala' | 'vela' | 'hora'
+    plan: 'free' | 'gold' | 'platinum'
     id:   string
   }
 }

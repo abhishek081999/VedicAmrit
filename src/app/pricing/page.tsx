@@ -6,8 +6,8 @@ import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 const FEATURES = {
-  kala: {
-    name: 'Kāla',
+  free: {
+    name: 'Free',
     subtitle: 'Free forever',
     price: { monthly: 0, yearly: 0 },
     color: 'var(--text-gold)',
@@ -32,8 +32,8 @@ const FEATURES = {
       '— Save up to 3 charts',
     ],
   },
-  vela: {
-    name: 'Velā',
+  gold: {
+    name: 'Gold',
     subtitle: 'For serious students',
     price: { monthly: 299, yearly: 2499 },
     color: 'var(--accent)',
@@ -41,7 +41,7 @@ const FEATURES = {
     bg: 'rgba(139,124,246,0.08)',
     badge: 'Most Popular',
     features: [
-      '✓ Everything in Kāla',
+      '✓ Everything in Free',
       '✓ All 16 standard varga charts',
       '✓ Unlimited chart saves',
       '✓ Chart notes & annotations',
@@ -55,8 +55,8 @@ const FEATURES = {
       '✓ API access (100 req/day)',
     ],
   },
-  hora: {
-    name: 'Horā',
+  platinum: {
+    name: 'Platinum',
     subtitle: 'For professionals',
     price: { monthly: 999, yearly: 8499 },
     color: 'var(--teal)',
@@ -64,7 +64,7 @@ const FEATURES = {
     bg: 'rgba(78,205,196,0.08)',
     badge: 'Professional',
     features: [
-      '✓ Everything in Velā',
+      '✓ Everything in Gold',
       '✓ All 41 varga chart schemes',
       '✓ All Daśā systems (30+)',
       '✓ Unlimited chart saves',
@@ -80,10 +80,10 @@ const FEATURES = {
 }
 
 const FAQ = [
-  { q: 'Is Kāla really free forever?', a: 'Yes. The Kāla tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone.' },
+  { q: 'Is Free really free forever?', a: 'Yes. The Free tier is permanently free with no credit card required. We believe core Jyotish tools should be accessible to everyone.' },
   { q: 'What payment methods are accepted?', a: 'We accept all major credit/debit cards, UPI, net banking, and wallets via Razorpay. International cards also accepted.' },
   { q: 'Can I cancel anytime?', a: 'Yes, subscriptions can be cancelled at any time. Your access continues until the end of the billing period.' },
-  { q: 'Is there a student discount?', a: 'Yes — students and Jyotish teachers get 40% off Velā. Email us at support@vedaansh.com with your credentials.' },
+  { q: 'Is there a student discount?', a: 'Yes — students and Jyotish teachers get 40% off Gold. Email us at support@vedaansh.com with your credentials.' },
   { q: 'Do you offer refunds?', a: 'We offer a 7-day money-back guarantee on all paid plans if you are not satisfied.' },
 ]
 
@@ -94,10 +94,10 @@ export default function PricingPage() {
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)  // plan key being loaded
   const [checkoutError,  setCheckoutError]  = useState<string | null>(null)
 
-  const currentPlan = (session?.user as any)?.plan ?? 'kala'
+  const currentPlan = (session?.user as any)?.plan ?? 'free'
 
   // ── Razorpay checkout ────────────────────────────────────────
-  async function handleSubscribe(planKey: 'vela' | 'hora') {
+  async function handleSubscribe(planKey: 'gold' | 'platinum') {
     if (!session) {
       window.location.href = '/login?callbackUrl=/pricing'
       return
@@ -130,7 +130,7 @@ export default function PricingPage() {
           name:  data.userName,
           email: data.userEmail,
         },
-        theme: { color: planKey === 'vela' ? '#8B7CF6' : '#4ECDC4' },
+        theme: { color: planKey === 'gold' ? '#8B7CF6' : '#4ECDC4' },
         handler: async function (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) {
           // 4. Verify payment signature + activate subscription via webhook
           //    (webhook handles plan upgrade asynchronously)
@@ -204,7 +204,7 @@ export default function PricingPage() {
             <span style={{ color: 'var(--text-gold)' }}>Free to start.</span>
           </h1>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
-            Swiss Ephemeris precision for every chart. All core features free forever on the Kāla tier.
+            Swiss Ephemeris precision for every chart. All core features free forever on the Free tier.
           </p>
         </div>
 
@@ -229,21 +229,21 @@ export default function PricingPage() {
 
         {/* Tier cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', width: '100%' }}>
-          {(Object.entries(FEATURES) as [string, typeof FEATURES.kala][]).map(([key, tier]) => {
+          {(Object.entries(FEATURES) as [string, typeof FEATURES.free][]).map(([key, tier]) => {
             const isCurrent = currentPlan === key
             const price = tier.price[billing as 'monthly' | 'yearly']
-            const isVela = key === 'vela'
+            const isGold = key === 'gold'
 
             return (
               <div key={key} style={{
-                background: isVela ? 'var(--surface-1)' : 'var(--surface-1)',
-                border: `1px solid ${isVela ? tier.border : 'var(--border)'}`,
+                background: isGold ? 'var(--surface-1)' : 'var(--surface-1)',
+                border: `1px solid ${isGold ? tier.border : 'var(--border)'}`,
                 borderTop: `3px solid ${tier.color}`,
                 borderRadius: 'var(--r-lg)',
                 padding: '1.75rem',
                 display: 'flex', flexDirection: 'column', gap: '1.25rem',
                 position: 'relative',
-                boxShadow: isVela ? '0 4px 24px rgba(139,124,246,0.12)' : 'none',
+                boxShadow: isGold ? '0 4px 24px rgba(139,124,246,0.12)' : 'none',
               }}>
                 {/* Popular badge */}
                 {tier.badge && (
@@ -326,7 +326,7 @@ export default function PricingPage() {
                 ) : (
                   <>
                     <button
-                      onClick={() => handleSubscribe(key as 'vela' | 'hora')}
+                      onClick={() => handleSubscribe(key as 'gold' | 'platinum')}
                       disabled={checkoutLoading === key}
                       style={{
                         display: 'block', width: '100%', padding: '0.65rem 1rem',
@@ -430,7 +430,7 @@ export default function PricingPage() {
           borderRadius: 'var(--r-lg)', maxWidth: 540, width: '100%',
         }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-            Start with Kāla — free forever
+            Start with Free — free forever
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1.25rem' }}>
             No credit card. No expiry. Upgrade when you're ready.

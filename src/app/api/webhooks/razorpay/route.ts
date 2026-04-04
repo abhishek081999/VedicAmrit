@@ -38,7 +38,7 @@ async function handlePaymentCaptured(payload: any) {
   const existing = await Subscription.findOne({ providerSubscriptionId: payment.id })
   if (existing?.status === 'active') return 
 
-  const plan     = notes.plan     as 'vela' | 'hora'
+  const plan     = notes.plan     as 'gold' | 'platinum'
   const interval = notes.interval as 'monthly' | 'yearly' ?? 'monthly'
   const now      = new Date()
   const expiry   = addInterval(now, interval)
@@ -76,7 +76,7 @@ async function handlePaymentCaptured(payload: any) {
 
   // 3. Send Welcome Email
   if (user?.email) {
-    await sendWelcomeEmail(user.email, plan, expiry)
+    await sendWelcomeEmail(user.email, plan as any, expiry)
   }
 }
 
@@ -122,4 +122,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Handler failed' }, { status: 500 })
   }
 }
-

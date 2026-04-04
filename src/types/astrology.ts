@@ -551,20 +551,20 @@ export interface YogaResult {
 
 // ── User Plan ────────────────────────────────────────────────
 
-export type UserPlan = 'kala' | 'vela' | 'hora'
+export type UserPlan = 'free' | 'gold' | 'platinum'
 
 export const PLAN_LIMITS: Record<UserPlan, { charts: number; vargas: string[]; dashas: string[] }> = {
-  kala: {
+  free: {
     charts: 0,  // no save
     vargas: ['D1','D9','D10'],
     dashas: ['vimshottari'],
   },
-  vela: {
+  gold: {
     charts: 1008,
     vargas: ['D1','D2','D3','D4','D7','D9','D10','D12','D16','D20','D24','D27','D30','D40','D45','D60'],
     dashas: ['vimshottari','ashtottari'],
   },
-  hora: {
+  platinum: {
     charts: 10008,
     vargas: ['all'],  // all 41 schemes
     dashas: ['all'],  // all 30+ systems

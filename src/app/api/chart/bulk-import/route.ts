@@ -17,9 +17,9 @@ import { User }  from '@/lib/db/models/User'
 export const runtime = 'nodejs'
 
 const PLAN_LIMITS: Record<string, number> = {
-  kala: 3,
-  vela: 1008,
-  hora: Infinity,
+  free: 3,
+  gold: 1008,
+  platinum: Infinity,
 }
 
 // Accepted column aliases (case-insensitive, trimmed)
@@ -132,9 +132,9 @@ export async function POST(req: NextRequest) {
   await connectDB()
 
   const user = await User.findById(userId).select('plan planExpiresAt').lean() as any
-  const rawPlan: string = user?.plan ?? 'kala'
+  const rawPlan: string = user?.plan ?? 'free'
   const expiry = user?.planExpiresAt
-  const effectivePlan = (rawPlan !== 'kala' && expiry && new Date(expiry) < new Date()) ? 'kala' : rawPlan
+  const effectivePlan = (rawPlan !== 'free' && expiry && new Date(expiry) < new Date()) ? 'free' : rawPlan
   const limit = PLAN_LIMITS[effectivePlan] ?? 3
 
   let existing = await Chart.countDocuments({ userId })

@@ -25,14 +25,14 @@ function getRazorpay(): Razorpay {
 // ── Plan → amount map (paise = 1/100 of rupee) ───────────────
 // synced with src/app/pricing/page.tsx
 const PLAN_PRICES = {
-  vela: { monthly: 29900, yearly: 249900 },   // ₹299/mo, ₹2499/yr
-  hora: { monthly: 99900, yearly: 849900 },   // ₹999/mo, ₹8499/yr
+  gold: { monthly: 29900, yearly: 249900 },   // ₹299/mo, ₹2499/yr
+  platinum: { monthly: 99900, yearly: 849900 },   // ₹999/mo, ₹8499/yr
 } as const
 
 // ── Input schema ──────────────────────────────────────────────
 
 const CheckoutSchema = z.object({
-  plan:     z.enum(['vela', 'hora']),
+  plan:     z.enum(['gold', 'platinum']),
   interval: z.enum(['monthly', 'yearly']),
 })
 
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       amount:     amountPaise,
       currency:   'INR',
       keyId:      process.env.RAZORPAY_KEY_ID,
-      planLabel:  plan === 'vela' ? 'Velā' : 'Horā',
+      planLabel:  plan === 'gold' ? 'Gold' : 'Platinum',
       userName:   user.name,
       userEmail:  user.email,
     })
@@ -118,4 +118,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-
