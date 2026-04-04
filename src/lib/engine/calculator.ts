@@ -27,7 +27,7 @@ import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
   VARGA_FUNCTIONS,
-  KALA_VARGAS, VELA_VARGAS, ALL_VARGAS,
+  FREE_VARGAS, GOLD_VARGAS, ALL_VARGAS,
   type VargaName,
 } from '@/lib/engine/vargas'
 import { calculateAshtakavarga } from './ashtakavarga'
@@ -195,15 +195,14 @@ function buildGrahas(
 }
 
 function vargaNamesForPlan(plan: UserPlan): VargaName[] {
-  if (plan === 'hora') return ALL_VARGAS
-  return VELA_VARGAS  // all 16 standard vargas are free for everyone
+  return ALL_VARGAS
 }
 
 // ── Main export ───────────────────────────────────────────────
 
 export async function calculateChart(
   input: CalculateChartInput,
-  plan: UserPlan = 'kala',
+  plan: UserPlan = 'free',
 ): Promise<ChartOutput> { // eslint-disable-line
   const settings = input.settings ?? DEFAULT_SETTINGS
   const birthUtc = parseBirthUtc(input.utcDate, input.utcTime)
@@ -321,7 +320,7 @@ export async function calculateChart(
   })
 
   // Dashas
-  const dashaDepth = plan === 'kala' ? 4 : 6
+  const dashaDepth = plan === 'free' ? 4 : 6
   const vimshottari = calcVimshottari(moon.lonSidereal, birthUtc, dashaDepth)
 
   // Panchang

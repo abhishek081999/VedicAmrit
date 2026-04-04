@@ -28,7 +28,7 @@ interface ChakraSelectorProps {
   lagnas?:       LagnaData
   defaultStyle?: ChartStyle
   size?:         number
-  userPlan?:     'kala' | 'vela' | 'hora'
+  userPlan?:     'free' | 'gold' | 'platinum'
 }
 
 // ── Style definitions ─────────────────────────────────────────
@@ -55,7 +55,7 @@ export function ChakraSelector({
   varaNumber   = 0,
   defaultStyle = 'north',
   size         = 480,
-  userPlan     = 'kala',
+  userPlan     = 'free',
   transitGrahas = [],
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
@@ -106,12 +106,12 @@ export function ChakraSelector({
       }}>
         {STYLES.map((s) => {
           const active = style === s.id
-          const locked = s.tier === 'vela' && userPlan === 'kala'
+          const locked = s.tier === 'gold' && userPlan === 'free'
           return (
             <button
               key={s.id}
               onClick={() => locked ? (window.location.href = '/pricing') : setStyle(s.id as ChartStyle)}
-              title={locked ? `${s.label} — requires Velā plan` : s.description}
+              title={locked ? `${s.label} — requires Gold plan` : s.description}
               style={{
                 padding: '0.3rem 0.65rem',
                 fontSize: '0.8rem',
@@ -145,7 +145,7 @@ export function ChakraSelector({
               <Toggle label="9 Planets"   value={onlyNine}   onChange={setOnlyNine} />
               <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
               <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
-              {userPlan !== 'kala' && (
+              {userPlan !== 'free' && (
                 <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
               )}
               {arudhas && (

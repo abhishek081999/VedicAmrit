@@ -148,7 +148,7 @@ type View = 'compat' | 'charts' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadba
 
 export default function ComparePage() {
   const { data: session } = useSession()
-  const userPlan = ((session?.user as any)?.plan ?? 'kala') as 'kala' | 'vela' | 'hora'
+  const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [step,   setStep]   = useState<'a'|'b'|'done'>('a')
   const [chartA, setChartA] = useState<ChartOutput|null>(null)
   const [chartB, setChartB] = useState<ChartOutput|null>(null)

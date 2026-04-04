@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         timezone:   'UTC',
         settings:   settings as unknown as ChartSettings,
       },
-      'hora',   // compute all features
+      'platinum',   // compute all features
     )
 
     return NextResponse.json({

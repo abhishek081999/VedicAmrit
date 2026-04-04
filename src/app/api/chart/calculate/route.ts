@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, data: finalData, fromCache: true })
     }
 
-    const plan: UserPlan = (session?.user as any)?.plan ?? 'kala'
+    const plan: UserPlan = (session?.user as any)?.plan ?? 'free'
 
     // Run calculation and connect DB (for warming) in parallel
     const [chartData] = await Promise.all([

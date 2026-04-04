@@ -9,21 +9,21 @@ interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'g
 const VARGA_META: VargaMeta[] = [
   { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'free' },
   { name:'D9',  full:'Navamsha',        topic:'Spouse & marriage — inner self, manifests after 35',   tier:'free' },
-  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'gold' },
-  { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'gold' },
-  { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'gold' },
-  { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'gold' },
-  { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'gold' },
+  { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'free' },
+  { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'free' },
+  { name:'D3',  full:'Drekkana',        topic:'Siblings — relationships, talents, abilities',         tier:'free' },
+  { name:'D4',  full:'Chaturthamsha',   topic:'Home & property — dwelling, ancestral property',       tier:'free' },
+  { name:'D7',  full:'Saptamsha',       topic:'Children — progeny, offspring, influence',             tier:'free' },
   { name:'D10', full:'Dasamsha',        topic:'Career — profession, achievements, reputation',        tier:'free' },
-  { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'gold' },
-  { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'gold' },
-  { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'gold' },
-  { name:'D24', full:'Chaturvimsamsha', topic:'Education — learning, academic achievements',          tier:'gold' },
-  { name:'D27', full:'Saptavimsamsha',  topic:'Innate strength — inherent qualities, talents',        tier:'gold' },
-  { name:'D30', full:'Trimsamsha',      topic:'Obstacles — negative influences, karmic challenges',   tier:'gold' },
-  { name:'D40', full:'Khavedamsha',     topic:'Life events and mother — auspicious or inauspicious',  tier:'gold' },
-  { name:'D45', full:'Akshavedamsha',   topic:'All life matters and father — comprehensive',          tier:'gold' },
-  { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'platinum' },
+  { name:'D12', full:'Dwadasamsha',     topic:'Parents — relationship with parents, their influence', tier:'free' },
+  { name:'D16', full:'Shodasamsha',     topic:'Vehicles & comforts — transport, luxuries',            tier:'free' },
+  { name:'D20', full:'Vimsamsha',       topic:'Spirituality — religious actions, devotion',           tier:'free' },
+  { name:'D24', full:'Chaturvimsamsha', topic:'Education — learning, academic achievements',          tier:'free' },
+  { name:'D27', full:'Saptvimsamsha',  topic:'Innate strength — inherent qualities, talents',        tier:'free' },
+  { name:'D30', full:'Trimsamsha',      topic:'Obstacles — negative influences, karmic challenges',   tier:'free' },
+  { name:'D40', full:'Khavedamsha',     topic:'Life events and mother — auspicious or inauspicious',  tier:'free' },
+  { name:'D45', full:'Akshavedamsha',   topic:'All life matters and father — comprehensive',          tier:'free' },
+  { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'free' },
 ]
 
 function planLevel(plan: UserPlan) { return plan==='platinum'?2:plan==='gold'?1:0 }
@@ -63,21 +63,7 @@ function Pill({ meta, plan, state, onClick }: {
 }
 
 function UpgradeNudge({ plan }: { plan: UserPlan }) {
-  if (plan !== 'free') return null
-  return (
-    <div style={{ display:'flex',alignItems:'center',gap:'0.6rem',padding:'0.4rem 0.75rem',
-      background:'rgba(184,134,11,0.05)',border:'1px solid rgba(184,134,11,0.18)',
-      borderRadius:'var(--r-md)',fontSize:'0.72rem',color:'var(--text-muted)' }}>
-      <span>&#x1F512;</span>
-      <span>D2&ndash;D45 require <strong style={{color:'var(--text-gold)'}}>Gold</strong> plan</span>
-      <a href="/pricing" style={{ marginLeft:'auto',padding:'0.18rem 0.6rem',
-        background:'var(--gold-faint)',border:'1px solid var(--gold)',
-        borderRadius:'var(--r-sm)',color:'var(--text-gold)',
-        fontSize:'0.68rem',fontWeight:600,textDecoration:'none',whiteSpace:'nowrap' }}>
-        Upgrade
-      </a>
-    </div>
-  )
+  return null
 }
 
 function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }) {

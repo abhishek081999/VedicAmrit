@@ -16,7 +16,7 @@ export const runtime = 'nodejs'
 
 // ── Per-plan chart save limits ────────────────────────────────
 const CHART_LIMITS: Record<string, number> = {
-  free: 3,
+  free: 10,
   gold: 1008,
   platinum: Infinity,
 }
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({
             success: false,
             error:   `Chart limit reached. ${effectivePlan === 'free'
-              ? 'Free plan allows up to 3 saved charts. Upgrade to Gold for 1,008.'
+              ? 'Free plan allows up to 10 saved charts. Upgrade to Gold for 1,008.'
               : 'Gold plan allows up to 1,008 saved charts. Upgrade to Platinum for unlimited.'}`,
             limitReached: true,
             currentCount: count,

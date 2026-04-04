@@ -39,7 +39,7 @@ export function SoftwareAppJsonLd() {
     description: 'Professional Vedic Jyotish platform with Swiss Ephemeris precision.',
     featureList: [
       'Vedic birth chart (Kundali)',
-      '16 varga divisional charts',
+      '41 varga divisional charts',
       'Vimshottari Dasha',
       'Daily Panchang',
       'Āruḍha Lagnas',

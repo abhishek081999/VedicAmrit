@@ -372,17 +372,15 @@ export const VARGA_FUNCTIONS: Record<VargaName, (lon: number) => number> = {
   D108_Guru, D108_Shukra, D144, D150,
 }
 
-// Kala tier vargas
-export const KALA_VARGAS: VargaName[]  = ['D1', 'D9', 'D60']
+// All vargas are now free
+export const FREE_VARGAS: VargaName[] = Object.keys(VARGA_FUNCTIONS) as VargaName[]
 
-// Vela tier vargas (16 standard)
-export const VELA_VARGAS: VargaName[] = [
-  'D1','D2','D3','D4','D7','D9','D10','D12',
-  'D16','D20','D24','D27','D30','D40','D45','D60',
-]
+// Gold tier vargas (maintained for type compatibility)
+export const GOLD_VARGAS: VargaName[] = FREE_VARGAS
 
-// All 41 vargas (Hora tier)
-export const ALL_VARGAS = Object.keys(VARGA_FUNCTIONS) as VargaName[]
+// All 41 vargas (Platinum tier)
+export const PLATINUM_VARGAS = Object.keys(VARGA_FUNCTIONS) as VargaName[]
+export const ALL_VARGAS = PLATINUM_VARGAS // Alias for backward compatibility
 
 /**
  * Calculate all requested varga signs for a planet
@@ -391,7 +389,7 @@ export const ALL_VARGAS = Object.keys(VARGA_FUNCTIONS) as VargaName[]
  */
 export function calcVargas(
   siderealLon: number,
-  vargas: VargaName[] = KALA_VARGAS,
+  vargas: VargaName[] = FREE_VARGAS,
 ): Record<VargaName, number> {
   const result = {} as Record<VargaName, number>
   for (const name of vargas) {
@@ -403,21 +401,21 @@ export function calcVargas(
 /**
  * Human-readable varga metadata
  */
-export const VARGA_META: Record<string, { full: string; topic: string; tier: 'kala' | 'vela' | 'hora' }> = {
-  D1:  { full: 'Rashi',            topic: 'Body, overall life',         tier: 'kala' },
-  D2:  { full: 'Hora',             topic: 'Wealth',                     tier: 'vela' },
-  D3:  { full: 'Drekkana',         topic: 'Siblings, courage',          tier: 'vela' },
-  D4:  { full: 'Chaturthamsha',    topic: 'Property, home',             tier: 'vela' },
-  D7:  { full: 'Saptamsha',        topic: 'Children',                   tier: 'vela' },
-  D9:  { full: 'Navamsha',         topic: 'Spouse, dharma, inner self', tier: 'kala' },
-  D10: { full: 'Dashamsha',        topic: 'Career, profession',         tier: 'vela' },
-  D12: { full: 'Dwadashamsha',     topic: 'Parents',                    tier: 'vela' },
-  D16: { full: 'Shodashamsha',     topic: 'Vehicles, comforts',         tier: 'vela' },
-  D20: { full: 'Vimshamsha',       topic: 'Spiritual progress',         tier: 'vela' },
-  D24: { full: 'Chaturvimshamsha', topic: 'Education, knowledge',       tier: 'vela' },
-  D27: { full: 'Bhamsha',          topic: 'Strength, vitality',         tier: 'vela' },
-  D30: { full: 'Trimshamsha',      topic: 'Evils, health problems',     tier: 'vela' },
-  D40: { full: 'Khavedamsha',      topic: 'Auspicious effects',         tier: 'vela' },
-  D45: { full: 'Akshavedamsha',    topic: 'General well-being',         tier: 'vela' },
-  D60: { full: 'Shashtiamsha',     topic: 'Past karma, overall',        tier: 'kala' },
+export const VARGA_META: Record<string, { full: string; topic: string; tier: 'free' | 'gold' | 'platinum' }> = {
+  D1:  { full: 'Rashi',            topic: 'Body, overall life',         tier: 'free' },
+  D2:  { full: 'Hora',             topic: 'Wealth',                     tier: 'free' },
+  D3:  { full: 'Drekkana',         topic: 'Siblings, courage',          tier: 'free' },
+  D4:  { full: 'Chaturthamsha',    topic: 'Property, home',             tier: 'free' },
+  D7:  { full: 'Saptamsha',        topic: 'Children',                   tier: 'free' },
+  D9:  { full: 'Navamsha',         topic: 'Spouse, dharma, inner self', tier: 'free' },
+  D10: { full: 'Dashamsha',        topic: 'Career, profession',         tier: 'free' },
+  D12: { full: 'Dwadashamsha',     topic: 'Parents',                    tier: 'free' },
+  D16: { full: 'Shodashamsha',     topic: 'Vehicles, comforts',         tier: 'free' },
+  D20: { full: 'Vimshamsha',       topic: 'Spiritual progress',         tier: 'free' },
+  D24: { full: 'Chaturvimshamsha', topic: 'Education, knowledge',       tier: 'free' },
+  D27: { full: 'Bhamsha',          topic: 'Strength, vitality',         tier: 'free' },
+  D30: { full: 'Trimshamsha',      topic: 'Evils, health problems',     tier: 'free' },
+  D40: { full: 'Khavedamsha',      topic: 'Auspicious effects',         tier: 'free' },
+  D45: { full: 'Akshavedamsha',    topic: 'General well-being',         tier: 'free' },
+  D60: { full: 'Shashtiamsha',     topic: 'Past karma, overall',        tier: 'free' },
 }

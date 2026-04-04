@@ -11,7 +11,7 @@ import { Crown, Gem, Info, Palette, ScrollText, Sparkles } from 'lucide-react'
 
 interface Props {
   vimsopaka: VimsopakaBalaResult
-  userPlan?: 'kala' | 'vela' | 'hora'
+  userPlan?: 'free' | 'gold' | 'platinum'
 }
 
 const ORDER: GrahaId[] = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
@@ -98,7 +98,7 @@ function tone(mode: ViewMode) {
     : 'linear-gradient(135deg, rgba(132,27,27,0.10), rgba(166,124,0,0.08))'
 }
 
-export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'kala' }: Props) {
+export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
   void userPlan
   const [activePlanet, setActivePlanet] = useState<GrahaId>('Su')
   const [selectedScheme, setSelectedScheme] = useState<SchemeId>('shodasvarga')

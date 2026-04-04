@@ -5,7 +5,7 @@
 //  Accepts a full ChartOutput as POST body (JSON) and returns
 //  a print-ready HTML document.
 //
-//  Tier: Velā+ (gated in middleware + checked here)
+//  Tier: Gold+ (gated in middleware + checked here)
 //  Usage: open in new tab → browser prints to PDF
 // ─────────────────────────────────────────────────────────────
 
@@ -20,12 +20,12 @@ export async function POST(req: NextRequest) {
   try {
     // ── Auth check ────────────────────────────────────────────
     const session = await auth()
-    const plan = (session?.user as any)?.plan ?? 'kala'
+    const plan = (session?.user as any)?.plan ?? 'free'
 
-    if (plan === 'kala') {
+    if (plan === 'free') {
       return NextResponse.json(
         {
-          error: 'PDF export requires Velā or Horā plan.',
+          error: 'PDF export requires Gold or Platinum plan.',
           upgradeRequired: true,
           upgradeUrl: '/pricing',
         },

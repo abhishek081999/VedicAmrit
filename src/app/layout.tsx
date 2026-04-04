@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 16 varga charts, Panchang & Āruḍhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
+    'Calculate free Vedic birth charts (Kundali), Vimshottari Dasha, Navamsha, all 41 varga charts, Panchang & Āruḍhas. Arc-second accuracy via Swiss Ephemeris. No login required.',
 
   keywords: [
     'Vedic astrology', 'Jyotish', 'kundali', 'birth chart', 'free horoscope',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName:  'Vedaansh',
     title:     'Vedaansh — Free Vedic Astrology Platform',
     description:
-      'Free Vedic birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
+      'Free Vedic birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
     images: [{
       url:    '/og-default.png',
       width:  1200,
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     card:        'summary_large_image',
     site:        '@vedaansh',
     title:       'Vedaansh — Free Vedic Astrology',
-    description: 'Free birth charts, Dasha, 16 vargas, Panchang. Swiss Ephemeris precision.',
+    description: 'Free birth charts, Dasha, 41 vargas, Panchang. Swiss Ephemeris precision.',
     images:      ['/og-default.png'],
   },
 

@@ -555,13 +555,13 @@ export type UserPlan = 'free' | 'gold' | 'platinum'
 
 export const PLAN_LIMITS: Record<UserPlan, { charts: number; vargas: string[]; dashas: string[] }> = {
   free: {
-    charts: 0,  // no save
-    vargas: ['D1','D9','D10'],
+    charts: 10,  // save up to 10
+    vargas: ['all'],
     dashas: ['vimshottari'],
   },
   gold: {
     charts: 1008,
-    vargas: ['D1','D2','D3','D4','D7','D9','D10','D12','D16','D20','D24','D27','D30','D40','D45','D60'],
+    vargas: ['all'],
     dashas: ['vimshottari','ashtottari'],
   },
   platinum: {

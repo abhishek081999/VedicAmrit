@@ -670,7 +670,7 @@ export default function HomePage() {
                                  Starting Tara
                                </span>
                                {(['Mo','As','Su','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as const).map(id => {
-                                 const locked = userPlan === 'kala' && id !== 'Mo'
+                                 const locked = userPlan === 'free' && id !== 'Mo'
                                  const labels: Record<string,string> = {
                                    Mo:'Moon', As:'Lagna', Su:'Sun', Ma:'Mars', Me:'Mercury',
                                    Ju:'Jupiter', Ve:'Venus', Sa:'Saturn', Ra:'Rahu', Ke:'Ketu',
@@ -678,7 +678,7 @@ export default function HomePage() {
                                  return (
                                    <button key={id}
                                      onClick={() => locked ? (window.location.href='/pricing') : setVimshottariTara(id)}
-                                     title={locked ? 'Requires Vela plan' : `Start from ${labels[id]} nakshatra`}
+                                     title={locked ? 'Requires Gold plan' : `Start from ${labels[id]} nakshatra`}
                                      style={{
                                        padding:'0.2rem 0.55rem', fontSize:'0.7rem', fontFamily:'inherit',
                                        background: vimshottariTara===id ? 'var(--gold-faint)' : 'var(--surface-3)',

@@ -368,7 +368,7 @@ export default function PublicChartPage() {
                   ascRashi={ascRashi ?? 1}
                   lagnas={chart.lagnas}
                   arudhas={chart.arudhas}
-                  userPlan="kala"
+                  userPlan="free"
                   moonNakIndex={chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0}
                 />
               )}
@@ -446,7 +446,7 @@ export default function PublicChartPage() {
                 Explore your own chart
               </div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1rem' }}>
-                Free forever — all 16 varga charts, Dasha tree, Āruḍhas & Pañcāṅga
+                Free forever — all varga charts, Dasha tree, Āruḍhas & Pañcāṅga
               </div>
               <Link href="/" className="btn btn-primary">
                 Calculate My Chart →
@@ -462,7 +462,7 @@ export default function PublicChartPage() {
         fontFamily: 'var(--font-display)', fontSize: '0.8rem',
       }}>
         Powered by <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span>
-        {' '}· Kāla — free forever ·{' '}
+        {' '}· Free forever ·{' '}
         <Link href="/" style={{ color: 'var(--text-gold)', textDecoration: 'none' }}>Vedaansh</Link>
       </footer>
     </div>
