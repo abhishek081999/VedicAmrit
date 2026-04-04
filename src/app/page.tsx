@@ -500,6 +500,15 @@ export default function HomePage() {
                      varaNumber={varaNumber}
                      transitGrahas={transitGrahas ?? undefined}
                   />
+
+                  {activeTab === 'dashboard' && (
+                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
+                        <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Planetary Micro-Details</h3>
+                      </div>
+                      <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} limited={true} />
+                    </div>
+                  )}
                </div>
 
                {/* RIGHT: Active Tab Content (Sidebar Analysis) */}
@@ -597,13 +606,6 @@ export default function HomePage() {
                        <div className="card" style={{ padding: '1.25rem' }}>
                           <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>Active Timeline</h3>
                           <DashaTree nodes={chart.dashas.vimshottari} birthDate={new Date(chart.meta.birthDate)} />
-                       </div>
-                       
-                       <div className="card" style={{ padding: '1.25rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
-                            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Planetary Micro-Details</h3>
-                          </div>
-                          <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} limited={true} />
                        </div>
                     </div>
                   )}
