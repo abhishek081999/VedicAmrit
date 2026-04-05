@@ -332,50 +332,56 @@ export function buildChartInterpretation(input: {
   houses: HouseData
   houseSystem: HouseSystem
 }): ChartInterpretation {
-  const strengths: InterpretationInsight[] = []
-  const cautions: InterpretationInsight[] = []
   const houseByGrahaId = new Map<GrahaId, number>()
   const useBhava = input.houseSystem === 'bhava_chalita'
   for (const g of input.grahas) {
     houseByGrahaId.set(g.id, planetHouse(g.lonSidereal, input.houses, useBhava))
   }
 
-  const special = specialConditionInsights(input.grahas, houseByGrahaId)
-
+  // 1. Generate all potential insights
+  const special  = specialConditionInsights(input.grahas, houseByGrahaId)
   const strongest = strongestShadbalaInsight({
     shadbala: input.shadbala,
     grahas: input.grahas,
     houseByGrahaId,
   })
-  if (strongest) strengths.push(strongest)
   const weakest = weakShadbalaInsight({
     shadbala: input.shadbala,
     grahas: input.grahas,
     houseByGrahaId,
   })
-  if (weakest) cautions.push(weakest)
-
-  for (const s of special) {
-    if (s.category === 'strength') strengths.push(s)
-    else if (s.category === 'vulnerability') cautions.push(s)
-  }
-
   const summary = yogiInsight({
     yogi: input.yogiPoint,
     houses: input.houses,
     houseSystem: input.houseSystem,
     grahas: input.grahas,
   })
-  const all = [...strengths, ...cautions, ...special, summary]
-    .sort((a, b) => b.priority - a.priority)
+
+  // 2. Collection and Deduplication
+  // Use a Map to ensure unique IDs
+  const insightMap = new Map<string, InterpretationInsight>()
+
+  if (strongest) insightMap.set(strongest.id, strongest)
+  if (weakest) insightMap.set(weakest.id, weakest)
+  for (const s of special) insightMap.set(s.id, s)
+  insightMap.set(summary.id, summary)
+
+  const allInsights = Array.from(insightMap.values())
+
+  // 3. Categorize for specific UI blocks
+  const strengths = allInsights.filter(i => i.category === 'strength').sort((a, b) => b.priority - a.priority)
+  const cautions  = allInsights.filter(i => i.category === 'vulnerability' || (i.tone === 'caution' && i.category !== 'strength')).sort((a, b) => b.priority - a.priority)
+  const others    = allInsights.filter(i => i.category === 'special' || i.category === 'summary').sort((a, b) => b.priority - a.priority)
+
+  const topInsights = [...allInsights].sort((a, b) => b.priority - a.priority).slice(0, 6)
 
   return {
-    headline: all[0]?.tone === 'caution'
+    headline: topInsights[0]?.tone === 'caution'
       ? 'Chart shows high potential with specific karmic pressure points.'
       : 'Chart shows supportive foundations with actionable focus areas.',
-    strengths: strengths.sort((a, b) => b.priority - a.priority),
-    cautions: cautions.sort((a, b) => b.priority - a.priority),
-    special: [...special, summary].sort((a, b) => b.priority - a.priority),
-    topInsights: all.slice(0, 6),
+    strengths,
+    cautions,
+    special: others,
+    topInsights,
   }
 }

@@ -12,9 +12,12 @@ import { NAKSHATRA_NAMES } from '@/types/astrology'
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
   birthMoonName:   string
+  latitude:        number
+  longitude:       number
+  timezone:        string
 }
 
-export function PersonalDayCard({ birthMoonNakIdx, birthMoonName }: PersonalDayCardProps) {
+export function PersonalDayCard({ birthMoonNakIdx, birthMoonName, latitude, longitude, timezone }: PersonalDayCardProps) {
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -22,7 +25,7 @@ export function PersonalDayCard({ birthMoonNakIdx, birthMoonName }: PersonalDayC
     async function fetchToday() {
       try {
         const now = new Date().toISOString().split('T')[0]
-        const res = await fetch(`/api/panchang?date=${now}`)
+        const res = await fetch(`/api/panchang?date=${now}&lat=${latitude}&lng=${longitude}&tz=${encodeURIComponent(timezone)}`)
         const json = await res.json()
         if (json.success) {
           setTodayNak({

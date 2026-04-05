@@ -576,6 +576,9 @@ export default function HomePage() {
                        <PersonalDayCard 
                          birthMoonNakIdx={chart.panchang.nakshatra.index} 
                          birthMoonName={chart.panchang.nakshatra.name} 
+                         latitude={chart.meta.latitude}
+                         longitude={chart.meta.longitude}
+                         timezone={chart.meta.timezone}
                        />
                        
                        <div className="card" style={{ padding: '1.25rem' }}>
