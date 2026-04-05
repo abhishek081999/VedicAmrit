@@ -5,6 +5,7 @@
 //  each year using bisection search on swisseph
 // ─────────────────────────────────────────────────────────────
 
+import sweph from 'sweph'
 import { toJulianDay, getPlanetPosition, getAyanamsha, PLANET_IDS } from './ephemeris'
 import type { AyanamshaMode } from '@/types/astrology'
 
@@ -60,11 +61,9 @@ export function findSolarReturnJD(
 }
 
 function getSunSidereal(jd: number, mode: AyanamshaMode): number {
-  // sun is 0 (sweph.constants.SE_SUN), which is what PLANET_IDS.Su resolves to
-  const planet = getPlanetPosition(jd, PLANET_IDS.Su ?? 0)
-  const ayan   = getAyanamsha(jd, mode)
-  
-  return ((planet.longitude - ayan) + 360) % 360
+  getAyanamsha(jd, mode) // ensuring the global sidereal mode is set
+  const planet = getPlanetPosition(jd, PLANET_IDS.Su ?? 0, true)
+  return planet.longitude
 }
 
 /**

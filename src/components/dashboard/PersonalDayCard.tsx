@@ -12,23 +12,47 @@ import { NAKSHATRA_NAMES } from '@/types/astrology'
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
   birthMoonName:   string
+  latitude:        number
+  longitude:       number
+  timezone:        string
 }
 
-export function PersonalDayCard({ birthMoonNakIdx, birthMoonName }: PersonalDayCardProps) {
+export function PersonalDayCard({ birthMoonNakIdx, birthMoonName, latitude, longitude, timezone }: PersonalDayCardProps) {
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchToday() {
+      const todayString = new Date().toISOString().split('T')[0]
+      const cacheKey = `panchang_${todayString}_${latitude}_${longitude}`
+      
+      // Try session storage first
       try {
-        const now = new Date().toISOString().split('T')[0]
-        const res = await fetch(`/api/panchang?date=${now}`)
+        const cached = sessionStorage.getItem(cacheKey)
+        if (cached) {
+          const json = JSON.parse(cached)
+          setTodayNak({
+            index: json.nakshatra.index,
+            name:  json.nakshatra.name
+          })
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        // Ignore storage errors
+      }
+
+      try {
+        const res = await fetch(`/api/panchang?date=${todayString}&lat=${latitude}&lng=${longitude}&tz=${encodeURIComponent(timezone)}`)
         const json = await res.json()
         if (json.success) {
           setTodayNak({
             index: json.data.nakshatra.index,
             name:  json.data.nakshatra.name
           })
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify(json.data))
+          } catch (e) {}
         }
       } catch (err) {
         console.error('Failed to fetch daily insights:', err)
@@ -37,7 +61,7 @@ export function PersonalDayCard({ birthMoonNakIdx, birthMoonName }: PersonalDayC
       }
     }
     fetchToday()
-  }, [])
+  }, [latitude, longitude, timezone])
 
   if (loading) {
     return (

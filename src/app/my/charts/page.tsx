@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
+import { useChart } from '@/components/providers/ChartProvider'
 
 interface SavedChart {
   _id:        string
@@ -339,6 +340,7 @@ export default function MyChartsPage() {
   const router  = useRouter()
   const { status } = useSession()
   const { setActiveTab } = useAppLayout()
+  const { setChart } = useChart()
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -422,6 +424,7 @@ export default function MyChartsPage() {
   useEffect(() => { fetchCharts(page) }, [page, fetchCharts])
 
   function handleLoad(chart: SavedChart) {
+    setChart(null) // Clear old state immediately
     setActiveTab('dashboard')
     const params = new URLSearchParams({
       name:       chart.name,

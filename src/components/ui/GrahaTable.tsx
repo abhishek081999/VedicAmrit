@@ -203,12 +203,12 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
           tableLayout: 'fixed',
         }}>
           <colgroup>
-            <col style={{ width: '22%' }} />  {/* BODY */}
-            <col style={{ width: '15%' }} />  {/* DEG */}
-            <col style={{ width: '16%' }} />  {/* NAKSHATRA */}
-            <col style={{ width: '16%' }} />  {/* RASHI D9 */}
-            <col style={{ width: '15%' }} />  {/* DIGNITY */}
-            <col style={{ width: '16%' }} />  {/* AVASTHĀ */}
+            <col style={{ width: '22%' }} />
+            <col style={{ width: '15%' }} />
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '15%' }} />
+            <col style={{ width: '16%' }} />
           </colgroup>
 
           <thead>

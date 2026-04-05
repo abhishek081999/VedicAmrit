@@ -34,7 +34,8 @@ const AYANAMSHA_IDS: Record<AyanamshaMode, number> = {
   yukteshwar:  C.SE_SIDM_YUKTESHWAR,
 }
 
-const FLAGS = C.SEFLG_SWIEPH | C.SEFLG_SPEED
+export const FLAGS_TROPICAL = C.SEFLG_SWIEPH | C.SEFLG_SPEED
+export const FLAGS_SIDEREAL = C.SEFLG_SWIEPH | C.SEFLG_SPEED | C.SEFLG_SIDEREAL
 
 export function toJulianDay(y: number, m: number, d: number, h: number): number {
   return sweph.julday(y, m, d, h, C.SE_GREG_CAL)
@@ -44,8 +45,9 @@ export function localToUT(hour: number, min: number, sec: number, utcOffset: num
   return (hour + min / 60 + sec / 3600) - utcOffset
 }
 
-export function getPlanetPosition(jd: number, planetId: number): PlanetPosition {
-  const r = sweph.calc_ut(jd, planetId, FLAGS) as any
+export function getPlanetPosition(jd: number, planetId: number, isSidereal = false): PlanetPosition {
+  const flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
+  const r = sweph.calc_ut(jd, planetId, flags) as any
   if (r.error) throw new Error(`sweph error planet ${planetId}: ${r.error}`)
   // sweph returns nested: r.data[0]=lon, r.data[1]=lat, r.data[2]=dist, r.data[3]=speed
   const lon   = r.data[0]
@@ -64,7 +66,7 @@ export function getPlanetPosition(jd: number, planetId: number): PlanetPosition 
 export function getAyanamsha(jd: number, mode: AyanamshaMode): number {
   sweph.set_sid_mode(AYANAMSHA_IDS[mode], 0, 0)
   const r = sweph.get_ayanamsa_ut(jd) as any
-  return typeof r === 'number' ? r : r.data ?? r
+  return typeof r === 'number' ? r : r.data?.[0] ?? r.data ?? r
 }
 
 export function toSidereal(tropical: number, ayanamsha: number): number {

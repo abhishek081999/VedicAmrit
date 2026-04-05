@@ -436,6 +436,8 @@ export function detectYogas(
   // Remove duplicates by name
   const seen = new Set<string>()
   return allYogas.filter(y => {
+    // Deduplicate house list for React keys (e.g. h3, h3)
+    if (y.houses) y.houses = Array.from(new Set(y.houses))
     const key = `${y.name}-${y.planets.sort().join('-')}`
     if (seen.has(key)) return false
     seen.add(key)
