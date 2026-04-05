@@ -85,7 +85,7 @@ function parseBirthUtc(date: string, time: string): Date {
 function buildGrahas(
   jd: number,
   ayanamsha: number,
-  sunTropLon: number,
+  sunSidLon: number,
   nodeMode: 'mean' | 'true' = 'mean',
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
@@ -95,8 +95,8 @@ function buildGrahas(
   // First pass: calculate all positions without gandanta/yuddha
   const tempGrahas = order.map((id) => {
     const swId = id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id]
-    const pos = getPlanetPosition(jd, swId)
-    const lonSidereal = toSidereal(pos.longitude, ayanamsha)
+    const pos = getPlanetPosition(jd, swId, true)
+    const lonSidereal = pos.longitude
     const nak = getNakshatra(lonSidereal)
     const rashi = signOf(lonSidereal) as Rashi
     const deg = degreeInSign(lonSidereal)
@@ -124,7 +124,7 @@ function buildGrahas(
       latitude: pos.latitude,
       speed: pos.speed,
       isRetro: pos.isRetro,
-      isCombust: id !== 'Su' ? isCombust(id, pos.longitude, sunTropLon) : false,
+      isCombust: id !== 'Su' ? isCombust(id, lonSidereal, sunSidLon) : false,
       rashi,
       rashiName: RASHI_NAMES[rashi],
       degree: deg,
@@ -210,8 +210,8 @@ export async function calculateChart(
   const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
 
   // Grahas
-  const sunTropLon = getPlanetPosition(jd, SWISSEPH_IDS.Su).longitude
-  const grahas = buildGrahas(jd, ayanamshaVal, sunTropLon, settings.nodeMode)
+  const sunSidLon = getPlanetPosition(jd, SWISSEPH_IDS.Su, true).longitude
+  const grahas = buildGrahas(jd, ayanamshaVal, sunSidLon, settings.nodeMode)
   const moon = grahas.find((g) => g.id === 'Mo')!
   const sun = grahas.find((g) => g.id === 'Su')!
 

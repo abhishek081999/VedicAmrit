@@ -9,6 +9,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { ChartOutput, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS } from '@/types/astrology'
+import { parseCoordinate } from '@/lib/atlas/coords'
 
 // ── Delhi defaults ────────────────────────────────────────────
 
@@ -527,17 +528,19 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                 <div>
                   <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Latitude (-90 to 90)</label>
                   <input 
-                    type="number" step="0.0001" placeholder="e.g. 28.6139" 
+                    type="text" placeholder="e.g. 28:02 or 28.0333" 
                     className="input" style={{ width: '100%' }}
-                    value={lat ?? ''} onChange={e => setLat(parseFloat(e.target.value) || 0)}
+                    value={lat ?? ''} 
+                    onChange={e => setLat(parseCoordinate(e.target.value))}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)', marginBottom: 4, display: 'block' }}>Longitude (-180 to 180)</label>
                   <input 
-                    type="number" step="0.0001" placeholder="e.g. 77.2090" 
+                    type="text" placeholder="e.g. 73:31 or 73.5167" 
                     className="input" style={{ width: '100%' }}
-                    value={lng ?? ''} onChange={e => setLng(parseFloat(e.target.value) || 0)}
+                    value={lng ?? ''} 
+                    onChange={e => setLng(parseCoordinate(e.target.value))}
                   />
                 </div>
              </div>
