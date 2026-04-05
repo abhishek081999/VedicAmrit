@@ -5,25 +5,29 @@
 //  Redesigned: themed, animated, cleaner visual hierarchy
 // ─────────────────────────────────────────────────────────────
 
+import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
-import { VarshaphalPanel }   from '@/components/ui/VarshaphalPanel'
-import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
-import { DashaTree }     from '@/components/dasha/DashaTree'
-import { PersonalDayCard } from '@/components/dashboard/PersonalDayCard'
-import { GrahaTable }    from '@/components/ui/GrahaTable'
-import { AshtakavargaGrid }   from '@/components/ui/AshtakavargaGrid'
-import { YogaList }           from '@/components/ui/YogaList'
-import { TransitOverlay }     from '@/components/ui/TransitOverlay'
-import { ShadbalaTable } from '@/components/ui/ShadbalaTable'
-import { VimsopakaBalaPanel } from '@/components/ui/VimsopakaBalaPanel'
-import { PlanetsWorkspace } from '@/components/ui/PlanetsWorkspace'
-import { InterpretationPanel } from '@/components/ui/InterpretationPanel'
-import { NakshatraPanel } from '@/components/ui/NakshatraPanel'
-import { HousePanel } from '@/components/ui/HousePanel'
-import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
+
+// Dynamic imports for heavy tab-specific components
+const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
+const VargaSwitcher = dynamic(() => import('@/components/chakra/VargaSwitcher').then(m => m.VargaSwitcher), { ssr: false })
+const DashaTree = dynamic(() => import('@/components/dasha/DashaTree').then(m => m.DashaTree), { ssr: false })
+const PersonalDayCard = dynamic(() => import('@/components/dashboard/PersonalDayCard').then(m => m.PersonalDayCard), { ssr: false })
+const GrahaTable = dynamic(() => import('@/components/ui/GrahaTable').then(m => m.GrahaTable), { ssr: false })
+const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid').then(m => m.AshtakavargaGrid), { ssr: false })
+const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
+const TransitOverlay = dynamic(() => import('@/components/ui/TransitOverlay').then(m => m.TransitOverlay), { ssr: false })
+const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then(m => m.ShadbalaTable), { ssr: false })
+const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
+const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
+const InterpretationPanel = dynamic(() => import('@/components/ui/InterpretationPanel').then(m => m.InterpretationPanel), { ssr: false })
+const NakshatraPanel = dynamic(() => import('@/components/ui/NakshatraPanel').then(m => m.NakshatraPanel), { ssr: false })
+const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => m.HousePanel), { ssr: false })
+const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
+
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import type { ChartOutput, Rashi, ChartSettings } from '@/types/astrology'

@@ -226,7 +226,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         setSearchOpen(true)
     }
 
-    searchTimer.current = setTimeout(() => searchLocations(val), 150)
+    searchTimer.current = setTimeout(() => searchLocations(val), 75)
   }
 
   const selectLocation = (loc: LocationResult) => {

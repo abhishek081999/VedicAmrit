@@ -1,10 +1,11 @@
 // ─────────────────────────────────────────────────────────────
 //  src/app/api/atlas/search/route.ts
 //  Lightweight geocoding (Photon) + Reverse timezone lookup
-//  Replaces 115MB SQLite with ultra-fast public APIs
+//  Replaces 115MB SQLite with ultra-fast public APIs + Redis
 // ─────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from 'next/server'
+import { redis, CACHE_TTL } from '@/lib/redis'
 
 // ── Types ──────────────────────────────────────────────────────
 interface LocationResult {
@@ -30,27 +31,33 @@ interface PhotonFeature {
   }
 }
 
-// ── Timezone Cache (Simple in-memory cache) ────────────────────
-const tzCache = new Map<string, string>()
-
 /**
  * Fetches timezone for coordinates using BigDataCloud free API
+ * Rounds coordinates to 2 decimal places to increase cache hit rate.
+ * Results cached in Redis for 7 days.
  */
 async function fetchTimezone(lat: number, lng: number): Promise<string> {
-  const cacheKey = `${lat.toFixed(2)},${lng.toFixed(2)}`
-  if (tzCache.has(cacheKey)) return tzCache.get(cacheKey)!
+  const roundedLat = lat.toFixed(2)
+  const roundedLng = lng.toFixed(2)
+  const cacheKey = `tz:${roundedLat},${roundedLng}`
+  
+  // Try Redis first
+  const cached = await redis.get<string>(cacheKey)
+  if (cached) return cached
 
   try {
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+      next: { revalidate: 604800 } // 7 days (Next.js data cache fallback)
+    })
     const data = await res.json()
     
     // Attempt to find timezone in the response
-    // BigDataCloud provides a "localityInfo" which often contains the time zone name
     const info = data.localityInfo?.informative || []
     const tzEntry = info.find((i: any) => i.description === 'time zone' || i.order === 1)
     const tz = tzEntry?.name || 'UTC'
     
-    tzCache.set(cacheKey, tz)
+    // Cache in Redis for persistent performance
+    await redis.set(cacheKey, tz, CACHE_TTL.ATLAS)
     return tz
   } catch {
     return 'UTC'
@@ -68,9 +75,23 @@ export async function GET(req: NextRequest) {
     try {
       const lat = parseFloat(latParam)
       const lng = parseFloat(lngParam)
-      const tz = await fetchTimezone(lat, lng)
+      const roundedLat = lat.toFixed(2)
+      const roundedLng = lng.toFixed(2)
+      const reverseCacheKey = `atlas:reverse:${roundedLat},${roundedLng}`
+
+      // Try Redis first
+      const cached = await redis.get<LocationResult>(reverseCacheKey)
+      if (cached) {
+        return NextResponse.json({ results: [cached], fromCache: true })
+      }
       
-      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+      const [tz, res] = await Promise.all([
+        fetchTimezone(lat, lng),
+        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+          next: { revalidate: 604800 }
+        })
+      ])
+      
       const data = await res.json()
 
       const result: LocationResult = {
@@ -83,7 +104,10 @@ export async function GET(req: NextRequest) {
         population: 0
       }
 
-      return NextResponse.json({ results: [result] })
+      // Cache in Redis (7 days)
+      await redis.set(reverseCacheKey, result, CACHE_TTL.ATLAS)
+
+      return NextResponse.json({ results: [result], fromCache: false })
     } catch (err) {
       console.error('[atlas/reverse] Error:', err)
       return NextResponse.json({ results: [] })
@@ -95,27 +119,35 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ results: [] })
   }
 
+  // Global search cache to prevent redundant external Photon calls
+  const searchCacheKey = `atlas:search:${q.toLowerCase()}`
+  const cachedResults = await redis.get<LocationResult[]>(searchCacheKey)
+  if (cachedResults) {
+    return NextResponse.json(
+      { results: cachedResults, fromCache: true },
+      { headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' } }
+    )
+  }
+
   try {
     // Fetch from Photon (OpenStreetMap based)
-    // We limit to 10 results and prioritize cities/towns
+    // We prioritize limiting search results to keep the TZ lookup overhead low
     const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=10`
     const photonRes = await fetch(photonUrl)
     const photonData = await photonRes.json()
 
     const features: PhotonFeature[] = photonData.features || []
 
-    // Map features to our standard interface
+    // Map features to our standard interface + Parallel TZ Lookup
     const results: LocationResult[] = await Promise.all(
       features.map(async (feat) => {
         const [lng, lat] = feat.geometry.coordinates
         
-        // Use Photon data if available, or fallback
         const name    = feat.properties.name || feat.properties.city || 'Unknown'
         const country = feat.properties.country || ''
         const admin1  = feat.properties.state || ''
 
-        // For Astrology, we NEED the timezone. 
-        // We fetch it for each of the top results (async parallel)
+        // TZ check (from Redis or BigDataCloud)
         const timezone = await fetchTimezone(lat, lng)
 
         return {
@@ -130,8 +162,13 @@ export async function GET(req: NextRequest) {
       })
     )
 
+    // Only cache if we actually have results
+    if (results.length > 0) {
+      await redis.set(searchCacheKey, results, CACHE_TTL.ATLAS)
+    }
+
     return NextResponse.json(
-      { results },
+      { results, fromCache: false },
       {
         headers: {
           'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',

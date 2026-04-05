@@ -85,17 +85,20 @@ function parseBirthUtc(date: string, time: string): Date {
 function buildGrahas(
   jd: number,
   ayanamsha: number,
-  sunSidLon: number,
+  sunPos: { longitude: number; latitude: number; speed: number; isRetro: boolean },
   nodeMode: 'mean' | 'true' = 'mean',
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
     'Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra'
   ]
 
+  const sunSidLon = sunPos.longitude
+
   // First pass: calculate all positions without gandanta/yuddha
   const tempGrahas = order.map((id) => {
-    const swId = id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id]
-    const pos = getPlanetPosition(jd, swId, true)
+    // Reuse sunPos if id is 'Su'
+    const pos = id === 'Su' ? sunPos : getPlanetPosition(jd, id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id], true)
+    
     const lonSidereal = pos.longitude
     const nak = getNakshatra(lonSidereal)
     const rashi = signOf(lonSidereal) as Rashi
@@ -210,8 +213,11 @@ export async function calculateChart(
   const ayanamshaVal = getAyanamsha(jd, settings.ayanamsha)
 
   // Grahas
-  const sunSidLon = getPlanetPosition(jd, SWISSEPH_IDS.Su, true).longitude
-  const grahas = buildGrahas(jd, ayanamshaVal, sunSidLon, settings.nodeMode)
+  // Optimization: getPlanetPosition is expensive. We'll pass it into buildGrahas
+  // to avoid redundant calls for 'Su' which is needed for combustion.
+  const sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, true)
+  const sunSidLon = sunPos.longitude
+  const grahas = buildGrahas(jd, ayanamshaVal, sunPos, settings.nodeMode)
   const moon = grahas.find((g) => g.id === 'Mo')!
   const sun = grahas.find((g) => g.id === 'Su')!
 
