@@ -20,6 +20,9 @@ services:
       - key: NEXT_PUBLIC_BASE_URL
         value: https://vedaansh.com
 
+      - key: AUTH_URL
+        value: https://vedaansh.com
+
       - key: EPHE_PATH
         value: ./ephe
 
@@ -30,7 +33,7 @@ services:
       - key: MONGODB_DB_NAME
         sync: false
 
-      - key: AUTH_SECRET
+      - key: AUTH_SECRET     # Generate with: openssl rand -base64 32
         sync: false
 
       - key: AUTH_GOOGLE_ID
@@ -59,3 +62,4 @@ services:
 
       - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
+
