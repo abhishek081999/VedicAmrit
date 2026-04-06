@@ -9,7 +9,7 @@ import {
   toJulianDay, getPlanetPosition, getAyanamsha,
   toSidereal, degreeInSign, SWISSEPH_IDS,
 } from '@/lib/engine/ephemeris'
-import { calcVargas, VELA_VARGAS, ALL_VARGAS, KALA_VARGAS } from '@/lib/engine/vargas'
+import { calcVargas, ALL_VARGAS, FREE_VARGAS, GOLD_VARGAS, type VargaName } from '@/lib/engine/vargas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
 import {
   getNakshatra, getTithi, getYoga, getKarana, getVara,
@@ -192,9 +192,9 @@ describe('Vela vargas completeness', () => {
   const ids: GrahaId[] = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra']
 
   for (const id of ids) {
-    it(`${id} — all 16 Vela vargas valid`, () => {
+    it(`${id} — all vargas are valid`, () => {
       const sid = toSidereal(getPlanetPosition(J2000, (SWISSEPH_IDS as any)[id]).longitude, ayan)
-      const res = calcVargas(sid, VELA_VARGAS)
+      const res = calcVargas(sid, ALL_VARGAS as VargaName[])
       for (const [n, v] of Object.entries(res)) {
         expect(v, n).toBeGreaterThanOrEqual(1)
         expect(v, n).toBeLessThanOrEqual(12)
@@ -253,18 +253,11 @@ describe('Chara Karakas edge cases', () => {
 // TIER ACCESS
 // ─────────────────────────────────────────────────────────────
 
-describe('Varga tier access control', () => {
-  it('Kala has 3 vargas', () => {
-    expect(KALA_VARGAS).toHaveLength(3)
-    expect(KALA_VARGAS).toContain('D1')
-    expect(KALA_VARGAS).toContain('D9')
-    expect(KALA_VARGAS).toContain('D60')
+describe('Varga coverage', () => {
+  it('FREE_VARGAS contains all vargas', () => {
+    expect(FREE_VARGAS.length).toBeGreaterThanOrEqual(40)
   })
-  it('Vela has 16 vargas', () => { expect(VELA_VARGAS).toHaveLength(16) })
-  it('Hora has 38+ vargas', () => { expect(ALL_VARGAS.length).toBeGreaterThanOrEqual(38) })
-  it('Vela includes all Kala vargas', () => {
-    for (const v of KALA_VARGAS) expect(VELA_VARGAS).toContain(v)
-  })
+  it('ALL_VARGAS contains all vargas', () => { expect(ALL_VARGAS.length).toBeGreaterThanOrEqual(40) })
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -272,10 +265,10 @@ describe('Varga tier access control', () => {
 // ─────────────────────────────────────────────────────────────
 
 describe('Subscription model field constraints', () => {
-  it('plans are vela or hora only', () => {
-    const plans = ['vela','hora']
-    expect(plans).toContain('vela')
-    expect(plans).not.toContain('kala')
+  it('plans are gold or platinum only', () => {
+    const plans = ['gold','platinum']
+    expect(plans).toContain('gold')
+    expect(plans).not.toContain('free')
   })
   it('providers are razorpay and stripe', () => {
     expect(['razorpay','stripe']).toHaveLength(2)
@@ -295,7 +288,7 @@ describe('Full calculator integration', () => {
     const r = await calculateChart({
       name:'Test', birthDate:'2000-01-01', birthTime:'12:00:00', utcDate:'2000-01-01', utcTime:'12:00:00',
       birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC',
-    }, 'kala')
+    }, 'free')
     expect(r.grahas).toHaveLength(9)
     expect(r.lagnas.ascRashi).toBeGreaterThanOrEqual(1)
     expect(r.lagnas.ascRashi).toBeLessThanOrEqual(12)
@@ -307,7 +300,7 @@ describe('Full calculator integration', () => {
     const r = await calculateChart({
       name:'Test', birthDate:'1990-06-15', birthTime:'14:00:00', utcDate:'1990-06-15', utcTime:'14:00:00',
       birthPlace:'Delhi', latitude:28.6139, longitude:77.209, timezone:'UTC',
-    }, 'kala')
+    }, 'free')
     const valid = ['exalted','moolatrikona','own','neutral','debilitated']
     for (const g of r.grahas) expect(valid).toContain(g.dignity)
   })
@@ -317,20 +310,22 @@ describe('Full calculator integration', () => {
     const r = await calculateChart({
       name:'Test', birthDate:'1985-04-15', birthTime:'06:00:00', utcDate:'1985-04-15', utcTime:'06:00:00',
       birthPlace:'Chennai', latitude:13.0827, longitude:80.2707, timezone:'UTC',
-    }, 'kala')
+    }, 'free')
     const roles = ['AK','AmK','BK','MK','PK','PiK','GK','DK']
     const roled = r.grahas.filter((g) => g.charaKaraka !== null)
     expect(roled.length).toBeGreaterThanOrEqual(7)
     for (const g of roled) expect(roles).toContain(g.charaKaraka)
   })
 
-  it('Hora plan gets more vargas than Kala', async () => {
+  it('Gold/Platinum plan gets deeper dasha than Free', async () => {
     const { calculateChart } = await import('@/lib/engine/calculator')
     const input = { name:'Test', birthDate:'2000-06-15', birthTime:'12:00:00', utcDate:'2000-06-15', utcTime:'12:00:00',
       birthPlace:'Mumbai', latitude:19.076, longitude:72.8777, timezone:'UTC' }
-    const kala = await calculateChart(input, 'kala')
-    const hora = await calculateChart(input, 'hora')
-    expect(Object.keys(hora.vargas).length).toBeGreaterThan(Object.keys(kala.vargas).length)
+    const free = await calculateChart(input, 'free')
+    const gold = await calculateChart(input, 'gold')
+    // Depth is level-based: check a dasha's children depth
+    expect(gold.dashas.vimshottari[0].children[0].children[0].children[0].children).toBeDefined()
+    expect(free.dashas.vimshottari[0].children[0].children[0].children[0].children).toBeUndefined()
   })
 
   it('Vimshottari has 9 periods summing ~120 years', async () => {
@@ -338,7 +333,7 @@ describe('Full calculator integration', () => {
     const r = await calculateChart({
       name:'Test', birthDate:'1980-01-01', birthTime:'12:00:00', utcDate:'1980-01-01', utcTime:'12:00:00',
       birthPlace:'Kolkata', latitude:22.5726, longitude:88.3639, timezone:'UTC',
-    }, 'kala')
+    }, 'free')
     expect(r.dashas.vimshottari).toHaveLength(9)
     const yrs = r.dashas.vimshottari.reduce((s,d) => s + d.durationMs/(365.25*24*3600*1000), 0)
     // Sum = remaining balance of birth Dasha + 8 full periods (< 120 from birth)

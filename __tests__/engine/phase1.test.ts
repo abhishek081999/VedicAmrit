@@ -18,8 +18,8 @@ import {
   D1, D2, D3, D4, D7, D9, D10, D12, D16, D20,
   D24, D27, D30, D40, D45, D60,
   D81, D108_Guru, D150,
-  calcVargas, KALA_VARGAS, VELA_VARGAS,
-  VARGA_FUNCTIONS,
+  calcVargas, FREE_VARGAS, ALL_VARGAS,
+  VARGA_FUNCTIONS, type VargaName,
 } from '@/lib/engine/vargas'
 import { calcArudha, calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
@@ -292,9 +292,9 @@ describe('Vargas — Standard set', () => {
     expect(D30(27)).toBe(2)   // Taurus (Venus)
   })
 
-  it('All 16 Vela vargas return valid signs', () => {
+  it('All 41 vargas return valid signs', () => {
     const testLon = 127.5
-    for (const name of VELA_VARGAS) {
+    for (const name of ALL_VARGAS as VargaName[]) {
       const fn = VARGA_FUNCTIONS[name]
       const v  = fn(testLon)
       expect(v).toBeGreaterThanOrEqual(1)
@@ -303,7 +303,7 @@ describe('Vargas — Standard set', () => {
   })
 
   it('calcVargas returns object with all requested vargas', () => {
-    const result = calcVargas(127.5, KALA_VARGAS)
+    const result = calcVargas(127.5, ['D1', 'D9', 'D60'])
     expect(result.D1).toBeDefined()
     expect(result.D9).toBeDefined()
     expect(result.D60).toBeDefined()
