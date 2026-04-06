@@ -421,7 +421,7 @@ function HomeContent() {
          <div className="fade-up" style={{ minWidth: 0 }}>
             
             {/* Headings Row & Birth Summary Strip */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '2rem', borderBottom: '1px solid var(--border-soft)', paddingBottom: '2rem', marginBottom: '2rem' }}>
+            <div className="chart-header-row">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                  <div>
                     <span className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.25rem', display: 'block', fontSize: '0.65rem' }}>Astrological Portrait</span>
@@ -431,23 +431,23 @@ function HomeContent() {
                  </div>
 
                  {/* Compact Birth Summary Strip */}
-                 <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Born</span>
-                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthDate}</span>
-                       <span style={{ color: 'var(--border-bright)' }}>•</span>
-                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthTime}</span>
+                 <div className="birth-summary-strip">
+                    <div className="birth-summary-item">
+                       <span className="birth-summary-label">Born</span>
+                       <span className="birth-summary-value">{chart.meta.birthDate}</span>
+                       <span className="summary-sep" style={{ color: 'var(--border-bright)' }}>•</span>
+                       <span className="birth-summary-value">{chart.meta.birthTime}</span>
                     </div>
-                    <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>In</span>
-                       <span style={{ fontWeight: 500, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{chart.meta.birthPlace}</span>
-                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>({chart.meta.latitude.toFixed(2)}N, {chart.meta.longitude.toFixed(2)}E)</span>
+                    <div className="summary-sep" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+                    <div className="birth-summary-item">
+                       <span className="birth-summary-label">In</span>
+                       <span className="birth-summary-value" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart.meta.birthPlace}</span>
+                       <span className="birth-summary-value hide-mobile" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>({chart.meta.latitude.toFixed(2)}N, {chart.meta.longitude.toFixed(2)}E)</span>
                     </div>
-                    <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Ascendant</span>
-                       <span style={{ fontWeight: 600, color: 'var(--text-gold)', fontSize: '0.9rem', fontFamily: 'var(--font-display)' }}>
+                    <div className="summary-sep" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
+                    <div className="birth-summary-item">
+                       <span className="birth-summary-label">Ascendant</span>
+                       <span className="birth-summary-value" style={{ fontWeight: 600, color: 'var(--text-gold)', fontFamily: 'var(--font-display)' }}>
                           {RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
                        </span>
                     </div>

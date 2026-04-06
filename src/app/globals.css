@@ -1297,6 +1297,64 @@ select.input {
   }
 }
 
+/* ── Dashboard Header Responsive ────────────────────────────── */
+.chart-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 2rem;
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+}
+
+.birth-summary-strip {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.birth-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.birth-summary-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.birth-summary-value {
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .chart-header-row {
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    gap: 1rem;
+  }
+  .birth-summary-strip {
+    gap: 0.75rem 1rem;
+  }
+  .birth-summary-label {
+    font-size: 0.58rem;
+  }
+  .birth-summary-value {
+    font-size: 0.82rem;
+  }
+  .summary-sep {
+    display: none !important;
+  }
+}
+
 /* Divisional Chart Grid: Force 1 column on mobile, STRICTLY max 2 on desktop */
 .varga-grid {
   grid-template-columns: 1fr;

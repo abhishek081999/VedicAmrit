@@ -639,13 +639,19 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             {/* Dropdown */}
             {searchOpen && locationResults.length > 0 && (
               <div style={{
-                position: 'absolute', zIndex: 100, width: '100%', top: '56px', marginTop: 4,
+                position: 'absolute', 
+                zIndex: 100, 
+                width: '100%', 
+                top: '100%', // Dynamically sit at the bottom of the parent container
+                marginTop: '6px', // Clear gap between input and results
                 background: 'var(--surface-2)',
                 border: '1px solid var(--border-bright)',
-                borderRadius: 8,
-                boxShadow: 'var(--shadow-deep)',
-                maxHeight: 280, overflowY: 'auto',
+                borderRadius: 12,
+                boxShadow: '0 12px 30px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
+                maxHeight: 300, 
+                overflowY: 'auto',
                 boxSizing: 'border-box',
+                animation: 'fadeUp 0.2s ease-out'
               }}>
                 {locationResults.map((loc, i) => (
                   <button
