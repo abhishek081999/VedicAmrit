@@ -116,6 +116,7 @@ describe('Chara Dasha', () => {
       dignity: 'neutral' as any,
       avastha: { baladi: '', jagradadi: '' },
       charaKaraka: null,
+      declination: 0,
       gandanta: { isGandanta: false, type: null, severity: 'none', position: null, distanceFromJunction: null, rashi: 1 as Rashi, nakshatraIndex: 0, degreeInNakshatra: 0 },
       yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
       pushkara: { isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0, navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null },
@@ -126,10 +127,10 @@ describe('Chara Dasha', () => {
   it('produces 12 maha dashas', () => {
     const grahas = makeGrahas({ Ma: 0, Ve: 60, Me: 90 })
     const lagnas = {
-      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0,
+      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
       pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-      cusps: [], bhavalCusps: [],
+      cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
     expect(dashas).toHaveLength(12)
@@ -155,10 +156,10 @@ describe('Chara Dasha', () => {
     // Taurus Asc (even) → backward: 2,1,12,11,10,9,8,7,6,5,4,3
     const grahas = makeGrahas({ Ve: 30 })  // Venus in Taurus
     const lagnas = {
-      ascDegree: 30, ascRashi: 2 as Rashi, ascDegreeInRashi: 0,
+      ascDegree: 30, ascRashi: 2 as Rashi, ascDegreeInRashi: 0, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
       pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-      cusps: [], bhavalCusps: [],
+      cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 1)
     expect(dashas[0].label).toContain('Taurus')
@@ -186,10 +187,10 @@ describe('Chara Dasha', () => {
   it('sub-dasha periods sum to maha duration', () => {
     const grahas = makeGrahas({ Ma: 15, Ve: 75, Ju: 260 })
     const lagnas = {
-      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 15,
+      ascDegree: 0, ascRashi: 1 as Rashi, ascDegreeInRashi: 15, mcDegree: 0,
       horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
       pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-      cusps: [], bhavalCusps: [],
+      cusps: [],
     }
     const dashas = calcCharaDasha(grahas, lagnas, BIRTH_DATE, 2)
     for (const maha of dashas.slice(1)) {   // skip birth-balance
@@ -258,6 +259,7 @@ describe('Ashtakavarga', () => {
       rashiName: '', degree: positions[i] % 30, totalDegree: positions[i],
       nakshatraIndex: 0, nakshatraName: '', pada: 1,
       dignity: 'neutral' as any, avastha: { baladi: '', jagradadi: '' }, charaKaraka: null,
+      declination: 0,
       gandanta: { isGandanta: false, type: null, severity: 'none', position: null, distanceFromJunction: null, rashi: 1 as Rashi, nakshatraIndex: 0, degreeInNakshatra: 0 },
       yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: 0, orb: 1 },
       pushkara: { isPushkara: false, type: null, zone: null, rashi: 1 as Rashi, degreeInSign: 0, navamsha: 1, isPushkaraNavamsha: false, distanceFromCenter: null, remedy: null },
@@ -266,10 +268,10 @@ describe('Ashtakavarga', () => {
   }
 
   const lagnas = {
-    ascDegree: 15, ascRashi: 1 as Rashi, ascDegreeInRashi: 15,
+    ascDegree: 15, ascRashi: 1 as Rashi, ascDegreeInRashi: 15, mcDegree: 0,
     horaLagna: 0, ghatiLagna: 0, bhavaLagna: 0,
     pranapada: 0, sriLagna: 0, varnadaLagna: 0,
-    cusps: [], bhavalCusps: [],
+    cusps: [],
   }
 
   it('SAV has 12 values', () => {

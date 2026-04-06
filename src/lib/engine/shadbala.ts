@@ -5,7 +5,7 @@
 //  Unit: Rupas (1 Rupa = 60 Shashtiamsas)
 // ─────────────────────────────────────────────────────────────
 
-import type { GrahaData, LagnaData, GrahaId } from '@/types/astrology'
+import type { GrahaData, LagnaData, GrahaId, ShadbalaPlanet, ShadbalaResult } from '@/types/astrology'
 import { 
   D1, D2, D3, D7, D9, D12, D30 
 } from './vargas'
@@ -13,63 +13,10 @@ import {
   NATURAL_FRIENDS, 
   NATURAL_ENEMIES, 
   MOOLATRIKONA_SIGN,
+  MOOLATRIKONA_RANGE,
   EXALTATION_SIGN,
   EXALTATION_DEGREE
 } from './dignity'
-
-// ── Types ─────────────────────────────────────────────────────
-
-export interface ShadbalaPlanet {
-  id:           string
-  sthanaBala:   number   // Positional strength
-  digBala:      number   // Directional strength
-  kalaBala:     number   // Temporal strength
-  chestaBala:   number   // Motional strength
-  naisargikaBala: number // Natural strength
-  drikBala:     number   // Aspectual strength
-  total:        number   // Total Shadbala in Rupas
-  totalShash:   number   // Total in Shashtiamsas (×60)
-  required:     number   // Minimum required Rupas
-  ratio:        number   // total / required
-  isStrong:     boolean
-  details?: {
-    sthana?: {
-      uccha: number
-      saptavargaja: number
-      ojhayugma: number
-      kendradi: number
-      drekkana: number
-    }
-    dig?: {
-      targetDegree: number
-      angularDistance: number
-    }
-    kala?: {
-      natha: number
-      paksha: number
-      tribhaga: number
-      vaara: number
-      ayana: number
-      isDayBirth: boolean
-    }
-    chesta?: {
-      method: 'retrograde_max' | 'luminary_constant' | 'speed_ratio'
-      speedAbs: number
-      meanSpeed: number
-    }
-    drik?: {
-      benefic: number
-      malefic: number
-      net: number
-    }
-  }
-}
-
-export interface ShadbalaResult {
-  planets: Record<string, ShadbalaPlanet>
-  strongest: string
-  weakest:   string
-}
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -157,8 +104,8 @@ function sthanaBala(
   const exaltLon = ( (EXALTATION_SIGN[g.id]! - 1) * 30 + exalt )
   const debilLon = (exaltLon + 180) % 360
   
-  let diff = norm(g.totalDegree - debilLon)
-  uccha = (diff / 180) * 60
+  const diffFromDebil = degDiff(g.totalDegree, debilLon)
+  uccha = (diffFromDebil / 180) * 60
   bala += uccha
 
   // (b) Saptavargaja Bala
@@ -171,7 +118,12 @@ function sthanaBala(
   let sapta = 0
   vargas.forEach(v => {
     const sign = v.fn(g.totalDegree)
-    if (v.name === 'D1' && MOOLATRIKONA_SIGN[g.id] === sign) {
+    // Check if sign is Moolatrikona for this planet
+    const isMT = MOOLATRIKONA_SIGN[g.id] === sign
+    const degInSign = (v.name === 'D1') ? g.degree : 15 // just use center for others since we don't have varga degrees easily
+    const mtRange = MOOLATRIKONA_RANGE[g.id]
+    
+    if (isMT && v.name === 'D1' && mtRange && degInSign >= mtRange[0] && degInSign <= mtRange[1]) {
       sapta += 45
     } else {
       sapta += getCompoundDignity(g.id as GrahaId, sign, allGrahas)
@@ -222,22 +174,16 @@ function sthanaBala(
 
 function digBala(
   g: GrahaData,
-  ascDeg: number,
-  cusps: number[],
+  ascLon: number,
+  mcLon: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['dig'] } {
-  if (!cusps || cusps.length < 12) {
-    return {
-      total: 30,
-      breakdown: { targetDegree: ascDeg, angularDistance: 90 },
-    }
-  }
   const DIG_POINTS: Record<string, number> = {
-    Su: cusps[9], Ma: cusps[9], // H10
-    Mo: cusps[3], Ve: cusps[3], // H4
-    Sa: cusps[6],                // H7
-    Me: cusps[0], Ju: cusps[0], // H1
+    Su: mcLon, Ma: mcLon,           // H10
+    Mo: (mcLon + 180) % 360, Ve: (mcLon + 180) % 360, // H4
+    Sa: (ascLon + 180) % 360,       // H7
+    Me: ascLon, Ju: ascLon,         // H1
   }
-  const target = DIG_POINTS[g.id] ?? cusps[0]
+  const target = DIG_POINTS[g.id] ?? ascLon
   let diff = degDiff(g.totalDegree, target)
   return {
     total: (180 - diff) / 3,
@@ -262,16 +208,29 @@ function kalaBala(
   const birthMs = birthDate.getTime()
   const isDaytime = birthMs >= sunrise.getTime() && birthMs <= sunset.getTime()
 
+  // Nathonnatha Bala
   let natho = 0
-  if (g.id === 'Me') natho = 60
+  if (['Mo', 'Ma', 'Sa'].includes(g.id)) natho = isDaytime ? 0 : 60
   else if (['Su', 'Ju', 'Ve'].includes(g.id)) natho = isDaytime ? 60 : 0
-  else natho = isDaytime ? 0 : 60
+  else natho = 60 // Mercury is always 60
 
-  const dist = norm(moonLon - sunLon)
-  const isBenefic = ['Ju', 'Ve', 'Me', 'Mo'].includes(g.id)
-  let paksha = isBenefic ? dist / 3 : (360 - dist) / 3 
+  // Paksha Bala (0-60)
+  const distSunMoon = norm(moonLon - sunLon)
+  const isBeneficNature = ['Ju', 'Ve'].includes(g.id) || (g.id === 'Mo' && distSunMoon > 90 && distSunMoon < 270) || (g.id === 'Me' && !g.isCombust)
+  
+  let paksha = 0
+  if (isBeneficNature) {
+    // Benefics are strong at Purnima (180°)
+    paksha = (distSunMoon > 180 ? 360 - distSunMoon : distSunMoon) / 180 * 60
+  } else {
+    // Malefics are strong at Amavasya (0°)
+    const distFromNew = distSunMoon > 180 ? 360 - distSunMoon : distSunMoon
+    paksha = (180 - distFromNew) / 180 * 60
+  }
   if (paksha > 60) paksha = 60
+  if (paksha < 0) paksha = 0
 
+  // Tribhaga Bala
   let tribhaga = 0
   const dayDur = sunset.getTime() - sunrise.getTime()
   const nightDur = 24 * 3600000 - dayDur
@@ -291,7 +250,21 @@ function kalaBala(
   if (g.id === 'Me') tribhaga = 60
 
   let vaara = (GRAHA_ORDER[weekday] === g.id) ? 45 : 0
-  let ayana = 30 
+  
+  // Ayana Bala (based on declination)
+  const dec = g.declination || 0
+  let ayana = 0
+  if (['Su', 'Ma', 'Ju', 'Ve'].includes(g.id)) {
+    ayana = ((24 + dec) / 48) * 60
+  } else if (['Mo', 'Sa'].includes(g.id)) {
+    ayana = ((24 - dec) / 48) * 60
+  } else {
+    // Mercury is special, but often 30 is used or max of both
+    ayana = 30 + Math.abs(dec)
+  }
+  if (ayana > 60) ayana = 60
+  if (ayana < 0) ayana = 0
+
   return {
     total: natho + paksha + tribhaga + vaara + ayana,
     breakdown: {
@@ -307,36 +280,33 @@ function kalaBala(
 
 // ── 4. Chesta Bala ──────────────────────────────────────────
 
-function chestaBala(g: GrahaData): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['chesta'] } {
-  if (g.isRetro) {
-    return {
-      total: 60,
-      breakdown: {
-        method: 'retrograde_max',
-        speedAbs: Math.abs(g.speed ?? 0),
-        meanSpeed: 0,
-      },
-    }
-  }
-  if (g.id === 'Su' || g.id === 'Mo') {
-    return {
-      total: 30,
-      breakdown: {
-        method: 'luminary_constant',
-        speedAbs: Math.abs(g.speed ?? 0),
-        meanSpeed: 0,
-      },
-    }
-  }
+function chestaBala(
+  g: GrahaData,
+  ayanaBala: number,
+  pakshaBala: number,
+): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['chesta'] } {
+  // Luminaries have special Chesta Bala
+  if (g.id === 'Su') return { total: ayanaBala, breakdown: { method: 'sun_ayana', speedAbs: ayanaBala, meanSpeed: ayanaBala } }
+  if (g.id === 'Mo') return { total: pakshaBala, breakdown: { method: 'moon_paksha', speedAbs: pakshaBala, meanSpeed: pakshaBala } }
+
   const speed = Math.abs(g.speed ?? 1)
   const MEAN_SPEED: Record<string, number> = {
     Ma: 0.524, Me: 1.383, Ju: 0.083, Ve: 1.200, Sa: 0.034,
   }
   const mean = MEAN_SPEED[g.id] ?? 1
+  
+  // High-precision approx for other planets
+  let total = 0
+  if (g.isRetro) {
+    total = 60
+  } else {
+    total = Math.min(60, (mean / (speed + 0.001)) * 30)
+  }
+
   return {
-    total: Math.min(60, (mean / speed) * 30),
+    total,
     breakdown: {
-      method: 'speed_ratio',
+      method: g.isRetro ? 'retrograde' : 'speed_ratio',
       speedAbs: speed,
       meanSpeed: mean,
     },
@@ -406,9 +376,9 @@ export function calculateShadbala(
     if (!g) continue
 
     const sthanOut  = sthanaBala(g, grahas, ascSign)
-    const digOut    = digBala(g, ascDeg, lagnas.cusps ?? [])
+    const digOut    = digBala(g, lagnas.ascDegree, lagnas.mcDegree || 0)
     const kalaOut   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
-    const chestaOut = chestaBala(g)
+    const chestaOut = chestaBala(g, kalaOut.breakdown?.ayana || 0, kalaOut.breakdown?.paksha || 0)
     const naisar = NAISARGIKA_SHASH[id] ?? 30
     const drikOut   = drikBala(g, grahas)
 

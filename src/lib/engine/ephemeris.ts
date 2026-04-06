@@ -45,11 +45,14 @@ export function localToUT(hour: number, min: number, sec: number, utcOffset: num
   return (hour + min / 60 + sec / 3600) - utcOffset
 }
 
-export function getPlanetPosition(jd: number, planetId: number, isSidereal = false): PlanetPosition {
-  const flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
+export function getPlanetPosition(jd: number, planetId: number, isSidereal = false, isEquatorial = false): PlanetPosition {
+  let flags = isSidereal ? FLAGS_SIDEREAL : FLAGS_TROPICAL
+  if (isEquatorial) flags |= C.SEFLG_EQUATORIAL
+
   const r = sweph.calc_ut(jd, planetId, flags) as any
   if (r.error) throw new Error(`sweph error planet ${planetId}: ${r.error}`)
-  // sweph returns nested: r.data[0]=lon, r.data[1]=lat, r.data[2]=dist, r.data[3]=speed
+  
+  // r.data[0]=lon(RA), r.data[1]=lat(Dec), r.data[2]=dist, r.data[3]=speed
   const lon   = r.data[0]
   const lat   = r.data[1]
   const dist  = r.data[2]

@@ -86,6 +86,7 @@ function buildGrahas(
   jd: number,
   ayanamsha: number,
   sunPos: { longitude: number; latitude: number; speed: number; isRetro: boolean },
+  sunPosEquat: { latitude: number },
   nodeMode: 'mean' | 'true' = 'mean',
 ): GrahaData[] {
   const order: Array<Exclude<GrahaId, 'Ke'>> = [
@@ -138,6 +139,7 @@ function buildGrahas(
       dignity,
       avastha: { baladi, jagradadi },
       charaKaraka: null,
+      declination: (id === 'Su' ? sunPosEquat.latitude : getPlanetPosition(jd, id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id], false, true).latitude),
     }
   })
 
@@ -192,6 +194,7 @@ function buildGrahas(
     yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: yuddhaResult.degreeDifference, orb: yuddhaResult.orb },
     pushkara: checkPushkara(ketuLonSid),
     mrityuBhaga: checkMrityuBhaga(ketuLonSid),
+    declination: -(rahu.declination || 0),
   })
 
   return grahas
@@ -216,8 +219,8 @@ export async function calculateChart(
   // Optimization: getPlanetPosition is expensive. We'll pass it into buildGrahas
   // to avoid redundant calls for 'Su' which is needed for combustion.
   const sunPos = getPlanetPosition(jd, SWISSEPH_IDS.Su, true)
-  const sunSidLon = sunPos.longitude
-  const grahas = buildGrahas(jd, ayanamshaVal, sunPos, settings.nodeMode)
+  const sunPosEquat = getPlanetPosition(jd, SWISSEPH_IDS.Su, false, true)
+  const grahas = buildGrahas(jd, ayanamshaVal, sunPos, sunPosEquat, settings.nodeMode)
   const moon = grahas.find((g) => g.id === 'Mo')!
   const sun = grahas.find((g) => g.id === 'Su')!
 
@@ -274,6 +277,7 @@ export async function calculateChart(
     ascDegree:        houses.ascendantSidereal,
     ascRashi:         houses.ascRashi,
     ascDegreeInRashi: houses.ascDegreeInRashi,
+    mcDegree:         houses.mcSidereal,
     horaLagna:        horaLagnaVal,
     ghatiLagna:       ghatiLagnaVal,
     bhavaLagna:       bhavaLagnaVal,
@@ -347,6 +351,7 @@ export async function calculateChart(
       ascDegree:        lagnaData.ascDegree,
       ascRashi:         lagnaData.ascRashi,
       ascDegreeInRashi: lagnaData.ascDegreeInRashi,
+      mcDegree:         lagnaData.mcDegree,
       horaLagna:        lagnaData.horaLagna,
       ghatiLagna:       lagnaData.ghatiLagna,
       bhavaLagna:       lagnaData.bhavaLagna,

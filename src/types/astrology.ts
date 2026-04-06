@@ -282,6 +282,7 @@ export interface GrahaData {
   gandanta:     GandantaResult    // Karmic knot detection
   yuddha:       YuddhaResult      // Planetary war status
   pushkara:     PushkaraResult    // Auspicious degrees
+  declination?: number
   mrityuBhaga:  MrityuBhagaResult // Death-inflicting degrees
 }
 
@@ -292,6 +293,7 @@ export interface LagnaData {
   ascDegree:    number   // Sidereal degree 0–360
   ascRashi:     Rashi
   ascDegreeInRashi: number  // 0–30
+  mcDegree?:     number   // Sidereal degree 0–360
 
   // Special Lagnas
   horaLagna:    number
@@ -516,7 +518,7 @@ export interface ShadbalaPlanet {
       isDayBirth: boolean
     }
     chesta?: {
-      method: 'retrograde_max' | 'luminary_constant' | 'speed_ratio'
+      method: 'retrograde' | 'luminary_constant' | 'speed_ratio' | 'sun_ayana' | 'moon_paksha'
       speedAbs: number
       meanSpeed: number
     }
