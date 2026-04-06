@@ -1,0 +1,61 @@
+services:
+  - type: web
+    name: vedaansh
+    runtime: node
+    repo: https://github.com/abhishek081999/Vedaansh
+    branch: main
+    region: singapore        # closest free region to India
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://vedaansh.com
+
+      - key: NEXT_PUBLIC_BASE_URL
+        value: https://vedaansh.com
+
+      - key: EPHE_PATH
+        value: ./ephe
+
+      # ── Set these in Render Dashboard → Environment ──────────
+      - key: MONGODB_URI
+        sync: false
+
+      - key: MONGODB_DB_NAME
+        sync: false
+
+      - key: AUTH_SECRET
+        sync: false
+
+      - key: AUTH_GOOGLE_ID
+        sync: false
+
+      - key: AUTH_GOOGLE_SECRET
+        sync: false
+
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+
+      - key: RESEND_API_KEY
+        sync: false
+
+      - key: FROM_EMAIL
+        sync: false
+
+      - key: RAZORPAY_KEY_ID
+        sync: false
+
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false

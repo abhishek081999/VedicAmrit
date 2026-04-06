@@ -1,0 +1,76 @@
+name: Deploy Vedaansh
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+# ─────────────────────────────────────────────
+# PRODUCTION  →  main branch  →  Render (vedaansh.com)
+# DEV         →  dev branch   →  Cloudflare Tunnel (dev.vedaansh.com)
+# ─────────────────────────────────────────────
+
+jobs:
+  # ── PRODUCTION ──────────────────────────────
+  deploy-production:
+    name: 🚀 Deploy to Render (vedaansh.com)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run engine tests
+        run: npm run test:engine
+
+      - name: Trigger Render Deploy
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        # Get this URL from:
+        # Render Dashboard → your service → Settings → Deploy Hook
+
+  # ── DEV ─────────────────────────────────────
+  deploy-dev:
+    name: 🔧 Dev checks (dev.vedaansh.com)
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run engine tests
+        run: npm run test:engine
+
+      - name: Done — pull on your dev machine
+        run: |
+          echo "✅ Dev branch checks passed."
+          echo "👉 On your local machine: git pull && npm run dev"
+          echo "🌐 Cloudflare Tunnel serves dev.vedaansh.com automatically."
