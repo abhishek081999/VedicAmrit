@@ -23,6 +23,7 @@ import {
 } from '@/lib/engine/nakshatra'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // ── Input validation ──────────────────────────────────────────
 

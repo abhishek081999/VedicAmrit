@@ -269,7 +269,9 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
 //  Main Page
 // ─────────────────────────────────────────────────────────────
 
-export default function HomePage() {
+import { Suspense } from 'react'
+
+function HomeContent() {
   const { data: session, status } = useSession()
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const { activeTab } = useAppLayout()
@@ -353,7 +355,7 @@ export default function HomePage() {
       setIsFormOpen(true)
       setChart(null)
     }
-  }, [searchParams])
+  }, [searchParams, setChart, setIsFormOpen])
 
   async function handleSave(type: 'regular' | 'personal' = 'regular') {
     if (!chart || saving) return
@@ -1031,5 +1033,17 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+       </div>
+    }>
+      <HomeContent />
+    </Suspense>
   )
 }

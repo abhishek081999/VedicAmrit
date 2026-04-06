@@ -20,7 +20,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
     fetchNotes()
   }, [chartId])
 
-  async function fetchNotes() {
+  const fetchNotes = React.useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -33,7 +33,7 @@ export function ChartNotes({ chartId }: { chartId: string }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [chartId])
 
   async function handleAdd() {
     if (!newNote.trim()) return

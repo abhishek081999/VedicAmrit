@@ -1,5 +1,6 @@
 // src/app/api/auth/verify-email/route.ts
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { MongoClient } from 'mongodb'
 
 const mongoUri = process.env.MONGODB_URI!

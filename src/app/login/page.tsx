@@ -10,7 +10,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
-export default function LoginPage() {
+import { Suspense } from 'react'
+
+function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
@@ -147,7 +149,7 @@ export default function LoginPage() {
             </button>
 
             <p style={{ textAlign: 'center', fontSize: '0.82rem', marginTop: '1.5rem', color: 'var(--text-muted)' }}>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/signup" style={{ color: 'var(--gold)', fontWeight: 600, textDecoration: 'none' }}>
                 Sign Up
               </Link>
@@ -163,5 +165,17 @@ export default function LoginPage() {
         Jyotiṣa · The Eye of the Vedas
       </footer>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div className="spin-loader" style={{ width: 32, height: 32, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+       </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

@@ -8,6 +8,7 @@ import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   try {

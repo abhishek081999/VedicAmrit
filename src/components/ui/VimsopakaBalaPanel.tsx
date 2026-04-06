@@ -104,27 +104,28 @@ export function VimsopakaBalaPanel({ vimsopaka, userPlan = 'free' }: Props) {
   const [selectedScheme, setSelectedScheme] = useState<SchemeId>('shodasvarga')
   const [viewMode, setViewMode] = useState<ViewMode>('modern')
 
-  if (!vimsopaka?.planets) {
-    return <div className="card">Viṁśopaka data unavailable.</div>
-  }
-
-  const curData = vimsopaka.planets[activePlanet]
-  const activeScore = curData ? (curData[selectedScheme] as number) : 0
-  const ranked = vimsopaka.leaderboard?.length
+  const ranked = vimsopaka?.leaderboard?.length
     ? vimsopaka.leaderboard
     : ORDER.map((id, idx) => ({
         id,
         rank: idx + 1,
-        score: vimsopaka.planets[id]?.shodasvarga ?? 0,
-        percent: ((vimsopaka.planets[id]?.shodasvarga ?? 0) / 20) * 100,
+        score: vimsopaka?.planets?.[id]?.shodasvarga ?? 0,
+        percent: ((vimsopaka?.planets?.[id]?.shodasvarga ?? 0) / 20) * 100,
       }))
 
-  const activeRank = ranked.find((r) => r.id === activePlanet)?.rank ?? 1
+  const curData = vimsopaka?.planets?.[activePlanet]
   const topContributions = useMemo(() => {
     return Object.entries(curData?.vargaContributions ?? {})
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
   }, [curData])
+
+  if (!vimsopaka?.planets) {
+    return <div className="card">Viṁśopaka data unavailable.</div>
+  }
+
+  const activeScore = curData ? (curData[selectedScheme] as number) : 0
+  const activeRank = ranked.find((r) => r.id === activePlanet)?.rank ?? 1
 
   if (viewMode === 'classic') {
     return (

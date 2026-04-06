@@ -146,7 +146,9 @@ const GRAHA_SYM: Record<string,string> = { Su:'☀',Mo:'☽',Ma:'♂',Me:'☿',J
 
 type View = 'compat' | 'charts' | 'planets' | 'dasha' | 'ashtakavarga' | 'shadbala' | 'yogas' | 'panchang' | 'ashtakoot' | 'all'
 
-export default function ComparePage() {
+import { Suspense } from 'react'
+
+function CompareContent() {
   const { data: session } = useSession()
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [step,   setStep]   = useState<'a'|'b'|'done'>('a')
@@ -179,7 +181,7 @@ export default function ComparePage() {
         {/* Form A */}
         {step === 'a' && (
           <div style={{ maxWidth: 480 }}>
-            <h2 style={{ fontFamily:'var(--font-display)',fontSize:'1.1rem',fontWeight:600,color:'var(--text-primary)',marginBottom:'1rem' }}>First person's birth details</h2>
+            <h2 style={{ fontFamily:'var(--font-display)',fontSize:'1.1rem',fontWeight:600,color:'var(--text-primary)',marginBottom:'1rem' }}>First person&apos;s birth details</h2>
             <div className="card" style={{ padding:'1.5rem' }}>
               <BirthForm onResult={d => { setChartA(d); setStep('b') }} />
             </div>
@@ -194,7 +196,7 @@ export default function ComparePage() {
               <div style={{ fontFamily:'var(--font-display)',fontWeight:600,color:'var(--text-primary)' }}>{chartA.meta.name}</div>
               <div style={{ fontSize:'0.75rem',color:'var(--text-muted)',fontFamily:'var(--font-mono)' }}>{chartA.meta.birthDate} · {chartA.meta.birthPlace}</div>
             </div>
-            <h2 style={{ fontFamily:'var(--font-display)',fontSize:'1.1rem',fontWeight:600,color:'var(--text-primary)',marginBottom:'1rem' }}>Second person's birth details</h2>
+            <h2 style={{ fontFamily:'var(--font-display)',fontSize:'1.1rem',fontWeight:600,color:'var(--text-primary)',marginBottom:'1rem' }}>Second person&apos;s birth details</h2>
             <div className="card" style={{ padding:'1.5rem' }}>
               <BirthForm onResult={d => { setChartB(d); setStep('done') }} />
             </div>
@@ -464,5 +466,17 @@ export default function ComparePage() {
         Vedic Chart Comparison · <span style={{ color:'var(--text-gold)' }}>Swiss Ephemeris</span>
       </footer>
     </div>
+  )
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={
+       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+       </div>
+    }>
+      <CompareContent />
+    </Suspense>
   )
 }

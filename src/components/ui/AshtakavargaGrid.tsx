@@ -304,7 +304,7 @@ export function AshtakavargaGrid({ ashtakavarga, ascRashi }: { ashtakavarga: Ash
                  </div>
                  <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>House {stats.highest.house} ({RASHI_SHORT[stats.highest.rashi as keyof typeof RASHI_SHORT]})</div>
                  <p style={{ margin: '0.5rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                   With {stats.highest.val} bindus, this sector is highly auspicious. Efforts related to this house's significations will yield significant results.
+                   With {stats.highest.val} bindus, this sector is highly auspicious. Efforts related to this house&apos;s significations will yield significant results.
                  </p>
                </div>
                <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--rose)' }}>

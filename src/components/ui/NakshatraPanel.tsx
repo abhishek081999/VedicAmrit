@@ -190,7 +190,7 @@ function OverviewTab({ chars }: { chars: NakshatraCharacteristics }) {
     <div style={{display:'flex',flexDirection:'column',gap:'0.875rem'}}>
       <div style={{padding:'1rem 1.125rem',background:'linear-gradient(135deg,rgba(139,124,246,.12),rgba(201,168,76,.08))',border:'1px solid rgba(139,124,246,.25)',borderRadius:'var(--r-md)'}}>
         <div style={{fontSize:'0.6rem',textTransform:'uppercase',letterSpacing:'0.1em',color:'var(--text-muted)',marginBottom:'0.35rem'}}>Shakti — Primordial Power</div>
-        <div style={{fontFamily:'var(--font-display)',fontSize:'0.95rem',color:'var(--text-primary)',lineHeight:1.55,fontStyle:'italic'}}>"{chars.shakti}"</div>
+        <div style={{fontFamily:'var(--font-display)',fontSize:'0.95rem',color:'var(--text-primary)',lineHeight:1.55,fontStyle:'italic'}}>&quot;{chars.shakti}&quot;</div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.55rem'}}>
         {rows.map(({label,value,icon,color})=>(

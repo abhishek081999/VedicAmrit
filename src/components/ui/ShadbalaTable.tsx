@@ -204,10 +204,21 @@ export function ShadbalaTable({
   preferClassicCharts?: boolean
   variant?: 'full' | 'widget'
 }) {
+  const [viewMode, setViewMode] = useState<ViewMode>('modern')
+  const [active, setActive] = useState<PlanetCode>('Su')
+  const [chartPanelView, setChartPanelView] = useState<'modern' | 'classic_grid'>(
+    preferClassicCharts ? 'classic_grid' : 'modern',
+  )
+  const { planets } = shadbala
+
+  const ranked = useMemo(() => {
+    return ORDER.map((id) => planets[id]).filter(Boolean).sort((a, b) => b.total - a.total)
+  }, [planets])
+
   if (variant === 'widget') {
-    const { planets } = shadbala
     const metricCards = [
       { key: 'sthanaBala' as const, title: 'Sthāna Bala', toDisplay: (v: number) => toShashtiamsa(v) },
+
       { key: 'kalaBala' as const, title: 'Kāla Bala', toDisplay: (v: number) => toShashtiamsa(v) },
       { key: 'digBala' as const, title: 'DigBala', toDisplay: (v: number) => toShashtiamsa(v) },
       { key: 'chestaBala' as const, title: 'Cheshta Bala', toDisplay: (v: number) => toShashtiamsa(v) },
@@ -257,17 +268,6 @@ export function ShadbalaTable({
       </div>
     )
   }
-
-  const [viewMode, setViewMode] = useState<ViewMode>('modern')
-  const [active, setActive] = useState<PlanetCode>('Su')
-  const [chartPanelView, setChartPanelView] = useState<'modern' | 'classic_grid'>(
-    preferClassicCharts ? 'classic_grid' : 'modern',
-  )
-  const { planets } = shadbala
-
-  const ranked = useMemo(() => {
-    return ORDER.map((id) => planets[id]).filter(Boolean).sort((a, b) => b.total - a.total)
-  }, [planets])
 
   const strongestId = (shadbala.strongest as PlanetCode) in PLANET_NAMES ? (shadbala.strongest as PlanetCode) : 'Su'
   const weakestId = (shadbala.weakest as PlanetCode) in PLANET_NAMES ? (shadbala.weakest as PlanetCode) : 'Sa'

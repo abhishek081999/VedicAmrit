@@ -429,7 +429,7 @@ export default function PricingPage() {
             Start with Free — free forever
           </div>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginBottom: '1.25rem' }}>
-            No credit card. No expiry. Upgrade when you're ready.
+            No credit card. No expiry. Upgrade when you&apos;re ready.
           </div>
           <Link href="/" className="btn btn-primary" style={{ padding: '0.65rem 2rem' }}>
             Calculate My Chart →

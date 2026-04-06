@@ -67,7 +67,7 @@ export function PersonalDayCard({ birthMoonNakIdx, birthMoonName, latitude, long
     return (
       <div className="card fade-up" style={{ padding: '1.5rem', minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-          Tuning into today's cosmic frequency...
+          Tuning into today&apos;s cosmic frequency...
         </div>
       </div>
     )

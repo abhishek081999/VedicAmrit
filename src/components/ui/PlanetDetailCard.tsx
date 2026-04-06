@@ -91,7 +91,7 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
           <div style={{display:'flex',flexDirection:'column'}}>
             <span style={{fontSize:'0.6rem',color:'var(--text-muted)',textTransform:'uppercase'}}>Sign & Position</span>
             <span style={{fontSize:'0.85rem',fontWeight:600,color:'var(--text-primary)'}}>
-              {RASHI_NAMES[Math.floor((p.degree || p.totalDegree) / 30) + 1 as Rashi]} {Math.floor((p.degree || p.totalDegree) % 30)}° {Math.floor((((p.degree || p.totalDegree) % 30) % 1) * 60)}'
+              {RASHI_NAMES[Math.floor((p.degree || p.totalDegree) / 30) + 1 as Rashi]} {Math.floor((p.degree || p.totalDegree) % 30)}° {Math.floor((((p.degree || p.totalDegree) % 30) % 1) * 60)}&apos;
             </span>
           </div>
           {p.charaKaraka && (

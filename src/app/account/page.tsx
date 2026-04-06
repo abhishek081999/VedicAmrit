@@ -107,7 +107,9 @@ function PrefToggle({ label, desc, value, onChange }: {
 }
 
 // ── Main page ─────────────────────────────────────────────────
-export default function AccountPage() {
+import { Suspense } from 'react'
+
+function AccountContent() {
   const { data: session, status, update } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -462,5 +464,17 @@ export default function AccountPage() {
         Vedaansh · <span style={{ color: 'var(--text-gold)' }}>Jyotiṣa</span> Platform
       </footer>
     </div>
+  )
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={
+       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div className="spin-loader" style={{ width: 40, height: 40, border: '3px solid var(--border-soft)', borderTopColor: 'var(--gold)', borderRadius: '50%' }} />
+       </div>
+    }>
+      <AccountContent />
+    </Suspense>
   )
 }

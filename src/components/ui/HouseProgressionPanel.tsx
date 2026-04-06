@@ -122,10 +122,9 @@ export function HouseProgressionPanel({ chart }: { chart: ChartOutput }) {
     }
   }, [chart.meta.birthDate, chart.meta.birthTime])
 
-  const now = new Date()
-  
   const progressions = useMemo(() => {
     const list = []
+    const now = new Date()
     for (let ageAtStart = 0; ageAtStart < 108; ageAtStart++) {
       const startDate = addYears(birthDate, ageAtStart)
       const endDate = addYears(birthDate, ageAtStart + 1)
