@@ -44,7 +44,12 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
   // 1. Try Redis cache
   try {
     const cached = await redis.get<string>(cacheKey)
-    if (cached) return cached
+    if (cached) {
+      // Fix for previously mis-cached Nepal locations
+      const isNepal = (lat > 26.3 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+      if (isNepal && (cached === 'Asia/Kolkata' || cached === 'UTC')) return 'Asia/Kathmandu'
+      return cached
+    }
   } catch (e) {
     console.error('[tz] Redis lookup failed:', e)
   }
@@ -64,17 +69,20 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
     )
     
     const countryCode = data.countryCode || ""
-    const isIndia = countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+    const isNepal = countryCode === "NP" || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+    const isIndia = !isNepal && (countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4))
     
-    // Validate that it looks like an IANA timezone (e.g., "Asia/Kolkata")
-    let tz = isIndia ? 'Asia/Kolkata' : 'UTC'
+    // Initial guess based on region
+    let tz = isNepal ? 'Asia/Kathmandu' : (isIndia ? 'Asia/Kolkata' : 'UTC')
     
     if (tzEntry?.name && tzEntry.name.includes('/')) {
       tz = tzEntry.name
     } else {
-      // Fallback: check if the API returned a direct timezone object
+      // Fallback: check if the API returned a direct timezone property
       if (data.timezone && typeof data.timezone === 'string' && data.timezone.includes('/')) {
         tz = data.timezone
+      } else if (data.timezone?.ianaName && typeof data.timezone.ianaName === 'string') {
+        tz = data.timezone.ianaName
       }
     }
     
@@ -83,8 +91,10 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
     return tz
   } catch (err) {
     console.error('[tz] Fetch failed for', lat, lng, err)
-    // Emergency fallback for India context
-    const isIndiaFallback = (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+    // Emergency fallback for Region context
+    const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+    const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+    if (isNepalFallback) return 'Asia/Kathmandu'
     return isIndiaFallback ? 'Asia/Kolkata' : 'UTC'
   }
 }
@@ -177,12 +187,15 @@ export async function GET(req: NextRequest) {
         const country = feat.properties.country || ''
         const admin1  = feat.properties.state || ''
 
-        // TZ check (from Redis or BigDataCloud) — now with India fallback logic
+        // TZ check (from Redis or BigDataCloud) — now with Nepal/India fallback logic
         let timezone = await fetchTimezone(lat, lng)
         
-        // India bounding box safety within search results mapping
-        if (timezone === 'UTC' && lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4) {
-          timezone = 'Asia/Kolkata'
+        // Bounding box safety within search results mapping
+        if (timezone === 'UTC') {
+          const isNepal = country === 'Nepal' || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+          const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+          if (isNepal) timezone = 'Asia/Kathmandu'
+          else if (isIndia) timezone = 'Asia/Kolkata'
         }
 
         return {

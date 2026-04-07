@@ -188,15 +188,18 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       const data = await res.json()
       let results = data.results ?? []
       
-      // Client-side fix: If any result still says UTC but is in India, fix it immediately
+      // Client-side fix: If any result still says UTC but is in SAARC region, fix it
       results = results.map((loc: LocationResult) => {
-        if (loc.timezone === 'UTC' && loc.latitude > 6.7 && loc.latitude < 37.5 && loc.longitude > 68.1 && loc.longitude < 97.4) {
-          return { ...loc, timezone: 'Asia/Kolkata' }
+        if (loc.timezone === 'UTC') {
+          const isNepal = loc.country === 'Nepal' || (loc.latitude > 26.0 && loc.latitude < 30.5 && loc.longitude > 80.0 && loc.longitude < 88.5)
+          const isIndia = !isNepal && (loc.latitude > 6.7 && loc.latitude < 37.5 && loc.longitude > 68.1 && loc.longitude < 97.4)
+          if (isNepal) return { ...loc, timezone: 'Asia/Kathmandu' }
+          if (isIndia) return { ...loc, timezone: 'Asia/Kolkata' }
         }
         return loc
       })
       
-      // Only cache if results are GOOD (no UTC for India)
+      // Only cache if results are GOOD (no UTC for India/Nepal)
       const hasBadUTC = results.some((r: LocationResult) => 
         r.timezone === 'UTC' && r.latitude > 6.7 && r.latitude < 37.5 && r.longitude > 68.1 && r.longitude < 97.4
       )
@@ -680,7 +683,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                     <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
                       <span>{loc.country}</span>
                       <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
-                      <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone === 'UTC' && loc.latitude > 6.7 ? 'Asia/Kolkata' : loc.timezone}</span>
+                      <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone}</span>
                     </span>
                   </button>
                 ))}
