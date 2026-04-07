@@ -21,6 +21,12 @@ const DELHI_DEFAULT = {
   tz: 'Asia/Kolkata',
 }
 
+const FALLBACK_TZ_LIST = [
+  'Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Dubai', 'Asia/Singapore', 
+  'UTC', 'America/New_York', 'America/Los_Angeles', 'Europe/London', 
+  'Europe/Paris', 'Australia/Sydney', 'Asia/Tokyo', 'Asia/Hong_Kong'
+]
+
 function nowIST(): { date: string; time: string } {
   // Use current moment in IST
   const now = new Date()
@@ -84,7 +90,31 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   const [manualMode, setManualMode] = useState(false)
   
   // Timezone list for manual entry
-  const [tzList] = useState(() => (typeof Intl !== 'undefined' && (Intl as any).supportedValuesOf) ? (Intl as any).supportedValuesOf('timeZone') as string[] : ['Asia/Kolkata', 'UTC', 'America/New_York'])
+  // Initialized with fallback list to avoid hydration mismatch between server/client
+  const [tzList, setTzList] = useState(FALLBACK_TZ_LIST)
+
+  useEffect(() => {
+    // Populate full IANA list on client mount
+    if (typeof Intl !== 'undefined' && (Intl as any).supportedValuesOf) {
+      try {
+        const fullList = (Intl as any).supportedValuesOf('timeZone') as string[]
+        // Ensure both modern and legacy names are available for common Indian zones
+        if (!fullList.includes('Asia/Kolkata')) fullList.push('Asia/Kolkata')
+        if (!fullList.includes('Asia/Calcutta')) fullList.push('Asia/Calcutta')
+
+        const sorted = [...new Set(fullList)].sort((a, b) => {
+          const aAsia = a.startsWith('Asia/')
+          const bAsia = b.startsWith('Asia/')
+          if (aAsia && !bAsia) return -1
+          if (!aAsia && bAsia) return 1
+          return a.localeCompare(b)
+        })
+        setTzList(sorted)
+      } catch (e) {
+        console.warn("Full timezone list not supported", e)
+      }
+    }
+  }, [])
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchCache = useRef<Map<string, LocationResult[]>>(new Map())
@@ -244,6 +274,31 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       },
       () => setSearching(false)
     )
+  }
+
+  const resolveTimezoneFromCoords = async () => {
+    if (lat === null || lng === null) return
+    setSearching(true)
+    try {
+      const res = await fetch(`/api/atlas/search?lat=${lat}&lng=${lng}`)
+      const data = await res.json()
+      if (data.results?.[0]?.timezone) {
+        let resolvedTz = data.results[0].timezone
+        // Client-side fix for UTC fallback in SAARC
+        if (resolvedTz === 'UTC') {
+          const loc = data.results[0]
+          const isNepal = loc.country === 'Nepal' || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+          const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+          if (isNepal) resolvedTz = 'Asia/Kathmandu'
+          else if (isIndia) resolvedTz = 'Asia/Kolkata'
+        }
+        setTz(resolvedTz)
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSearching(false)
+    }
   }
 
   // Auto-calculate is disabled — chart only recalculates on explicit button click.
@@ -582,19 +637,72 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           </div>
         ) : (
           <>
-            <input
-              className="input"
-              type="text"
-              placeholder="City, Country"
-              value={place}
-              onChange={(e) => handlePlaceChange(e.target.value)}
-              onFocus={() => {
-                if (locationResults.length > 0) setSearchOpen(true)
-                else if (place.length >= 2) searchLocations(place)
-              }}
-              autoComplete="off"
-              style={{ width: '100%', boxSizing: 'border-box' }}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                className="input"
+                type="text"
+                placeholder="City, Country"
+                value={place}
+                onChange={(e) => handlePlaceChange(e.target.value)}
+                onFocus={() => {
+                  if (locationResults.length > 0) setSearchOpen(true)
+                  else if (place.length >= 2) searchLocations(place)
+                }}
+                autoComplete="off"
+                style={{ width: '100%', boxSizing: 'border-box' }}
+              />
+
+              {/* Dropdown moved here to be relative to input */}
+              {searchOpen && locationResults.length > 0 && (
+                <div style={{
+                  position: 'absolute', 
+                  zIndex: 100, 
+                  width: '100%', 
+                  top: '100%', 
+                  marginTop: '6px', 
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--border-bright)',
+                  borderRadius: 12,
+                  boxShadow: '0 12px 30px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
+                  maxHeight: 300, 
+                  overflowY: 'auto',
+                  boxSizing: 'border-box',
+                  animation: 'fadeUp 0.2s ease-out'
+                }}>
+                  {locationResults.map((loc, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => selectLocation(loc)}
+                      style={{
+                        display: 'flex', flexDirection: 'column', gap: 2,
+                        width: '100%', textAlign: 'left',
+                        padding: '0.6rem 1rem',
+                        background: 'transparent', border: 'none', cursor: 'pointer',
+                        borderBottom: i < locationResults.length - 1
+                          ? '1px solid var(--border-soft)' : 'none',
+                        transition: 'background 0.1s',
+                        boxSizing: 'border-box',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                        {loc.name}
+                        {loc.admin1 && (
+                          <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>, {loc.admin1}</span>
+                        )}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
+                        <span>{loc.country}</span>
+                        <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
+                        <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Coords display overlay */}
             {lat !== null && lng !== null && (
@@ -609,88 +717,62 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                 <span title="Longitude">{lng.toFixed(4)}° E</span>
               </div>
             )}
-
-            {/* Explicit Timezone Selection */}
-            <div style={{ marginTop: '0.9rem' }}>
-              <label className="field-label" style={{ marginBottom: '0.35rem' }}>Timezone (IANA)</label>
-              <div style={{ position: 'relative' }}>
-                <input 
-                  type="text" placeholder="e.g. Asia/Kolkata" 
-                  className="input" style={{ width: '100%', boxSizing: 'border-box' }}
-                  value={tz} 
-                  onChange={e => setTz(e.target.value)}
-                  list="tz-datalist"
-                />
-                <datalist id="tz-datalist">
-                   <option value="Asia/Kolkata" />
-                   <option value="Asia/Dubai" />
-                   <option value="Asia/Singapore" />
-                   <option value="UTC" />
-                   <option value="America/New_York" />
-                   <option value="America/Los_Angeles" />
-                   <option value="Europe/London" />
-                   <option value="Europe/Paris" />
-                   <option value="Australia/Sydney" />
-                   {tzList.slice(0, 80).map(t => <option key={t} value={t} />)}
-                </datalist>
-                <div style={{ fontSize: '0.62rem', color: 'var(--text-gold)', marginTop: 2, fontStyle: 'italic', opacity: 0.8 }}>
-                  Currently: {tz}
-                </div>
-              </div>
-            </div>
-
-            {/* Dropdown */}
-            {searchOpen && locationResults.length > 0 && (
-              <div style={{
-                position: 'absolute', 
-                zIndex: 100, 
-                width: '100%', 
-                top: '100%', // Dynamically sit at the bottom of the parent container
-                marginTop: '6px', // Clear gap between input and results
-                background: 'var(--surface-2)',
-                border: '1px solid var(--border-bright)',
-                borderRadius: 12,
-                boxShadow: '0 12px 30px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
-                maxHeight: 300, 
-                overflowY: 'auto',
-                boxSizing: 'border-box',
-                animation: 'fadeUp 0.2s ease-out'
-              }}>
-                {locationResults.map((loc, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => selectLocation(loc)}
-                    style={{
-                      display: 'flex', flexDirection: 'column', gap: 2,
-                      width: '100%', textAlign: 'left',
-                      padding: '0.6rem 1rem',
-                      background: 'transparent', border: 'none', cursor: 'pointer',
-                      borderBottom: i < locationResults.length - 1
-                        ? '1px solid var(--border-soft)' : 'none',
-                      transition: 'background 0.1s',
-                      boxSizing: 'border-box',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'var(--text-primary)' }}>
-                      {loc.name}
-                      {loc.admin1 && (
-                        <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>, {loc.admin1}</span>
-                      )}
-                    </span>
-                    <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
-                      <span>{loc.country}</span>
-                      <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
-                      <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
           </>
         )}
+
+        {/* Unified Timezone Selection */}
+        <div style={{ marginTop: '0.9rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+            <label className="field-label" style={{ marginBottom: 0 }}>Timezone (IANA)</label>
+            {manualMode && (
+              <button 
+                type="button" 
+                onClick={resolveTimezoneFromCoords}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: 'var(--gold)', fontSize: '0.62rem', fontWeight: 600,
+                  textTransform: 'uppercase', padding: 0, letterSpacing: '0.04em'
+                }}
+              >
+                Resolve from Coords ⟲
+              </button>
+            )}
+          </div>
+          <div style={{ position: 'relative' }}>
+            <input 
+              type="text" 
+              placeholder="Search e.g. Asia/Kolkata" 
+              className="input" 
+              style={{ width: '100%', boxSizing: 'border-box', cursor: 'pointer' }}
+              value={tz} 
+              onChange={e => setTz(e.target.value)}
+              onFocus={e => e.target.select()}
+              onMouseUp={e => e.preventDefault()} // Fix for some browsers not keeping selection on click
+              list="tz-datalist"
+              autoComplete="off"
+            />
+            <datalist id="tz-datalist">
+               {/* Explicitly prioritize the most common ones at the very top */}
+               <option value="Asia/Kolkata" />
+               <option value="Asia/Kathmandu" />
+               <option value="Asia/Calcutta" />
+               <option value="Asia/Dubai" />
+               <option value="Asia/Singapore" />
+               <option value="UTC" />
+               <option value="America/New_York" />
+               <option value="Europe/London" />
+               
+               {/* Then the rest of the Asia/ zones and finally the global list */}
+               {tzList
+                 .filter(t => !['Asia/Kolkata', 'Asia/Kathmandu', 'Asia/Calcutta', 'Asia/Dubai', 'Asia/Singapore', 'UTC', 'America/New_York', 'Europe/London'].includes(t))
+                 .map(t => <option key={t} value={t} />)
+               }
+            </datalist>
+            <div style={{ fontSize: '0.62rem', color: 'var(--text-gold)', marginTop: 2, fontStyle: 'italic', opacity: 0.8 }}>
+              Selected: {tz}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Advanced settings */}
