@@ -25,8 +25,8 @@ function getRazorpay(): Razorpay {
 // ── Plan → amount map (paise = 1/100 of rupee) ───────────────
 // synced with src/app/pricing/page.tsx
 const PLAN_PRICES = {
-  gold: { monthly: 29900, yearly: 249900 },   // ₹299/mo, ₹2499/yr
-  platinum: { monthly: 99900, yearly: 849900 },   // ₹999/mo, ₹8499/yr
+  gold: { monthly: 17500, yearly: 180000 },
+  platinum: { monthly: 99900, yearly: 849900 },
 } as const
 
 // ── Input schema ──────────────────────────────────────────────

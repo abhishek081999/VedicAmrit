@@ -28,7 +28,7 @@ const VerifySchema = z.object({
 })
 
 const PLAN_PRICES = {
-  gold: { monthly: 29900, yearly: 249900 },
+  gold: { monthly: 17500, yearly: 180000 },
   platinum: { monthly: 99900, yearly: 849900 },
 } as const
 

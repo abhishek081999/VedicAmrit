@@ -34,14 +34,14 @@ const FEATURES = {
   gold: {
     name: 'Gold',
     subtitle: 'For serious students',
-    price: { monthly: 299, yearly: 2499 },
+    price: { monthly: 175, yearly: 1800 },
     color: 'var(--accent)',
     border: 'rgba(139,124,246,0.50)',
     bg: 'rgba(139,124,246,0.08)',
     badge: 'Most Popular',
     features: [
       '✓ Everything in Free',
-      '✓ Unlimited chart saves and library',
+      '✓ Save up to 200 charts in your library',
       '✓ Professional PDF & HTML exports',
       '✓ Dasha Precision: Start from Ascendant or any Planet',
       '✓ Full Aṣṭakūṭa Compatibility (36-point matching)',
@@ -60,7 +60,7 @@ const FEATURES = {
     color: 'var(--teal)',
     border: 'rgba(78,205,196,0.50)',
     bg: 'rgba(78,205,196,0.08)',
-    badge: 'Professional',
+    badge: 'Coming Soon',
     features: [
       '✓ Everything in Gold',
       '✓ White-labeling: Use your own brand/logo on shares',
@@ -217,7 +217,7 @@ export default function PricingPage() {
             }}>
               {b === 'monthly' ? 'Monthly' : 'Yearly'}
               {b === 'yearly' && (
-                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>Save 30%</span>
+                <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--teal)', fontWeight: 700 }}>Save up to 30%</span>
               )}
             </button>
           ))}
@@ -266,8 +266,12 @@ export default function PricingPage() {
                 </div>
 
                 {/* Price */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-                  {price === 0 ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', minHeight: '3.5rem' }}>
+                  {tier.badge === 'Coming Soon' ? (
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                      TBA
+                    </span>
+                  ) : price === 0 ? (
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       Free
                     </span>
@@ -283,7 +287,7 @@ export default function PricingPage() {
                     </>
                   )}
                 </div>
-                {billing === 'yearly' && price > 0 && (
+                {billing === 'yearly' && price > 0 && tier.badge !== 'Coming Soon' && (
                   <div style={{ fontSize: '0.75rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginTop: -8 }}>
                     ₹{tier.price.yearly}/year — save ₹{(tier.price.monthly * 12) - tier.price.yearly}
                   </div>
@@ -323,21 +327,21 @@ export default function PricingPage() {
                   <>
                     <button
                       onClick={() => handleSubscribe(key as 'gold' | 'platinum')}
-                      disabled={checkoutLoading === key}
+                      disabled={checkoutLoading === key || tier.badge === 'Coming Soon'}
                       style={{
                         display: 'block', width: '100%', padding: '0.65rem 1rem',
-                        textAlign: 'center', background: tier.color,
+                        textAlign: 'center', background: tier.badge === 'Coming Soon' ? 'var(--text-muted)' : tier.color,
                         borderRadius: 'var(--r-md)', textDecoration: 'none',
                         fontFamily: 'var(--font-display)', fontSize: '0.85rem',
                         fontWeight: 700, color: '#fff', border: 'none',
-                        cursor: checkoutLoading === key ? 'not-allowed' : 'pointer',
-                        opacity: checkoutLoading === key ? 0.75 : 1,
+                        cursor: (checkoutLoading === key || tier.badge === 'Coming Soon') ? 'not-allowed' : 'pointer',
+                        opacity: (checkoutLoading === key || tier.badge === 'Coming Soon') ? 0.75 : 1,
                         transition: 'opacity 0.15s',
                       }}
                     >
                       {checkoutLoading === key
                         ? 'Opening checkout…'
-                        : `Upgrade to ${tier.name} →`}
+                        : tier.badge === 'Coming Soon' ? 'Coming Soon' : `Upgrade to ${tier.name} →`}
                     </button>
                     {checkoutError && checkoutLoading === null && (
                       <p style={{ fontSize: '0.75rem', color: 'var(--text-danger)', marginTop: '0.4rem', textAlign: 'center' }}>
