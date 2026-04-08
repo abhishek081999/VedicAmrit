@@ -32,11 +32,25 @@ interface PhotonFeature {
 }
 
 /**
+ * Deduplicate concurrent API requests for the same coordinates
+ */
+const pendingTzLookups = new Map<string, Promise<string>>();
+
+/**
  * Fetches timezone for coordinates using BigDataCloud free API
  * Rounds coordinates to 2 decimal places to increase cache hit rate.
  * Results cached in Redis for 7 days.
  */
 async function fetchTimezone(lat: number, lng: number): Promise<string> {
+  // Pre-emptive check for India/Nepal (95% of use cases)
+  const isNepal = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+  const isIndia = !isNepal && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+  
+  // If we are deep inside India or Nepal, we stop here.
+  // Exception: Coastal or border areas might need the API, but for astrology, the regional default is safer than a failing API.
+  if (isNepal) return 'Asia/Kathmandu'
+  if (isIndia) return 'Asia/Kolkata'
+
   const roundedLat = lat.toFixed(2)
   const roundedLng = lng.toFixed(2)
   const cacheKey = `tz:${roundedLat},${roundedLng}`
@@ -54,48 +68,72 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
     console.error('[tz] Redis lookup failed:', e)
   }
 
-  try {
-    // 2. Query BigDataCloud reverse geocode API (free tier)
-    const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
-    if (!res.ok) throw new Error('API request failed')
+  // 2. Check for concurrent pending requests to avoid "Cache Stampede"
+  if (pendingTzLookups.has(cacheKey)) {
+    return pendingTzLookups.get(cacheKey)!
+  }
+
+  const lookupPromise = (async () => {
+    try {
+      // 3. Query BigDataCloud reverse geocode API (free tier)
+      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+        next: { revalidate: 604800 }
+      })
+      if (!res.ok) throw new Error(`API failed [${res.status}]`)
     
-    const data = await res.json()
-    
-    // 3. Extract IANA timezone from informative info
-    const info = data.localityInfo?.informative || []
-    const tzEntry = info.find((i: any) => 
-       i.description === 'time zone' || 
-       (i.name && i.name.includes('/') && i.name.length > 5)
-    )
-    
-    const countryCode = data.countryCode || ""
-    const isNepal = countryCode === "NP" || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-    const isIndia = !isNepal && (countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4))
-    
-    // Initial guess based on region
-    let tz = isNepal ? 'Asia/Kathmandu' : (isIndia ? 'Asia/Kolkata' : 'UTC')
-    
-    if (tzEntry?.name && tzEntry.name.includes('/')) {
-      tz = tzEntry.name
-    } else {
-      // Fallback: check if the API returned a direct timezone property
-      if (data.timezone && typeof data.timezone === 'string' && data.timezone.includes('/')) {
-        tz = data.timezone
-      } else if (data.timezone?.ianaName && typeof data.timezone.ianaName === 'string') {
-        tz = data.timezone.ianaName
+      const data = await res.json()
+      
+      // 4. Extract IANA timezone from informative info
+      const info = data.localityInfo?.informative || []
+      const tzEntry = info.find((i: any) => 
+         i.description === 'time zone' || 
+         (i.name && i.name.includes('/') && i.name.length > 5)
+      )
+      
+      const countryCode = data.countryCode || ""
+      const isNepal = countryCode === "NP" || (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+      const isIndia = !isNepal && (countryCode === "IN" || (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4))
+      
+      // Initial guess based on region
+      let tz = isNepal ? 'Asia/Kathmandu' : (isIndia ? 'Asia/Kolkata' : 'UTC')
+      
+      if (tzEntry?.name && tzEntry.name.includes('/')) {
+        tz = tzEntry.name
+      } else {
+        // Fallback: check if the API returned a direct timezone property
+        if (data.timezone && typeof data.timezone === 'string' && data.timezone.includes('/')) {
+          tz = data.timezone
+        } else if (data.timezone?.ianaName && typeof data.timezone.ianaName === 'string') {
+          tz = data.timezone.ianaName
+        }
       }
+      
+      // 5. Cache in Redis
+      await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
+      return tz
+    } catch (err) {
+      // Emergency fallback for Region context
+      const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
+      const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
+      
+      const flavor = isNepalFallback ? 'Asia/Kathmandu' : (isIndiaFallback ? 'Asia/Kolkata' : 'UTC')
+      
+      // Only log if it's not a common regional fallback
+      if (flavor === 'UTC') {
+        console.error('[tz] Fetch failed and no regional fallback found:', lat, lng, err)
+      }
+      
+      return flavor
     }
-    
-    // 4. Cache in Redis
-    await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
-    return tz
-  } catch (err) {
-    console.error('[tz] Fetch failed for', lat, lng, err)
-    // Emergency fallback for Region context
-    const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
-    const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
-    if (isNepalFallback) return 'Asia/Kathmandu'
-    return isIndiaFallback ? 'Asia/Kolkata' : 'UTC'
+  })()
+
+  pendingTzLookups.set(cacheKey, lookupPromise)
+  
+  try {
+    return await lookupPromise
+  } finally {
+    // Clean up after 1 second to allow near-simultaneous batch searches to hit it
+    setTimeout(() => pendingTzLookups.delete(cacheKey), 1000)
   }
 }
 
@@ -120,12 +158,12 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ results: [cached], fromCache: true })
       }
       
-      const [tz, res] = await Promise.all([
-        fetchTimezone(lat, lng),
-        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
-          next: { revalidate: 604800 }
-        })
-      ])
+      // Use fetchTimezone but it will likely hit our pre-emptive India/Nepal logic or Redis
+      const tz = await fetchTimezone(lat, lng)
+      
+      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+        next: { revalidate: 604800 }
+      })
       
       const data = await res.json()
 
@@ -187,8 +225,16 @@ export async function GET(req: NextRequest) {
         const country = feat.properties.country || ''
         const admin1  = feat.properties.state || ''
 
-        // TZ check (from Redis or BigDataCloud) — now with Nepal/India fallback logic
-        let timezone = await fetchTimezone(lat, lng)
+        // ── Optimization: Assign TZ directly for major regions ──
+        let timezone = ''
+        if (country === 'India') {
+          timezone = 'Asia/Kolkata'
+        } else if (country === 'Nepal') {
+          timezone = 'Asia/Kathmandu'
+        } else {
+          // Only hit the API/Redis for other countries
+          timezone = await fetchTimezone(lat, lng)
+        }
         
         // Bounding box safety within search results mapping
         if (timezone === 'UTC') {

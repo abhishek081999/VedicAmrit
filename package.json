@@ -41,6 +41,7 @@
     "sweph": "^2.10.3-b-1",
     "tailwind-merge": "^2.3.0",
     "typescript": "^5.4.5",
+    "tz-lookup": "^6.1.25",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8",
     "zustand": "^4.5.2"
