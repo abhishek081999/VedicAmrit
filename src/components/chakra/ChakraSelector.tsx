@@ -214,6 +214,7 @@ export function ChakraSelector({
             planetScale={planetScale}
             infoScale={infoScale}
             arudhaScale={arudhaScale}
+            lagnas={lagnas}
           />
         )}
         {style === 'north' && (
@@ -230,6 +231,7 @@ export function ChakraSelector({
             planetScale={planetScale}
             infoScale={infoScale}
             arudhaScale={arudhaScale}
+            lagnas={lagnas}
           />
         )}
         {style === 'sarvatobhadra' && (
@@ -253,6 +255,7 @@ export function ChakraSelector({
             showKaraka={showKaraka} showArudha={showArudha}
             arudhas={arudhas} transitGrahas={transitGrahas}
             fontScale={fontScale} planetScale={planetScale}
+            lagnas={lagnas}
           />
         )}
 

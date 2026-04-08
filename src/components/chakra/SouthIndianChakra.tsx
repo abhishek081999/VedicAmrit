@@ -10,7 +10,9 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
+import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
+import { getNakshatra } from '@/lib/engine/nakshatra'
+import { NAKSHATRA_SHORT } from '@/types/astrology'
 
 // ── Fixed sign → [row, col] in 4×4 grid ──────────────────────
 
@@ -69,6 +71,7 @@ interface SouthIndianProps {
   showKaraka?:    boolean
   showArudha?:    boolean
   arudhas?:       ArudhaData
+  lagnas?:        LagnaData
   transitGrahas?: GrahaData[]
   interactive?:   boolean
   onCellClick?:   (rashi: Rashi) => void
@@ -90,6 +93,7 @@ export function SouthIndianChakra({
   showKaraka    = false,
   showArudha    = false,
   arudhas,
+  lagnas,
   transitGrahas,
   interactive   = false,
   onCellClick,
@@ -224,8 +228,26 @@ export function SouthIndianChakra({
                   textAnchor="middle"
                   fontStyle="italic"
                 >
-                  Asc
+                  {lagnas 
+                    ? `AS ${Math.floor(lagnas.ascDegreeInRashi)}°${String(Math.floor((lagnas.ascDegreeInRashi % 1) * 60)).padStart(2, '0')}'` 
+                    : 'Asc'}
                 </text>
+                {showNakshatra && lagnas && (() => {
+                  const ascNak = getNakshatra(lagnas.ascDegree)
+                  return (
+                    <text
+                      x={x + cell * 0.5}
+                      y={y + cell * 0.82}
+                      fontSize={fs.degree * 0.88}
+                      fill="var(--text-muted)"
+                      fontFamily="var(--font-chart-planets)"
+                      textAnchor="middle"
+                      fontStyle="italic"
+                    >
+                      {NAKSHATRA_SHORT[ascNak.index]}{ascNak.pada}
+                    </text>
+                  )
+                })()}
               </g>
             )}
 
@@ -276,7 +298,7 @@ export function SouthIndianChakra({
                       fontFamily="var(--font-chart-planets)"
                       fontStyle="italic"
                     >
-                      {g.nakshatraName.slice(0, 3)}{g.pada}
+                      {g.nakshatraIndex !== undefined ? NAKSHATRA_SHORT[g.nakshatraIndex] : ''}{g.pada}
                     </text>
                   )}
                 </g>

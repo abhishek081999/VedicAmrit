@@ -4,8 +4,9 @@
 // Houses go ANTI-clockwise. H1 at left (9 o'clock), H2 above-left, etc.
 
 import React from 'react'
-import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
-import { RASHI_SHORT } from '@/types/astrology'
+import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
+import { RASHI_SHORT, NAKSHATRA_SHORT } from '@/types/astrology'
+import { getNakshatra } from '@/lib/engine/nakshatra'
 
 const SIGN_ELEMENT: Record<number, string> = {
   1:'fire',2:'earth',3:'air',4:'water',5:'fire',6:'earth',
@@ -59,6 +60,7 @@ interface Props {
   showKaraka?:    boolean
   showArudha?:    boolean
   arudhas?:    ArudhaData
+  lagnas?:     LagnaData
   transitGrahas?: GrahaData[]
   fontScale?:  number
   planetScale?: number
@@ -68,7 +70,7 @@ export function CircleChakra({
   ascRashi, grahas, size = 480,
   showDegrees = true, showNakshatra = false,
   showKaraka = false, showArudha = false,
-  arudhas, transitGrahas = [],
+  arudhas, lagnas, transitGrahas = [],
   fontScale = 1.0, planetScale = 1.0,
 }: Props) {
   const cx = size / 2, cy = size / 2
@@ -86,11 +88,26 @@ export function CircleChakra({
   function grahaHouse(rashi: Rashi): number { return ((rashi - ascRashi + 12) % 12) + 1 }
 
   // Group planets by house
-  const byHouse: Record<number, GrahaData[]>  = {}
-  const tByHouse: Record<number, GrahaData[]> = {}
+  const byHouse: Record<number, any[]>  = {}
+  const tByHouse: Record<number, any[]> = {}
   for (let h = 1; h <= 12; h++) { byHouse[h] = []; tByHouse[h] = [] }
   grahas.forEach(g => byHouse[grahaHouse(g.rashi)].push(g))
   transitGrahas.forEach(g => tByHouse[grahaHouse(g.rashi)].push(g))
+
+  // Inject AS into House 1
+  if (lagnas) {
+    const ascNak = getNakshatra(lagnas.ascDegree)
+    byHouse[1].unshift({
+      id: 'AS',
+      degree: lagnas.ascDegreeInRashi,
+      rashi: ascRashi,
+      dignity: 'neutral',
+      isRetro: false,
+      nakshatraIndex: ascNak.index,
+      nakshatraName: ascNak.name,
+      pada: ascNak.pada
+    })
+  }
 
   return (
     <svg
@@ -200,7 +217,7 @@ export function CircleChakra({
                       textAnchor="middle" dominantBaseline="central"
                       fontSize={pf - 2} fill="var(--text-muted, #888)"
                     >
-                      {g.nakshatraName?.slice(0, 3)}
+                      {g.nakshatraIndex !== undefined ? NAKSHATRA_SHORT[g.nakshatraIndex] : ''} {g.pada}
                     </text>
                   )}
                   {showKaraka && g.charaKaraka && (

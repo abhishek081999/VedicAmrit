@@ -10,7 +10,9 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import type { GrahaData, Rashi, ArudhaData } from '@/types/astrology'
+import type { GrahaData, Rashi, ArudhaData, LagnaData } from '@/types/astrology'
+import { getNakshatra } from '@/lib/engine/nakshatra'
+import { NAKSHATRA_SHORT } from '@/types/astrology'
 
 function dignityColor(dignity: string, isRetro: boolean): string {
   if (isRetro) return 'var(--dig-retro)'
@@ -78,6 +80,7 @@ interface NorthIndianProps {
   showNakshatra?: boolean
   showKaraka?: boolean
   arudhas?: ArudhaData
+  lagnas?: LagnaData
   transitGrahas?: GrahaData[]   // optional transit planets overlay
   interactive?: boolean
   onHouseClick?: (house: number) => void
@@ -97,6 +100,7 @@ export function NorthIndianChakra({
   showNakshatra = false,
   showKaraka = false,
   arudhas,
+  lagnas,
   transitGrahas,
   interactive = false,
   onHouseClick,
@@ -113,7 +117,7 @@ export function NorthIndianChakra({
   const signInHouse = (h: number): number =>
     ((ascRashi - 1 + h - 1) % 12) + 1
 
-  const byHouse: Record<number, GrahaData[]> = {}
+  const byHouse: Record<number, any[]> = {}
   for (const g of grahas) {
     for (let h = 1; h <= 12; h++) {
       if (signInHouse(h) === g.rashi) {
@@ -122,6 +126,23 @@ export function NorthIndianChakra({
         break
       }
     }
+  }
+
+  // Inject AS (Ascendant) into 1st house
+  if (lagnas) {
+    if (!byHouse[1]) byHouse[1] = []
+    const ascNak = getNakshatra(lagnas.ascDegree)
+    byHouse[1].unshift({
+      id: 'AS',
+      degree: lagnas.ascDegreeInRashi,
+      rashi: ascRashi,
+      dignity: 'neutral',
+      isRetro: false,
+      nakshatraIndex: ascNak.index,
+      nakshatraName: ascNak.name,
+      pada: ascNak.pada,
+      charaKaraka: null
+    })
   }
 
   const isKite = (h: number) => h === 1 || h === 4 || h === 7 || h === 10
@@ -344,7 +365,7 @@ export function NorthIndianChakra({
                       {deg}
                     </text>
                   )}
-                  {showNakshatra && (
+                   {showNakshatra && g.nakshatraIndex !== undefined && (
                     <text
                       x={px}
                       y={py + plFont * 0.72 + degFont * (showDegrees ? 1.65 : 0.5)}
@@ -355,7 +376,7 @@ export function NorthIndianChakra({
                       textAnchor="middle"
                       dominantBaseline="middle"
                     >
-                      {g.nakshatraName.slice(0, 3)} {g.pada}
+                      {NAKSHATRA_SHORT[g.nakshatraIndex]} {g.pada}
                     </text>
                   )}
                 </g>
@@ -392,7 +413,6 @@ export function NorthIndianChakra({
             })()}
             {/* ── Transit planet overlay ── */}
             {hasTransits && tPlanetsInSelf.map((tg, ti) => {
-               // Compact transit display at the extreme bottom
                const tFont = S * 0.024 * fontScale * planetScale
                const col = ti % 2
                const row = Math.floor(ti / 2)
@@ -415,8 +435,22 @@ export function NorthIndianChakra({
                   >
                     {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? Math.floor(tg.degree) : ''}
                   </text>
+                  {showNakshatra && tg.nakshatraIndex !== undefined && (
+                    <text
+                      x={gcx + offX}
+                      y={ty + tFont * 0.8}
+                      fontSize={Math.round(tFont * 0.75)}
+                      fontFamily="var(--font-chart-planets)"
+                      fill="var(--chart-transit)"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      style={{ opacity: 0.8 }}
+                    >
+                      {NAKSHATRA_SHORT[tg.nakshatraIndex]}
+                    </text>
+                  )}
                 </g>
-              )
+               )
             })}
           </g>
         )
