@@ -88,6 +88,7 @@ interface NorthIndianProps {
   planetScale?: number
   arudhaScale?: number
   infoScale?: number
+  highlightHouses?: number[]
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -104,10 +105,11 @@ export function NorthIndianChakra({
   transitGrahas,
   interactive = false,
   onHouseClick,
-  fontScale = 1.0,
-  planetScale = 1.0,
-  arudhaScale = 1.0,
-  infoScale = 1.0,
+  fontScale      = 1.0,
+  planetScale    = 1.0,
+  arudhaScale    = 1.0,
+  infoScale      = 1.0,
+  highlightHouses = [],
 }: NorthIndianProps) {
   const S = size
 
@@ -302,12 +304,13 @@ export function NorthIndianChakra({
             <polygon
               points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
               fill={
+                highlightHouses.includes(h) ? 'rgba(253, 230, 138, 0.12)' :
                 lagna ? 'var(--gold-faint)' :
                   kite ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
                     'transparent'
               }
-              stroke="var(--gold)"
-              strokeWidth={lagna ? 2.0 : 1.25}
+              stroke={highlightHouses.includes(h) ? 'var(--gold)' : 'var(--gold)'}
+              strokeWidth={highlightHouses.includes(h) ? 2.5 : (lagna ? 2.0 : 1.25)}
               strokeLinejoin="round"
             />
 

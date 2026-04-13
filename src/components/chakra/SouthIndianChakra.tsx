@@ -80,6 +80,7 @@ interface SouthIndianProps {
   planetScale?:   number
   arudhaScale?:   number
   infoScale?:     number
+  highlightHouses?: number[]
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -102,6 +103,7 @@ export function SouthIndianChakra({
   planetScale    = 1.0,
   arudhaScale    = 1.0,
   infoScale      = 1.0,
+  highlightHouses = [],
 }: SouthIndianProps) {
   const cell = size / 4
 
@@ -151,6 +153,9 @@ export function SouthIndianChakra({
         const y          = row * cell
         const cellGrahas = byRashi[sign] ?? []
         const cellArudhas = arudhaByRashi[sign] ?? []
+        
+        const houseOfSign = ((sign - ascRashi + 12) % 12) + 1
+        const isHouseHi  = highlightHouses.includes(houseOfSign)
 
         const nGrahas = cellGrahas.length
         const useTwoCol = nGrahas > 3
@@ -182,12 +187,13 @@ export function SouthIndianChakra({
               x={x + 0.5} y={y + 0.5}
               width={cell - 1} height={cell - 1}
               fill={
+                isHouseHi ? 'rgba(253, 230, 138, 0.12)' :
                 isHi  ? 'var(--accent-glow)' :
                 isAsc ? 'var(--gold-faint)' :
                         'transparent'
               }
-              stroke={isAsc ? 'var(--gold)' : 'var(--border-bright)'}
-              strokeWidth={isAsc ? 2.5 : 1.25}
+              stroke={isHouseHi ? 'var(--gold)' : (isAsc ? 'var(--gold)' : 'var(--border-bright)')}
+              strokeWidth={isHouseHi ? 2.5 : (isAsc ? 2.5 : 1.25)}
             />
 
             {/* Sign number — top-left */}

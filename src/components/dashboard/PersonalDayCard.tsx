@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { TARA_NAMES, TARA_QUALITIES } from '@/lib/engine/nakshatraAdvanced'
-import { NAKSHATRA_NAMES } from '@/types/astrology'
+import { NAKSHATRA_NAMES, PanchangData } from '@/types/astrology'
 
 interface PersonalDayCardProps {
   birthMoonNakIdx: number
@@ -15,13 +15,29 @@ interface PersonalDayCardProps {
   latitude:        number
   longitude:       number
   timezone:        string
+  todayPanchang?:  PanchangData | null
 }
 
-export function PersonalDayCard({ birthMoonNakIdx, birthMoonName, latitude, longitude, timezone }: PersonalDayCardProps) {
+export function PersonalDayCard({ 
+  birthMoonNakIdx, 
+  birthMoonName, 
+  latitude, 
+  longitude, 
+  timezone,
+  todayPanchang
+}: PersonalDayCardProps) {
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!todayPanchang)
 
   useEffect(() => {
+    if (todayPanchang) {
+      setTodayNak({
+        index: todayPanchang.nakshatra.index,
+        name:  todayPanchang.nakshatra.name
+      })
+      setLoading(false)
+      return
+    }
     async function fetchToday() {
       const todayString = new Date().toISOString().split('T')[0]
       const cacheKey = `panchang_${todayString}_${latitude}_${longitude}`

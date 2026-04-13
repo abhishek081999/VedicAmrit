@@ -2,8 +2,9 @@
 'use client'
 import { useState } from 'react'
 import { ChakraSelector } from './ChakraSelector'
-import type { GrahaData, Rashi, UserPlan, ArudhaData } from '@/types/astrology'
+import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { calcArudhaOutput } from '@/lib/engine/arudhas'
+import { getActiveHouses } from '@/lib/engine/activeHouses'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -33,10 +34,13 @@ function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=t
 
 interface Props {
   vargas: Record<string,GrahaData[]>; vargaLagnas: Record<string,Rashi>
-  lagnas?: import('@/types/astrology').LagnaData
+  lagnas?: LagnaData
   ascRashi: Rashi; arudhas?: ArudhaData; userPlan?: UserPlan
   size?: number; moonNakIndex?: number; tithiNumber?: number; varaNumber?: number
   transitGrahas?: GrahaData[]; direction?: 'grid'|'column'
+  onActiveVargaChange?: (v: string) => void
+  chart?: ChartOutput
+  transitMoonLon?: number
 }
 
 function Pill({ meta, plan, state, onClick }: {
@@ -92,6 +96,7 @@ export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid', onActiveVargaChange,
+  chart, transitMoonLon,
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
@@ -169,6 +174,7 @@ export function VargaSwitcher({
           const { grahas, varAscRashi } = chartProps(name)
           
           // Calculate varga-specific arudhas
+          // Use calcArudhaOutput directly here if it supports any sign as ascRashi
           const vArudhasRaw = calcArudhaOutput(varAscRashi, grahas)
           const vArudhas: ArudhaData = {
             ...vArudhasRaw,
@@ -190,6 +196,7 @@ export function VargaSwitcher({
                   userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas}
                   transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
+                  highlightHouses={chart ? getActiveHouses(chart, transitMoonLon, grahas, { ...lagnas!, ascRashi: varAscRashi }) : []}
                 />
               </div>
             </div>

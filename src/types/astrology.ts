@@ -343,6 +343,8 @@ export interface PanchangData {
   yamaganda:    { start: Date; end: Date }
   abhijitMuhurta: { start: Date; end: Date } | null
   horaTable: Array<{ lord: GrahaId; start: Date; end: Date }>
+  sunLongitudeSidereal?: number
+  moonLongitudeSidereal?: number
 }
 
 // ── Dasha ────────────────────────────────────────────────────

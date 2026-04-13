@@ -32,6 +32,7 @@ interface ChakraSelectorProps {
   defaultStyle?: ChartStyle
   size?:         number
   userPlan?:     'free' | 'gold' | 'platinum'
+  highlightHouses?: number[]
 }
 
 // ── Style definitions ─────────────────────────────────────────
@@ -61,6 +62,7 @@ export function ChakraSelector({
   userPlan     = 'free',
   transitGrahas = [],
   vargaName = 'D1',
+  highlightHouses = [],
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
@@ -260,6 +262,7 @@ export function ChakraSelector({
             infoScale={infoScale}
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
+            highlightHouses={highlightHouses}
           />
         )}
         {style === 'north' && (
@@ -277,6 +280,7 @@ export function ChakraSelector({
             infoScale={infoScale}
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
+            highlightHouses={highlightHouses}
           />
         )}
         {style === 'sarvatobhadra' && (
