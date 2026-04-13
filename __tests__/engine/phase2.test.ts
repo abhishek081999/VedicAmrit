@@ -254,10 +254,12 @@ describe('Chara Karakas edge cases', () => {
 // ─────────────────────────────────────────────────────────────
 
 describe('Varga coverage', () => {
-  it('FREE_VARGAS contains all vargas', () => {
-    expect(FREE_VARGAS.length).toBeGreaterThanOrEqual(38)
+  it('FREE_VARGAS contains standard 16 vargas', () => {
+    expect(FREE_VARGAS.length).toBe(16)
   })
-  it('ALL_VARGAS contains all vargas', () => { expect(ALL_VARGAS.length).toBeGreaterThanOrEqual(38) })
+  it('ALL_VARGAS contains all 41 schemes', () => {
+    expect(ALL_VARGAS.length).toBeGreaterThanOrEqual(38)
+  })
 })
 
 // ─────────────────────────────────────────────────────────────

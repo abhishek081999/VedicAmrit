@@ -384,9 +384,12 @@ export const ADVANCED_VARGAS: VargaName[] = Object.keys(VARGA_FUNCTIONS) as Varg
 // Default set for calculation — restricted to Shodashavarga to avoid clutter
 export const FREE_VARGAS: VargaName[] = SHODASHA_VARGAS
 
-// Platinum tier vargas (maintained for type compatibility)
+// Tier vargas (maintained for type compatibility)
+export const GOLD_VARGAS = SHODASHA_VARGAS
 export const PLATINUM_VARGAS = SHODASHA_VARGAS
-export const ALL_VARGAS = SHODASHA_VARGAS
+
+// ALL_VARGAS should contain all 41 schemes for the engine/tests
+export const ALL_VARGAS = ADVANCED_VARGAS
 
 /**
  * Calculate all requested varga signs for a planet
