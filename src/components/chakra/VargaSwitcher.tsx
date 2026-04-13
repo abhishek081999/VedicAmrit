@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData } from '@/types/astrology'
+import { calcArudhaOutput } from '@/lib/engine/arudhas'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
 
@@ -166,6 +167,15 @@ export function VargaSwitcher({
         {visible.map((name, idx) => {
           const meta = VARGA_META.find(v => v.name === name) ?? { name, full:name, topic:'', tier:'free' as const }
           const { grahas, varAscRashi } = chartProps(name)
+          
+          // Calculate varga-specific arudhas
+          const vArudhasRaw = calcArudhaOutput(varAscRashi, grahas)
+          const vArudhas: ArudhaData = {
+            ...vArudhasRaw,
+            suryaArudhas: {},
+            chandraArudhas: {}
+          }
+
           return (
             <div key={name} className="fade-up" style={{
               padding:'1.25rem', background:'var(--surface-1)',
@@ -177,7 +187,7 @@ export function VargaSwitcher({
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={360}
                   vargaName={name}
-                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={arudhas}
+                  userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={vArudhas}
                   transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
                 />

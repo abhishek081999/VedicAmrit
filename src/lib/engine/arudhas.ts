@@ -72,15 +72,14 @@ export function calcArudha(
   // Preliminary result
   let result = mod12(lordSign + dist - 1)
 
-  // ── Edge case 1: Result = bhavaSign itself ────────────────
-  if (result === bhavaSign) {
-    result = mod12(lordSign + 9)  // 10 signs from lord
-  }
-
-  // ── Edge case 2: Result = 7th from bhavaSign ─────────────
+  // ── Edge cases (BPHS): Arudha cannot be in 1st or 7th from the bhava ──
   const seventh = mod12(bhavaSign + 6)
-  if (result === seventh) {
-    result = mod12(lordSign + 9)  // 10 signs from lord
+  if (result === bhavaSign) {
+    // If result is in the bhava itself, take the 10th sign from the bhava
+    result = mod12(bhavaSign + 9) 
+  } else if (result === seventh) {
+    // If result is in the 7th from the bhava, take the 10th from THAT status (which is 4th from bhava)
+    result = mod12(bhavaSign + 3)
   }
 
   return result

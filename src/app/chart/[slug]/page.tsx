@@ -138,7 +138,8 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.55rem' }}>
       {items.map(({ key, label, desc }) => {
-        const rashi = (arudhas as unknown as Record<string, number>)[key]
+        const dataKey = key === 'UL' ? 'A12' : key
+        const rashi = (arudhas as unknown as Record<string, number>)[dataKey]
         if (!rashi) return null
         return (
           <div key={key} style={{
