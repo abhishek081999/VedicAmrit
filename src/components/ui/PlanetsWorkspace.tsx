@@ -58,6 +58,7 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
             <ChakraSelector
               ascRashi={chart.lagnas.ascRashi as Rashi}
               grahas={chart.vargas?.D1 ?? chart.grahas}
+              vargaName="D1"
               moonNakIndex={moonNakIndex}
               arudhas={chart.arudhas}
               tithiNumber={chart.panchang.tithi.number}
@@ -77,6 +78,8 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
             <ChakraSelector
               ascRashi={chart.vargaLagnas?.D9 ?? 1}
               grahas={chart.vargas?.D9 ?? []}
+              vargaName="D9"
+              lagnas={chart.lagnas}
               moonNakIndex={moonNakIndex}
               defaultStyle="north"
               size={320}
@@ -90,7 +93,13 @@ export function PlanetsWorkspace({ chart }: PlanetsWorkspaceProps) {
             <div style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: '0.85rem' }}>
               Planetary Micro-Details
             </div>
-            <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} />
+            <GrahaTable 
+              grahas={chart.grahas} 
+              vargas={chart.vargas} 
+              vargaLagnas={chart.vargaLagnas} 
+              lagnas={chart.lagnas} 
+              upagrahas={chart.upagrahas} 
+            />
           </div>
         </div>
       </div>

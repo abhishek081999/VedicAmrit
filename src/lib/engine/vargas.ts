@@ -372,15 +372,21 @@ export const VARGA_FUNCTIONS: Record<VargaName, (lon: number) => number> = {
   D108_Guru, D108_Shukra, D144, D150,
 }
 
-// All vargas are now free
-export const FREE_VARGAS: VargaName[] = Object.keys(VARGA_FUNCTIONS) as VargaName[]
+// Standard Parashara Shodashavarga (16 divisional charts)
+export const SHODASHA_VARGAS: VargaName[] = [
+  'D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12',
+  'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'
+]
 
-// Gold tier vargas (maintained for type compatibility)
-export const GOLD_VARGAS: VargaName[] = FREE_VARGAS
+// All 41 supported varga variants
+export const ADVANCED_VARGAS: VargaName[] = Object.keys(VARGA_FUNCTIONS) as VargaName[]
 
-// All 41 vargas (Platinum tier)
-export const PLATINUM_VARGAS = Object.keys(VARGA_FUNCTIONS) as VargaName[]
-export const ALL_VARGAS = PLATINUM_VARGAS // Alias for backward compatibility
+// Default set for calculation — restricted to Shodashavarga to avoid clutter
+export const FREE_VARGAS: VargaName[] = SHODASHA_VARGAS
+
+// Platinum tier vargas (maintained for type compatibility)
+export const PLATINUM_VARGAS = SHODASHA_VARGAS
+export const ALL_VARGAS = SHODASHA_VARGAS
 
 /**
  * Calculate all requested varga signs for a planet
@@ -396,6 +402,49 @@ export function calcVargas(
     result[name] = VARGA_FUNCTIONS[name](siderealLon)
   }
   return result
+}
+
+/**
+ * Detailed varga position including relative degree (0-30)
+ */
+export interface VargaPosition {
+  rashi: number
+  degree: number
+  totalDegree: number
+}
+
+/**
+ * Calculate the exact position of a planet in a divisional chart.
+ * For equal-division vargas, it scales the fractional part to 0-30.
+ */
+export function getVargaPosition(lon: number, vname: VargaName): VargaPosition {
+  const rashi = VARGA_FUNCTIONS[vname](lon)
+  
+  // Extract division number N from vname (e.g., D9 -> 9)
+  // Handle special names like D2_Parivritti
+  const match = vname.match(/^D(\d+)/)
+  const n = match ? parseInt(match[1], 10) : 1
+  
+  let degree = 0
+  if (n === 1) {
+    degree = degInSign(lon)
+  } else if (vname === 'D30') {
+    // For D30 (unequal), we just use the natal degree or 0? 
+    // Parashara Trimshamsha has unequal arcs. 
+    // Most software shows 0 or scales the specific arc.
+    // For now, we'll use 0 to avoid misleading degrees in D30.
+    degree = 0 
+  } else {
+    // Equal divisions: (NatalLon % (30/N)) * N
+    const arcSize = 30 / n
+    degree = (degInSign(lon) % arcSize) * n
+  }
+  
+  return {
+    rashi,
+    degree,
+    totalDegree: (rashi - 1) * 30 + degree
+  }
 }
 
 /**

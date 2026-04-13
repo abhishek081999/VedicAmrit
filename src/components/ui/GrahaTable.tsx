@@ -11,6 +11,7 @@ import {
 } from '@/types/astrology'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
+import { VARGA_META, getVargaPosition } from '@/lib/engine/vargas'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -106,19 +107,40 @@ interface GrahaTableProps {
   lagnas?:    LagnaData
   upagrahas?: Record<string, GrahaData>
   limited?:   boolean
+  vargas?:      Record<string, GrahaData[]>
+  vargaLagnas?: Record<string, Rashi>
+  activeVarga?: string
 }
 
 // ── Component ────────────────────────────────────────────────
 
-export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: GrahaTableProps) {
+export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga }: GrahaTableProps) {
   const { language } = useAppLayout()
   const isSa = language === 'sa'
+  const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
+
+  // Sync with prop if it changes
+  React.useEffect(() => {
+    if (activeVarga && activeVarga !== selectedVarga) {
+      setSelectedVarga(activeVarga)
+    }
+  }, [activeVarga])
+
+  // Use the selected varga's grahas if available
+  const currentGrahas = (vargas && vargas[selectedVarga]) ? vargas[selectedVarga] : grahas
+  const vPos = (lagnas && selectedVarga !== 'D1') 
+    ? getVargaPosition(lagnas.ascDegree, selectedVarga as any)
+    : null
+  
+  const currentLagnaRashi = vPos ? vPos.rashi : (vargaLagnas && vargaLagnas[selectedVarga]) 
+    ? vargaLagnas[selectedVarga] 
+    : (lagnas?.ascRashi || 1)
 
   // Build combined body list
   const bodies: BodyInfo[] = []
   const main9 = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
 
-  grahas
+  currentGrahas
     .filter(g => !limited || main9.includes(g.id))
     .forEach(g => {
       bodies.push({
@@ -133,7 +155,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
       })
     })
 
-  if (lagnas) {
+  if (lagnas && selectedVarga === 'D1') {
     const items = [
       { name: 'Lagna',              deg: lagnas.ascDegree    },
       ...(!limited ? [
@@ -149,17 +171,75 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
       if (l.deg !== undefined && l.deg !== 0)
         bodies.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
     })
+  } else if (lagnas && selectedVarga !== 'D1') {
+    // Show only the Varga Lagna for divisional charts
+    bodies.push({ 
+      name: `Lagna (${selectedVarga})`, 
+      totalDeg: vPos ? vPos.totalDegree : (currentLagnaRashi - 1) * 30,
+      color: 'var(--text-gold)' 
+    })
   }
 
-  if (upagrahas && !limited) {
+  if (upagrahas && !limited && selectedVarga === 'D1') {
     Object.values(upagrahas).forEach(d => {
       bodies.push({ name: d.name, totalDeg: d.totalDegree, color: 'var(--text-secondary)' })
     })
   }
 
+  const vargaOptions = vargas ? Object.keys(vargas).sort((a, b) => {
+    const numA = parseInt(a.replace(/\D/g, '') || '0', 10)
+    const numB = parseInt(b.replace(/\D/g, '') || '0', 10)
+    return numA - numB || a.localeCompare(b)
+  }) : ['D1']
+
   // ── Render ────────────────────────────────────────────────
   return (
     <div style={{ width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
+
+      {/* ── Header with Varga Selector ─────────────────── */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0.6rem 0.9rem',
+        background: 'var(--surface-3)',
+        borderBottom: '1px solid var(--border-soft)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <span style={{ fontSize: '0.9rem' }}>✦</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
+            Planetary Details {selectedVarga !== 'D1' ? ` — ${selectedVarga}` : ''}
+          </span>
+        </div>
+        
+        {vargas && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Switch Varga:</span>
+            <select 
+              value={selectedVarga}
+              onChange={(e) => setSelectedVarga(e.target.value)}
+              style={{
+                background: 'var(--primary-brand)',
+                color: '#fff',
+                border: '1px solid var(--gold)',
+                borderRadius: '6px',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                padding: '4px 10px',
+                cursor: 'pointer',
+                outline: 'none',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              }}
+            >
+              {vargaOptions.map(opt => (
+                <option key={opt} value={opt}>
+                  {opt} {VARGA_META[opt]?.full ? `(${VARGA_META[opt].full})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
 
       {/* ── Legend ─────────────────────────────────────────── */}
       <div style={{
@@ -206,14 +286,21 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false }: Graha
             <col style={{ width: '22%' }} />
             <col style={{ width: '15%' }} />
             <col style={{ width: '16%' }} />
-            <col style={{ width: '16%' }} />
-            <col style={{ width: '15%' }} />
+            <col style={{ width: '18%' }} />
+            <col style={{ width: '13%' }} />
             <col style={{ width: '16%' }} />
           </colgroup>
 
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
-              {['Body', 'Deg  ′  ″', 'Nakshatra', 'Rashi · D9', 'Dignity', 'Avasthā'].map((h, idx) => (
+              {[
+                'Body', 
+                'Deg  ′  ″', 
+                'Nakshatra', 
+                selectedVarga === 'D1' ? 'Rashi · D9' : 'Rashi · Sub', 
+                'Dignity', 
+                'Avasthā'
+              ].map((h, idx) => (
                 <th key={h} style={{
                   padding: '0.55rem 0.7rem',
                   color: 'var(--primary-brand)',

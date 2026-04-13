@@ -28,6 +28,7 @@ import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignit
 import {
   VARGA_FUNCTIONS,
   FREE_VARGAS, GOLD_VARGAS, ALL_VARGAS,
+  getVargaPosition,
   type VargaName,
 } from '@/lib/engine/vargas'
 import { calculateAshtakavarga } from './ashtakavarga'
@@ -297,14 +298,29 @@ export async function calculateChart(
 
   for (const vname of vargaNames) {
     if (vname === 'D1') continue
-    const fn = VARGA_FUNCTIONS[vname]
-    if (!fn) continue
+    const fn = VARGA_FUNCTIONS[vname] // eslint-disable-line
+    if (!vname) continue
     vargas[vname] = grahas.map((g) => {
-      const vRashi = fn(g.lonSidereal) as Rashi
-      return { ...g, rashi: vRashi, rashiName: RASHI_NAMES[vRashi] }
+      const pos = getVargaPosition(g.lonSidereal, vname as VargaName)
+      const vRashi = pos.rashi as Rashi
+      const vNak = getNakshatra(pos.totalDegree)
+      const vDignity = getDignity(g.id, vRashi, pos.degree)
+      
+      return { 
+        ...g, 
+        rashi: vRashi, 
+        rashiName: RASHI_NAMES[vRashi],
+        degree: pos.degree,
+        totalDegree: pos.totalDegree,
+        nakshatraIndex: vNak.index,
+        nakshatraName: vNak.name,
+        pada: vNak.pada,
+        dignity: vDignity
+      }
     })
-    // Ascendant's varga lagna = apply same function to ascendant longitude
-    vargaLagnas[vname] = fn(houses.ascendantSidereal) as Rashi
+    // Ascendant's varga lagna
+    const ascPos = getVargaPosition(houses.ascendantSidereal, vname as VargaName)
+    vargaLagnas[vname] = ascPos.rashi as Rashi
   }
 
   // Vimsopaka Bala

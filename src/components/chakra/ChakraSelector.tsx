@@ -13,6 +13,8 @@ import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
 import { CircleChakra }          from './CircleChakra'
 
 import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
+import { getVargaPosition } from '@/lib/engine/vargas'
+import { getNakshatra } from '@/lib/engine/nakshatra'
 
 // ── Props ─────────────────────────────────────────────────────
 
@@ -26,6 +28,7 @@ interface ChakraSelectorProps {
   tithiNumber?:  number    // 1–30
   varaNumber?:   number    // 0=Sun … 6=Sat
   lagnas?:       LagnaData
+  vargaName?:    string
   defaultStyle?: ChartStyle
   size?:         number
   userPlan?:     'free' | 'gold' | 'platinum'
@@ -57,6 +60,7 @@ export function ChakraSelector({
   size         = 480,
   userPlan     = 'free',
   transitGrahas = [],
+  vargaName = 'D1',
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
@@ -89,10 +93,51 @@ export function ChakraSelector({
 
   const isSBC = style === 'sarvatobhadra'
 
-  // Filter 9 planets vs All
   const displayGrahas = onlyNine 
     ? grahas.filter(g => !['Ur', 'Ne', 'Pl'].includes(g.id))
     : grahas
+
+  // ── Calculate Divisional Lagna ────────────────────────────────
+  // If the ascRashi doesn't match natal, we are in a varga chart.
+  // We should derive the correct divisional degree for the AS label.
+  const displayLagnas = React.useMemo(() => {
+    if (!lagnas) return undefined
+    if (lagnas.ascRashi === ascRashi && grahas.length > 0 && grahas[0].id === 'Su' && !('D9' in (grahas as any))) {
+      // Very likely D1/Natal
+      return lagnas
+    }
+    
+    // We need to find which Varga this ascRashi belongs to.
+    // However, ChakraSelector is agnostic of the Varga name usually.
+    // We'll try to find a match in the grahas' Varga logic or just use the ascRashi.
+    // For now, let's assume we can derive it if we knew the Varga name.
+    // Since we don't have the varga name string here, we'll check if the parent passed it.
+    
+    // BUT! We can just use the provided ascRashi and calculate a 'representative' degree
+    // if we don't have the exact divisional degree.
+    // Wait, the best way is to calculate the divisional position for the natal longitude.
+    // We can iterate through all vargas to find which one produces this ascRashi.
+    // This is expensive. 
+    
+    // If we have a vargaName and natal lagnas, project the ascendant
+    if (vargaName && vargaName !== 'D1') {
+      try {
+        const vPos = getVargaPosition(lagnas.ascDegree, vargaName as any)
+        const vNak = getNakshatra(vPos.totalDegree)
+        return {
+          ...lagnas,
+          ascRashi: vPos.rashi as Rashi,
+          ascDegreeInRashi: vPos.degree,
+          // Re-calculate nakshatra for divisional lagna
+          cusps: lagnas.cusps.map(c => getVargaPosition(c, vargaName as any).totalDegree)
+        }
+      } catch (e) {
+        return lagnas
+      }
+    }
+    
+    return lagnas
+  }, [lagnas, ascRashi, grahas, vargaName])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -214,7 +259,7 @@ export function ChakraSelector({
             planetScale={planetScale}
             infoScale={infoScale}
             arudhaScale={arudhaScale}
-            lagnas={lagnas}
+            lagnas={displayLagnas}
           />
         )}
         {style === 'north' && (
@@ -231,7 +276,7 @@ export function ChakraSelector({
             planetScale={planetScale}
             infoScale={infoScale}
             arudhaScale={arudhaScale}
-            lagnas={lagnas}
+            lagnas={displayLagnas}
           />
         )}
         {style === 'sarvatobhadra' && (
@@ -255,7 +300,7 @@ export function ChakraSelector({
             showKaraka={showKaraka} showArudha={showArudha}
             arudhas={arudhas} transitGrahas={transitGrahas}
             fontScale={fontScale} planetScale={planetScale}
-            lagnas={lagnas}
+            lagnas={displayLagnas}
           />
         )}
 

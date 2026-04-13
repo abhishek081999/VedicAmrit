@@ -90,7 +90,7 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
 export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
-  transitGrahas=[], direction='grid',
+  transitGrahas=[], direction='grid', onActiveVargaChange,
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
   const available = VARGA_META.filter(v => v.name in vargas || v.tier==='free')
@@ -100,10 +100,14 @@ export function VargaSwitcher({
     const name = meta.name
     if (selected.includes(name)) {
       if (selected.length > 1 && name !== 'D1') {
-        setSelected(p => p.filter(n => n !== name))
+        const newSelected = selected.filter(n => n !== name)
+        setSelected(newSelected)
+        if (onActiveVargaChange) onActiveVargaChange(newSelected[0])
       }
     } else {
-      setSelected(p => [...p, name])
+      const newSelected = [...selected, name]
+      setSelected(newSelected)
+      if (onActiveVargaChange) onActiveVargaChange(name)
     }
   }
 
@@ -172,6 +176,7 @@ export function VargaSwitcher({
               <div style={{ display:'flex',justifyContent:'center',marginTop:'1rem' }}>
                 <ChakraSelector
                   ascRashi={varAscRashi} grahas={grahas} size={360}
+                  vargaName={name}
                   userPlan={userPlan} lagnas={lagnas} defaultStyle="north" arudhas={arudhas}
                   transitGrahas={name === 'D1' ? transitGrahas : []} moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}

@@ -279,6 +279,7 @@ function HomeContent() {
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara'>( 'vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
+  const [activeVarga, setActiveVarga] = useState<string>('D1')
   const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
   const searchParams = useSearchParams()
   
@@ -512,6 +513,7 @@ function HomeContent() {
                      moonNakIndex={moonNakIndex}
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
+                     onActiveVargaChange={setActiveVarga}
                      transitGrahas={transitGrahas ?? undefined}
                   />
 
@@ -520,7 +522,15 @@ function HomeContent() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
                         <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Planetary Micro-Details</h3>
                       </div>
-                      <GrahaTable grahas={chart.grahas} lagnas={chart.lagnas} upagrahas={chart.upagrahas} limited={true} />
+                      <GrahaTable 
+                        grahas={chart.grahas} 
+                        vargas={chart.vargas} 
+                        vargaLagnas={chart.vargaLagnas} 
+                        lagnas={chart.lagnas} 
+                        upagrahas={chart.upagrahas} 
+                        activeVarga={activeVarga} 
+                        limited={true} 
+                      />
                     </div>
                   )}
                </div>
