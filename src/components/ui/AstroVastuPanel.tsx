@@ -421,14 +421,14 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
              {(() => {
-                const lagnaRashi = chart.lagna.ascRashi
+                const lagnaRashi = chart.lagnas.ascRashi
                 const facing = lagnaRashi % 4 === 1 ? 'East' : lagnaRashi % 4 === 2 ? 'South' : lagnaRashi % 4 === 3 ? 'West' : 'North'
                 return (
                   <div style={{ padding: '1.25rem', background: 'var(--surface-3)', borderRadius: '12px', border: '1px solid var(--accent-glow)' }}>
                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Best Facing for you</div>
                      <div style={{ fontSize: '1.8rem', fontWeight: 600, color: 'var(--accent)' }}>{facing}-Facing</div>
                      <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                       Based on your {RASHI_NAMES[lagnaRashi]} Ascendant, a {facing} oriented property resonates best with your bio-rhythm.
+                       Based on your {RASHI_NAMES[lagnaRashi as Rashi]} Ascendant, a {facing} oriented property resonates best with your bio-rhythm.
                      </p>
                   </div>
                 )
