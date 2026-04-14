@@ -394,7 +394,7 @@ export default function PrashnaPage() {
                         {chart?.grahas.filter(g => !['Ur','Ne','Pl'].includes(g.id)).map(g => (
                           <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                             <td style={{ padding: '0.6rem 0.4rem', fontWeight: 600, color: 'var(--text-gold)' }}>{g.name}</td>
-                            <td style={{ padding: '0.6rem 0.4rem' }}>{g.rashiName.slice(0,3)} {Math.floor(g.degree)}°{Math.floor((g.degree%1)*60)}'</td>
+                            <td style={{ padding: '0.6rem 0.4rem' }}>{g.rashiName.slice(0,3)} {Math.floor(g.degree)}°{Math.floor((g.degree%1)*60)}{"'"}</td>
                             <td style={{ padding: '0.6rem 0.4rem' }}>{g.nakshatraName} ({g.pada})</td>
                             <td style={{ padding: '0.6rem 0.4rem' }}>
                                <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4, background: 'var(--surface-3)', border: '1px solid var(--border)' }}>
@@ -555,7 +555,7 @@ export default function PrashnaPage() {
                     ))}
                  </div>
                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
-                    Note: Connection between Querent's RP and Query's House Sub-lords confirms accuracy.
+                    Note: Connection between Querent{"'"}s RP and Query{"'"}s House Sub-lords confirms accuracy.
                  </p>
               </div>
 
