@@ -30,6 +30,7 @@ const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => 
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
 const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
+const AstroVastuPanel = dynamic(() => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -540,7 +541,7 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation') && (
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu') && (
               <div className={`${(activeTab === 'planets' || activeTab === 'house') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
@@ -553,14 +554,16 @@ function HomeContent() {
                     <HousePanel chart={chart} />
                 ) : activeTab === 'interpretation' ? (
                   <InterpretationPanel interpretation={chart.interpretation} />
-                  ) : (
+                ) : activeTab === 'astro-vastu' ? (
+                  <AstroVastuPanel chart={chart} />
+                ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
               </div>
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 

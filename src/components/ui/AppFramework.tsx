@@ -43,6 +43,7 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 ]
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/' },
   { id: 'varshaphal',   label: 'Varṣaphal',     icon: '☀', path: '/' },
   { id: 'compare', label: 'Compare Charts', icon: '⇔', path: '/compare' },
   { id: 'pricing',    label: 'Pricing',         icon: '💎', path: '/pricing' },
@@ -321,7 +322,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             
             <div style={{
               overflow: 'hidden',
-              maxHeight: isAstroOpen ? '500px' : '0',
+              maxHeight: isAstroOpen ? '800px' : '0',
               transition: 'max-height 0.3s ease-in-out',
               display: 'flex', flexDirection: 'column', gap: '0.25rem'
             }}>

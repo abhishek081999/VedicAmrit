@@ -1472,3 +1472,24 @@ select.input {
     break-before: page;
   }
 }
+/* ── Advanced Astro Vastu Effects ────────────────────────────── */
+.vastu-compass-container {
+  filter: drop-shadow(0 0 30px rgba(0,0,0,0.3));
+  animation: compass-intro 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes compass-intro {
+  from { opacity: 0; transform: scale(0.9) rotate(-15deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.zone-segment:hover {
+  filter: brightness(1.5) drop-shadow(0 0 5px var(--gold));
+  opacity: 0.6 !important;
+}
+
+.vastu-zone-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: var(--gold) !important;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25), 0 0 15px var(--gold-faint);
+}
