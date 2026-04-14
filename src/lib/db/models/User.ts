@@ -55,6 +55,10 @@ export interface IUser extends Document {
   razorpayCustomerId: string | null
   stripeCustomerId:   string | null
 
+  // White-labeling (Platinum)
+  brandName?: string
+  brandLogo?: string
+
   createdAt: Date
   updatedAt: Date
 }
@@ -100,6 +104,10 @@ const UserSchema = new Schema<IUser>({
 
   razorpayCustomerId: { type: String, default: null },
   stripeCustomerId:   { type: String, default: null },
+
+  // White-labeling (Platinum)
+  brandName: { type: String, default: null },
+  brandLogo: { type: String, default: null },
 }, {
   timestamps: true,
 })

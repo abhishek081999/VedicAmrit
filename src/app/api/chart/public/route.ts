@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/db/mongodb'
 import { Chart } from '@/lib/db/models/Chart'
+import { User } from '@/lib/db/models/User'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,14 +28,26 @@ export async function GET(req: NextRequest) {
       },
       { new: true }
     )
-      .select('name birthDate birthTime birthPlace latitude longitude timezone settings slug views lastViewedAt createdAt')
+      .select('userId name birthDate birthTime birthPlace latitude longitude timezone settings slug views lastViewedAt createdAt')
       .lean()
 
     if (!chart) {
       return NextResponse.json({ success: false, error: 'Chart not found or not public' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, chart })
+    // ── Fetch Owner's Branding (Platinum Only) ────────────────
+    const owner = await User.findById(chart.userId).select('plan brandName brandLogo').lean()
+    
+    const branding = ((owner as any)?.plan === 'platinum') ? {
+      brandName: (owner as any).brandName,
+      brandLogo: (owner as any).brandLogo
+    } : null
+
+    return NextResponse.json({ 
+      success: true, 
+      chart,
+      branding
+    })
   } catch (err) {
     console.error('[chart/public]', err)
     return NextResponse.json({ success: false, error: 'Failed to load chart' }, { status: 500 })

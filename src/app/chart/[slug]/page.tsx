@@ -36,6 +36,11 @@ interface SavedChart {
   createdAt:  string
 }
 
+interface Branding {
+  brandName: string | null
+  brandLogo: string | null
+}
+
 type Tab = 'chart' | 'planets' | 'interpretation' | 'arudhas' | 'dasha' | 'panchang' | 'shadbala' | 'vimsopaka'
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
@@ -175,6 +180,7 @@ export default function PublicChartPage() {
   const slug      = params?.slug as string
 
   const [saved,   setSaved]   = useState<SavedChart | null>(null)
+  const [branding, setBranding] = useState<Branding | null>(null)
   const [chart,   setChart]   = useState<ChartOutput | null>(null)
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState<string | null>(null)
@@ -199,6 +205,7 @@ export default function PublicChartPage() {
       if (!metaJson.success) throw new Error(metaJson.error ?? 'Chart not found')
       const meta: SavedChart = metaJson.chart
       setSaved(meta)
+      setBranding(metaJson.branding)
 
       // 2. Recalculate full chart
       const calcRes  = await fetch('/api/chart/calculate', {
@@ -240,10 +247,21 @@ export default function PublicChartPage() {
         background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)',
       }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <span style={{ fontSize: '1.3rem' }}>🪐</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-            Vedaansh
-          </span>
+          {branding?.brandLogo ? (
+            <img src={branding.brandLogo} alt={branding.brandName || 'Brand'} style={{ height: '1.8rem', width: 'auto' }} />
+          ) : (
+            <>
+              <span style={{ fontSize: '1.3rem' }}>🪐</span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+                Vedaansh
+              </span>
+            </>
+          )}
+          {branding?.brandName && !branding?.brandLogo && (
+             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>
+               {branding.brandName}
+             </span>
+          )}
         </Link>
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>
@@ -332,20 +350,37 @@ export default function PublicChartPage() {
             </div>
 
             {/* Public badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{
-                padding: '0.2rem 0.65rem',
-                background: 'rgba(78,205,196,0.10)', border: '1px solid rgba(78,205,196,0.30)',
-                borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
-                letterSpacing: '0.07em', textTransform: 'uppercase',
-                color: 'var(--teal)', fontFamily: 'var(--font-display)',
-              }}>
-                🔗 Public Chart
-              </span>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-                Shared via Vedaansh · Calculate your own chart free
-              </span>
-            </div>
+            {branding?.brandName ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{
+                  padding: '0.2rem 0.65rem',
+                  background: 'rgba(201,168,76,0.10)', border: '1px solid rgba(201,168,76,0.30)',
+                  borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
+                  letterSpacing: '0.07em', textTransform: 'uppercase',
+                  color: 'var(--gold)', fontFamily: 'var(--font-display)',
+                }}>
+                  💎 Verified Consultant
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+                  Prepared for you by <strong>{branding.brandName}</strong>
+                </span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{
+                  padding: '0.2rem 0.65rem',
+                  background: 'rgba(78,205,196,0.10)', border: '1px solid rgba(78,205,196,0.30)',
+                  borderRadius: 99, fontSize: '0.72rem', fontWeight: 700,
+                  letterSpacing: '0.07em', textTransform: 'uppercase',
+                  color: 'var(--teal)', fontFamily: 'var(--font-display)',
+                }}>
+                  🔗 Public Chart
+                </span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
+                  Shared via Vedaansh · Calculate your own chart free
+                </span>
+              </div>
+            )}
 
             {/* Tab bar */}
             <div className="tab-bar">

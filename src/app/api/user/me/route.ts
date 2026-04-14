@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
       'showDegrees', 'showNakshatra', 'showKaraka',
     ]
 
-    // Build update object — only allow preferences fields
+    // Build update object
     const update: Record<string, unknown> = {}
     for (const key of allowed) {
       if (key in body) {
@@ -81,11 +81,19 @@ export async function PATCH(req: NextRequest) {
       update['name'] = body.name.trim().slice(0, 100)
     }
 
+    await connectDB()
+    const user = await User.findById(session.user.id).select('plan').lean()
+    
+    // Allow brand updates for Platinum users
+    if ((user as any)?.plan === 'platinum') {
+      if ('brandName' in body) update['brandName'] = body.brandName?.trim().slice(0, 100) || null
+      if ('brandLogo' in body) update['brandLogo'] = body.brandLogo?.trim() || null
+    }
+
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ success: false, error: 'No valid fields to update' }, { status: 400 })
     }
 
-    await connectDB()
     await User.findByIdAndUpdate(session.user.id, { $set: update })
 
     return NextResponse.json({ success: true })

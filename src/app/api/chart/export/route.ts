@@ -43,9 +43,24 @@ export async function POST(req: NextRequest) {
     }
 
     const chart = body as ChartOutput
+    const userId = session?.user?.id
+
+    // ── Fetch Branding (Platinum Only) ────────────────────────
+    let branding = null
+    if (userId) {
+      const { User } = await import('@/lib/db/models/User')
+      await (await import('@/lib/db/mongodb')).default()
+      const user = await User.findById(userId).select('plan brandName brandLogo').lean()
+      if ((user as any)?.plan === 'platinum') {
+        branding = {
+          brandName: (user as any).brandName,
+          brandLogo: (user as any).brandLogo
+        }
+      }
+    }
 
     // ── Generate HTML ─────────────────────────────────────────
-    const html = generateChartHTML(chart)
+    const html = generateChartHTML(chart, branding as any)
 
     // ── Return as HTML document ───────────────────────────────
     return new NextResponse(html, {

@@ -118,6 +118,8 @@ function AccountContent() {
   const [personalChart, setPersonalChart] = useState<PersonalChart | null>(null)
   const [prefs,         setPrefs]         = useState<UserPrefs | null>(null)
   const [name,          setName]          = useState('')
+  const [brandName,     setBrandName]     = useState('')
+  const [brandLogo,     setBrandLogo]     = useState('')
   const [loading,       setLoading]       = useState(true)
   const [saving,        setSaving]        = useState(false)
   const [saved,         setSaved]         = useState(false)
@@ -153,6 +155,8 @@ function AccountContent() {
           if (data.success) {
             setUser(data.user)
             setName(data.user.name ?? '')
+            setBrandName(data.user.brandName ?? '')
+            setBrandLogo(data.user.brandLogo ?? '')
             setPersonalChart(data.personalChart)
             setPrefs(data.user.preferences ?? {
               defaultAyanamsha:   'lahiri',
@@ -184,7 +188,7 @@ function AccountContent() {
       await fetch('/api/user/me', {
         method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...prefs, name }),
+        body: JSON.stringify({ ...prefs, name, brandName, brandLogo }),
       })
       setSaved(true)
       setPrefsDirty(false)
@@ -305,6 +309,39 @@ function AccountContent() {
               </div>
             </div>
           </section>
+
+          {/* White-Labeling (Platinum Only) */}
+          {user?.plan === 'platinum' && (
+            <section className="card" style={{ padding: '1.25rem', border: '1px solid var(--gold-soft)', background: 'linear-gradient(135deg, var(--surface-1), rgba(201,168,76,0.03))' }}>
+              <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--gold)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                💎 Consultant Branding
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                <div>
+                  <label className="field-label">Brand / Business Name</label>
+                  <input
+                    className="input"
+                    value={brandName}
+                    onChange={e => { setBrandName(e.target.value); setPrefsDirty(true) }}
+                    placeholder="e.g. Astro Wisdom Studio"
+                    style={{ marginTop: '0.35rem', width: '100%' }}
+                  />
+                  <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>This name will appear on shared charts and PDF reports.</p>
+                </div>
+                <div>
+                  <label className="field-label">Brand Logo URL</label>
+                  <input
+                    className="input"
+                    value={brandLogo}
+                    onChange={e => { setBrandLogo(e.target.value); setPrefsDirty(true) }}
+                    placeholder="https://yourdomain.com/logo.png"
+                    style={{ marginTop: '0.35rem', width: '100%' }}
+                  />
+                  <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Enter a direct link to your logo image (transparent PNG recommended).</p>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Birth Chart */}
           <section className="card card-gold" style={{ padding: '1.25rem' }}>
