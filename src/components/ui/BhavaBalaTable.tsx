@@ -154,7 +154,7 @@ export function BhavaBalaTable({ bhavaBala, chart }: { bhavaBala: BhavaBalaResul
                 <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #999' }}>House</th>
                 <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>Bhava Bala</th>
                 <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>In rupas</th>
-                <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>Lord's bala</th>
+                <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>Lord&apos;s bala</th>
                 <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>DigBala</th>
                 <th style={{ padding: '8px', textAlign: 'right', border: '1px solid #999' }}>DrigBala</th>
               </tr>
