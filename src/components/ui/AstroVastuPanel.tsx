@@ -675,6 +675,178 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
       </section>
 
+      {/* Wealth & Health Focus Zones */}
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        
+        {/* Wealth & Cash Flow Optimizer */}
+        <div className="card-gold" style={{ padding: '2rem' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+             <span>💰</span> Financial Vāstu Focus
+           </h3>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {[
+                { zone: 'North', focus: 'New Opportunities', planet: 'Mercury', icon: '🌊' },
+                { zone: 'South-East', focus: 'Cash Flow & Liquidity', planet: 'Venus', icon: '🔥' },
+                { zone: 'West', focus: 'Profits & Gains', planet: 'Saturn', icon: '⛰' },
+              ].map(f => {
+                const z = analysis.find(zone => zone.name.includes(f.zone))!
+                return (
+                  <div key={f.zone} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(201,168,76,0.2)' }}>
+                     <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{f.zone} {f.icon}</div>
+                        <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{f.focus}</div>
+                     </div>
+                     <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: z.score > 60 ? 'var(--teal)' : 'var(--rose)' }}>{z.score}% Power</div>
+                        <div style={{ fontSize: '0.6rem', opacity: 0.6 }}>Lord: {f.planet}</div>
+                     </div>
+                  </div>
+                )
+              })}
+           </div>
+        </div>
+
+        {/* Health & Vitality Monitor */}
+        <div className="card" style={{ padding: '2rem', border: '1px solid var(--teal)' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--teal)' }}>
+             <span>🏥</span> Health & Vitality Vāstu
+           </h3>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {[
+                { zone: 'North-East', focus: 'Mental Clarity', planet: 'Jupiter', val: 'Immunity' },
+                { zone: 'North-North-East', focus: 'Healing & Support', planet: 'Jupiter', val: 'Health' },
+                { zone: 'East', focus: 'Social Connection', planet: 'Sun', val: 'Vitality' },
+              ].map(f => {
+                const z = analysis.find(zone => zone.name === f.zone)!
+                return (
+                  <div key={f.zone} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-soft)' }}>
+                     <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{f.zone}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{f.focus}</div>
+                     </div>
+                     <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{f.val}</div>
+                        <div style={{ fontSize: '0.7rem', color: z.score > 50 ? 'var(--teal)' : 'var(--rose)' }}>{z.score > 50 ? 'Stable' : 'Unbalanced'}</div>
+                     </div>
+                  </div>
+                )
+              })}
+           </div>
+        </div>
+
+        {/* Zonal Nakshatras Mapping */}
+        <div className="card" style={{ padding: '2rem' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+             <span>✨</span> Zonal Nakshatras
+           </h3>
+           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {[
+                { dir: 'N', star: 'Ashwini, Bharani' },
+                { dir: 'NE', star: 'Rohini, Mrig' },
+                { dir: 'E', star: 'Ardra, Punar' },
+                { dir: 'SE', star: 'Pushya, Ashl' },
+                { dir: 'S', star: 'Magha, PPhal' },
+                { dir: 'SW', star: 'UPhal, Hasta' },
+                { dir: 'W', star: 'Chitra, Swati' },
+                { dir: 'NW', star: 'Vishakha, Anu' },
+              ].map(n => (
+                <div key={n.dir} style={{ padding: '0.5rem', background: 'var(--surface-3)', borderRadius: '8px', flex: '1 1 120px' }}>
+                   <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', fontWeight: 800 }}>{n.dir}</div>
+                   <div style={{ fontSize: '0.65rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.star}</div>
+                </div>
+              ))}
+           </div>
+        </div>
+      </section>
+
+      {/* Relationship, Skills & Guardians */}
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+        
+        {/* Relationship & Skill Mastery */}
+        <div className="card" style={{ padding: '2rem', border: '1px solid var(--rose)' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--rose)' }}>
+             <span>💞</span> Relationships & Skills
+           </h3>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+              {[
+                { zone: 'South-West', focus: 'Stability & Marriage', lord: 'Rahu/Pitru' },
+                { zone: 'West-South-West', focus: 'Skills & Education', lord: 'Saturn' },
+                { zone: 'East-North-East', focus: 'Social Fun & Joy', lord: 'Sun' },
+              ].map(f => {
+                const z = analysis.find(zone => zone.name === f.zone)!
+                return (
+                  <div key={f.zone}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                       <span style={{ fontWeight: 600 }}>{f.zone}</span>
+                       <span style={{ color: z.score > 55 ? 'var(--teal)' : 'var(--rose)' }}>{z.score}% Mastery</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{f.focus} — Ruled by {f.lord}</div>
+                    <div style={{ height: '4px', background: 'var(--surface-3)', borderRadius: '2px', marginTop: '4px' }}>
+                       <div style={{ height: '100%', width: `${z.score}%`, background: 'var(--rose)', borderRadius: '2px', opacity: 0.6 }} />
+                    </div>
+                  </div>
+                )
+              })}
+           </div>
+        </div>
+
+        {/* Ashta Dikpalas (Directional Guardians) */}
+        <div className="card" style={{ padding: '2rem' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+             <span>🛡️</span> Ashta Dikpālas (Guardians)
+           </h3>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+              {[
+                { dir: 'N', deity: 'Kubera', power: 'Wealth' },
+                { dir: 'NE', deity: 'Ishana', power: 'Wisdom' },
+                { dir: 'E', deity: 'Indra', power: 'Kingship' },
+                { dir: 'SE', deity: 'Agni', power: 'Energy' },
+                { dir: 'S', deity: 'Yama', power: 'Dharma' },
+                { dir: 'SW', deity: 'Nirriti', power: 'Stability' },
+                { dir: 'W', deity: 'Varuna', power: 'Waters' },
+                { dir: 'NW', deity: 'Vayu', power: 'Speed' },
+              ].map(d => (
+                <div key={d.dir} style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-soft)' }}>
+                   <div style={{ fontSize: '0.75rem', fontWeight: 800 }}>{d.dir}: {d.deity}</div>
+                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Power: {d.power}</div>
+                </div>
+              ))}
+           </div>
+        </div>
+      </section>
+
+      {/* Property Executive Summary Report */}
+      <section className="card-gold" style={{ padding: '2.5rem', borderRadius: 'var(--r-lg)' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Property Potential Analysis</h2>
+            <div className="badge badge-gold" style={{ padding: '10px 20px', fontSize: '1rem' }}>Overall Grade: {analysis.reduce((acc,z) => acc+z.score, 0) / analysis.length > 70 ? 'A+' : 'B'}</div>
+         </div>
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '3rem' }}>
+            <div style={{ borderRight: '1px solid rgba(201,168,76,0.2)' }}>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--text-gold)' }}>Primary Strength</h4>
+               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+                 The <strong>{analysis.sort((a,b)=>b.score-a.score)[0].name}</strong> zone is your strongest asset. This creates a natural resonance for success in {analysis.sort((a,b)=>b.score-a.score)[0].quality}.
+               </p>
+            </div>
+            <div>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--rose)' }}>Primary Weakness</h4>
+               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+                  The <strong>{analysis.sort((a,b)=>a.score-b.score)[0].name}</strong> area shows significant depletion. This may manifest as issues in {analysis.sort((a,b)=>a.score-b.score)[0].quality}.
+               </p>
+            </div>
+            <div style={{ borderLeft: '1px solid rgba(201,168,76,0.2)' }}>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--teal)' }}>Key Recommendation</h4>
+               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+                 Focus on activating the <strong>{bestEntrance.name}</strong> corridor and balancing the <strong>{analysis.find(z=>z.id === 'NE')?.element}</strong> element in the North-East.
+               </p>
+            </div>
+         </div>
+         <div className="divider" style={{ margin: '2rem 0', opacity: 0.2 }} />
+         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+           © {new Array(1).fill(new Date().getFullYear())} Advanced Astro-Vāstu Engine. Generated based on Natal planetary longitudes and Zonal Dignity mapping.
+         </p>
+      </section>
+
       <div style={{ padding: '1rem', background: 'rgba(201,168,76,0.05)', borderRadius: 'var(--r-md)', border: '1px dashed var(--gold)', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
           Note: Advanced Vastu mapping uses the 360° chart projection. Ensure your property compass is aligned with Magnetic North for accurate remedial deployment.
       </div>
