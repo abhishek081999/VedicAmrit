@@ -1,6 +1,6 @@
 'use client'
 import React, { useMemo, useState } from 'react'
-import type { ChartOutput, GrahaId, GrahaData } from '@/types/astrology'
+import type { ChartOutput, GrahaId, GrahaData, Rashi } from '@/types/astrology'
 import { RASHI_NAMES, GRAHA_NAMES, RASHI_SHORT } from '@/types/astrology'
 
 interface AstroVastuPanelProps {
