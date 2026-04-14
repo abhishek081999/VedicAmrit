@@ -73,7 +73,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
 
       return { ...zone, occupants, rulingPlanet, score }
     })
-  }, [grahas, activeZones])
+  }, [grahas, activeZones, mode])
 
   const bestEntrance = useMemo(() => {
     // Entrance logic (32 Dwara) - Simplified for 16 zones
@@ -510,7 +510,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               ))}
            </div>
            <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Heatmap indicates relative energy saturation. Zones with &gt;75% are your "Power Corridors".
+              Heatmap indicates relative energy saturation. Zones with &gt;75% are your &quot;Power Corridors&quot;.
            </p>
         </div>
 
@@ -645,7 +645,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               })()}
            </div>
            <p style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              Micro-analysis of internal energy fields. "Afflicted" indicates a malefic planet occupying that deity's specific degree segment.
+              Micro-analysis of internal energy fields. &quot;Afflicted&quot; indicates a malefic planet occupying that deity&apos;s specific degree segment.
            </p>
         </div>
 
