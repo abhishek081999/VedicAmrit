@@ -62,6 +62,7 @@ interface Props {
   arudhas?:    ArudhaData
   lagnas?:     LagnaData
   transitGrahas?: GrahaData[]
+  comparisonGrahas?: GrahaData[]
   fontScale?:  number
   planetScale?: number
 }
@@ -70,7 +71,7 @@ export function CircleChakra({
   ascRashi, grahas, size = 480,
   showDegrees = true, showNakshatra = false,
   showKaraka = false, showArudha = false,
-  arudhas, lagnas, transitGrahas = [],
+  arudhas, lagnas, transitGrahas = [], comparisonGrahas = [],
   fontScale = 1.0, planetScale = 1.0,
 }: Props) {
   const cx = size / 2, cy = size / 2

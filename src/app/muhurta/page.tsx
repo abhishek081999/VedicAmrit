@@ -23,7 +23,7 @@ interface DayPanchang {
   date:      string
   vara:      { name: string; lord: string; number: number }
   tithi:     { name: string; paksha: string; number: number }
-  nakshatra: { name: string; lord: string; pada: number }
+  nakshatra: { name: string; lord: string; pada: number; index: number }
   yoga:      { name: string; quality: string }
   karana:    { name: string; isBhadra: boolean }
   sunrise:   string
@@ -31,6 +31,7 @@ interface DayPanchang {
   rahuKalam:      { start: string; end: string }
   gulikaKalam:    { start: string; end: string }
   abhijitMuhurta: { start: string; end: string } | null
+  moonLongitudeSidereal: number
 }
 
 interface MuhurtaResult {
@@ -109,6 +110,39 @@ const PURPOSE_RULES: Record<string, {
   },
 }
 
+// ── Helpers ───────────────────────────────────────────────────
+function fmtTime(iso: string): string {
+  const d = new Date(iso)
+  const h = d.getHours(); const m = String(d.getMinutes()).padStart(2,'0')
+  return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`
+}
+function addMinutes(iso: string, mins: number): string {
+  const d = new Date(new Date(iso).getTime() + mins * 60000)
+  const h = d.getHours(); const m = String(d.getMinutes()).padStart(2,'0')
+  return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`
+}
+function todayIST(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
+}
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(dateStr + 'T12:00:00Z')
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+function fmtDateShort(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00Z')
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+  return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`
+}
+
+const GRADE_COLOR: Record<string, { bg: string; border: string; text: string }> = {
+  A: { bg: 'rgba(78,205,196,0.15)',  border: 'rgba(78,205,196,0.50)',  text: 'var(--teal)' },
+  B: { bg: 'rgba(201,168,76,0.12)',  border: 'rgba(201,168,76,0.40)',  text: 'var(--text-gold)' },
+  C: { bg: 'rgba(245,158,66,0.10)',  border: 'rgba(245,158,66,0.30)',  text: 'var(--amber)' },
+  D: { bg: 'rgba(224,123,142,0.10)', border: 'rgba(224,123,142,0.35)', text: 'var(--rose)' },
+}
+
 // ── Scoring function ──────────────────────────────────────────
 function scorePanchang(p: DayPanchang, purpose: string, natal?: { moonNak: number; moonSign: number }): MuhurtaResult {
   const rules = PURPOSE_RULES[purpose] ?? PURPOSE_RULES.general
@@ -160,11 +194,10 @@ function scorePanchang(p: DayPanchang, purpose: string, natal?: { moonNak: numbe
     }
 
     // Adjust score based on personal factors
-    // Tara Bala weight: 20 pts, Chandra Bala weight: 15 pts
     score += (tb.score / 100) * 20
     score += (cb.score / 100) * 15
-    reasons.push(`${tb.quality === 'good' ? '✓' : '✗'} Tara Bala: ${tb.name} (${tb.desc})`)
-    reasons.push(`${cb.quality === 'good' ? '✓' : '✗'} Chandra Bala: ${cb.position} from Moon (${cb.desc})`)
+    reasons.push(`${tb.score >= 50 ? '✓' : '✗'} Tara Bala: ${tb.name} (${tb.desc})`)
+    reasons.push(`${cb.score >= 50 ? '✓' : '✗'} Chandra Bala: ${cb.position} from Moon (${cb.desc})`)
   }
 
   score = Math.max(0, Math.min(100, score))
@@ -172,39 +205,6 @@ function scorePanchang(p: DayPanchang, purpose: string, natal?: { moonNak: numbe
     score >= 75 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'
 
   return { date: p.date, score, grade, windows, avoid, reasons, panchang: p, personal }
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-function fmtTime(iso: string): string {
-  const d = new Date(iso)
-  const h = d.getHours(); const m = String(d.getMinutes()).padStart(2,'0')
-  return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`
-}
-function addMinutes(iso: string, mins: number): string {
-  const d = new Date(new Date(iso).getTime() + mins * 60000)
-  const h = d.getHours(); const m = String(d.getMinutes()).padStart(2,'0')
-  return `${h % 12 || 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`
-}
-function todayIST(): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(new Date())
-}
-function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + 'T12:00:00Z')
-  d.setUTCDate(d.getUTCDate() + n)
-  return d.toISOString().slice(0, 10)
-}
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-function fmtDateShort(dateStr: string): string {
-  const d = new Date(dateStr + 'T12:00:00Z')
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-  return `${days[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`
-}
-
-const GRADE_COLOR: Record<string, { bg: string; border: string; text: string }> = {
-  A: { bg: 'rgba(78,205,196,0.15)',  border: 'rgba(78,205,196,0.50)',  text: 'var(--teal)' },
-  B: { bg: 'rgba(201,168,76,0.12)',  border: 'rgba(201,168,76,0.40)',  text: 'var(--text-gold)' },
-  C: { bg: 'rgba(245,158,66,0.10)',  border: 'rgba(245,158,66,0.30)',  text: 'var(--amber)' },
-  D: { bg: 'rgba(224,123,142,0.10)', border: 'rgba(224,123,142,0.35)', text: 'var(--rose)' },
 }
 
 // ── Result card ───────────────────────────────────────────────
@@ -220,7 +220,6 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
         onClick={() => setOpen(o => !o)}
         style={{ padding: '0.75rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}
       >
-        {/* Grade badge */}
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
           background: gc.bg, border: `2px solid ${gc.border}`,
@@ -230,8 +229,6 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
         }}>
           {result.grade}
         </div>
-
-        {/* Date */}
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {fmtDateShort(result.date)}
@@ -240,17 +237,14 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
             {result.panchang.tithi.name} · {result.panchang.nakshatra.name} · {result.panchang.yoga.name}
           </div>
         </div>
-
-        {/* Score bar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ width: 80, height: 6, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${result.score}%`, background: gc.text, borderRadius: 99 }} />
           </div>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: gc.text, fontWeight: 700 }}>
-            {result.score}
+            {Math.round(result.score)}
           </span>
         </div>
-
         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', userSelect: 'none' }}>
           {open ? '▲' : '▼'}
         </span>
@@ -258,7 +252,6 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
 
       {open && (
         <div style={{ borderTop: `1px solid ${gc.border}`, padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-          {/* Auspicious windows */}
           {result.windows.length > 0 && (
             <div>
               <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--teal)', fontFamily: 'var(--font-display)', marginBottom: 3 }}>✓ Auspicious windows</div>
@@ -267,14 +260,12 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
               ))}
             </div>
           )}
-          {/* Avoid */}
           <div>
             <div style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--rose)', fontFamily: 'var(--font-display)', marginBottom: 3 }}>✗ Avoid</div>
             {result.avoid.map(a => (
               <div key={a} style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', paddingLeft: 8 }}>{a}</div>
             ))}
           </div>
-          {/* Personal Highlights */}
           {result.personal && (
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.4rem' }}>
                 <div style={{ padding: '0.5rem', background: 'var(--surface-3)', borderRadius: '6px' }}>
@@ -287,7 +278,6 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
                 </div>
              </div>
           )}
-          {/* Reasons */}
           <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {result.reasons.map(r => (
               <div key={r} style={{
@@ -296,7 +286,6 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
               }}>{r}</div>
             ))}
           </div>
-          {/* Link to daily panchang */}
           <Link href={`/panchang?date=${result.date}`} style={{
             display: 'inline-block', fontSize: '0.72rem',
             color: 'var(--text-gold)', textDecoration: 'none',
@@ -331,7 +320,6 @@ export default function MuhurtaPage() {
     setResults([])
     setProgress(0)
 
-    // Collect all dates in range
     const dates: string[] = []
     const natal = chart ? { 
       moonNak: chart.grahas.find(g => g.id === 'Mo')?.nakshatraIndex ?? 0,
@@ -339,14 +327,13 @@ export default function MuhurtaPage() {
     } : undefined
 
     let d = fromDate
-    while (d <= toDate && dates.length < 60) {   // max 60 days
+    while (d <= toDate && dates.length < 60) {
       dates.push(d)
       d = addDays(d, 1)
     }
 
     const scored: MuhurtaResult[] = []
 
-    // Fetch in batches of 5
     for (let i = 0; i < dates.length; i += 5) {
       const batch = dates.slice(i, i + 5)
       await Promise.all(batch.map(async (date) => {
@@ -357,14 +344,13 @@ export default function MuhurtaPage() {
             const result = scorePanchang(json.data, purpose, natal)
             scored.push(result)
           }
-        } catch { /* skip failed days */ }
+        } catch { }
       }))
-      setProgress(Math.round(((i + 5) / dates.length) * 100))
+      setProgress(Math.round(((i + i/batch.length) / dates.length) * 100))
     }
 
-    // Sort by score descending, filter by grade
     const minScoreMap: Record<'A'|'B'|'C'|'D', number> = { A: 75, B: 55, C: 35, D: 0 }
-    const minScore = minScoreMap[minGrade as 'A'|'B'|'C'|'D']
+    const minScore = minScoreMap[minGrade]
     const filtered = scored
       .filter(r => r.score >= minScore)
       .sort((a, b) => b.score - a.score)
@@ -372,12 +358,10 @@ export default function MuhurtaPage() {
     setResults(filtered)
     setLoading(false)
     setProgress(100)
-  }, [fromDate, toDate, purpose, minGrade, location.lat, location.lng, location.tz])
+  }, [fromDate, toDate, purpose, minGrade, location, chart])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
-
-      {/* Header */}
       <header style={{
         padding: '0 2rem', height: '3.75rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -401,38 +385,28 @@ export default function MuhurtaPage() {
       </header>
 
       <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
-        {/* Search panel */}
         <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
             Find Auspicious Times
           </h1>
-
-          {/* Purpose */}
           <div>
             <label style={{ fontSize: '0.72rem' }}>Purpose</label>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
               {PURPOSES.map(({ id, label, icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setPurpose(id)}
-                  style={{
-                    padding: '0.35rem 0.75rem',
-                    background: purpose === id ? 'rgba(201,168,76,0.15)' : 'var(--surface-2)',
-                    border: `1px solid ${purpose === id ? 'var(--border-bright)' : 'var(--border)'}`,
-                    borderRadius: 'var(--r-md)', cursor: 'pointer',
-                    fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-                    fontWeight: purpose === id ? 700 : 400,
-                    color: purpose === id ? 'var(--text-gold)' : 'var(--text-secondary)',
-                  }}
-                >
+                <button key={id} onClick={() => setPurpose(id)} style={{
+                  padding: '0.35rem 0.75rem',
+                  background: purpose === id ? 'rgba(201,168,76,0.15)' : 'var(--surface-2)',
+                  border: `1px solid ${purpose === id ? 'var(--border-bright)' : 'var(--border)'}`,
+                  borderRadius: 'var(--r-md)', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontSize: '0.8rem',
+                  fontWeight: purpose === id ? 700 : 400,
+                  color: purpose === id ? 'var(--text-gold)' : 'var(--text-secondary)',
+                }}>
                   {icon} {label}
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Date range + filters */}
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: 1, minWidth: 140 }}>
               <label style={{ fontSize: '0.72rem' }}>From</label>
@@ -446,7 +420,7 @@ export default function MuhurtaPage() {
             </div>
             <div style={{ flex: 1, minWidth: 120 }}>
               <label style={{ fontSize: '0.72rem' }}>Min grade</label>
-              <select className="input" value={minGrade} onChange={e => setMinGrade(e.target.value as 'A'|'B'|'C'|'D')} style={{ marginTop: '0.35rem' }}>
+              <select className="input" value={minGrade} onChange={e => setMinGrade(e.target.value as any)} style={{ marginTop: '0.35rem' }}>
                 <option value="A">A — Excellent only</option>
                 <option value="B">B — Good & above</option>
                 <option value="C">C — Average & above</option>
@@ -454,81 +428,26 @@ export default function MuhurtaPage() {
               </select>
             </div>
           </div>
-
-          {/* Location */}
           <div style={{ maxWidth: 320 }}>
             <LocationPicker value={location} onChange={setLocation} label="📍 Location" />
           </div>
-
-          <button
-            onClick={findMuhurta}
-            disabled={loading}
-            className="btn btn-primary"
-            style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}
-          >
-            {loading ? (
-              <><span className="spin-loader" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Searching…</>
-            ) : '🔍 Find Muhūrta'}
+          <button onClick={findMuhurta} disabled={loading} className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}>
+            {loading ? <><span className="spin-loader" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Searching…</> : '🔍 Find Muhūrta'}
           </button>
         </div>
-
-        {/* Progress */}
         {loading && (
           <div>
             <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
               <div style={{ height: '100%', width: `${progress}%`, background: 'var(--gold)', borderRadius: 99, transition: 'width 0.3s' }} />
             </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
-              Scanning {progress}%…
-            </div>
           </div>
         )}
-
-        {/* Error */}
-        {error && (
-          <div style={{ padding: '1rem', background: 'rgba(224,123,142,0.08)', border: '1px solid rgba(224,123,142,0.25)', borderRadius: 'var(--r-md)', color: 'var(--rose)', fontFamily: 'var(--font-display)' }}>
-            {error}
-          </div>
-        )}
-
-        {/* Results */}
         {!loading && results.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                {results.length} auspicious day{results.length !== 1 ? 's' : ''} found
-              </span>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
-                {(['A','B','C','D'] as const).map(g => {
-                  const count = results.filter(r => r.grade === g).length
-                  if (!count) return null
-                  return (
-                    <span key={g} style={{ padding: '0.1rem 0.45rem', borderRadius: 99, fontSize: '0.68rem', fontWeight: 700, background: GRADE_COLOR[g].bg, color: GRADE_COLOR[g].text, border: `1px solid ${GRADE_COLOR[g].border}`, fontFamily: 'var(--font-display)' }}>
-                      {g}: {count}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
             {results.map(r => <ResultCard key={r.date} result={r} />)}
           </div>
         )}
-
-        {!loading && results.length === 0 && progress === 100 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-            No auspicious days found with grade {minGrade} or better in this range. Try widening the date range or lowering the minimum grade.
-          </div>
-        )}
-
       </main>
-
-      <footer style={{
-        padding: '1rem 2rem', borderTop: '1px solid var(--border-soft)',
-        textAlign: 'center', color: 'var(--text-muted)',
-        fontFamily: 'var(--font-display)', fontSize: '0.8rem',
-      }}>
-        Muhūrta per classical Vedic principles · <span style={{ color: 'var(--text-gold)' }}>Swiss Ephemeris</span> · {location.name}
-      </footer>
     </div>
   )
 }

@@ -46,8 +46,8 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
     const g2 = grahas.find(g => g.id === l2)
     if (!g1 || !g2) return null
     
-    const h1 = g1.house
-    const h2 = g2.house
+    const h1 = g1.rashi
+    const h2 = g2.rashi
     const diff = ((h2 - h1 + 12) % 12) + 1
     
     if (diff === 1) return 'Conjoined (1/1)'
@@ -64,19 +64,10 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-       
-       <div className="card" style={{ 
-         padding: '1.5rem', 
-         background: `linear-gradient(135deg, var(--surface-1) 0%, rgba(201,168,76,0.05) 100%)`,
-         border: '1px solid var(--gold-faint)'
-       }}>
+       <div className="card" style={{ padding: '1.5rem', background: `linear-gradient(135deg, var(--surface-1) 0%, rgba(201,168,76,0.05) 100%)`, border: '1px solid var(--gold-faint)' }}>
           <div className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '1rem' }}>Active Mahādashā Narrative</div>
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-             <div style={{ 
-               width: 64, height: 64, borderRadius: '12px', background: 'var(--surface-3)', 
-               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem',
-               border: '1px solid var(--border-soft)', flexShrink: 0
-             }}>
+             <div style={{ width: 64, height: 64, borderRadius: '12px', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', border: '1px solid var(--border-soft)', flexShrink: 0 }}>
                {mahadasha.lord === 'Su' ? '☀️' : mahadasha.lord === 'Mo' ? '🌙' : mahadasha.lord === 'Ma' ? '🔥' : mahadasha.lord === 'Ju' ? '💎' : '🪐'}
              </div>
              <div style={{ flex: 1, minWidth: 250 }}>
@@ -86,10 +77,8 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
              </div>
           </div>
        </div>
-
        {antardasha && (
          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-            
             <div className="card" style={{ padding: '1.25rem' }}>
                <div className="label-caps" style={{ fontSize: '0.65rem', color: 'var(--teal)' }}>Antardashā Focus</div>
                <h4 style={{ margin: '0.5rem 0', fontSize: '1.05rem', color: 'var(--text-primary)' }}>{aData?.title}</h4>
@@ -98,29 +87,20 @@ export function DashaInterpretationPanel({ nodes, grahas }: Props) {
                  {relation && <span style={{ display: 'block', marginTop: '0.5rem', fontWeight: 600, color: 'var(--text-gold)' }}>Relationship: {relation}</span>}
                </p>
             </div>
-
             <div className="card" style={{ padding: '1.25rem' }}>
                <div className="label-caps" style={{ fontSize: '0.65rem' }}>Strategic Advice</div>
                <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {relation?.includes('Challenging') ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--rose)', background: 'var(--rose-faint)', padding: '8px', borderRadius: '4px' }}>
-                      ⚠ Lords are in a 6/8 stance. Expect some friction or hidden challenges. Exercise patience.
-                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--rose)', background: 'var(--rose-faint)', padding: '8px', borderRadius: '4px' }}>⚠ Lords are in a 6/8 stance. Expect some friction or hidden challenges. Exercise patience.</div>
                   ) : relation?.includes('Supportive') ? (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--teal)', background: 'var(--teal-faint)', padding: '8px', borderRadius: '4px' }}>
-                      ✓ Lords are in harmony (Trine). Efforts will yield smoother results during this sub-period.
-                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--teal)', background: 'var(--teal-faint)', padding: '8px', borderRadius: '4px' }}>✓ Lords are in harmony (Trine). Efforts will yield smoother results during this sub-period.</div>
                   ) : (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                      Focus on maintaining the momentum of the current Mahadasha while allowing the {antardasha.lord} energy to guide your micro-decisions.
-                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Focus on maintaining the momentum of the current Mahadasha while allowing the {antardasha.lord} energy to guide your micro-decisions.</div>
                   )}
                </div>
             </div>
-
          </div>
        )}
-
     </div>
   )
 }

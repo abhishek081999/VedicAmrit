@@ -40,6 +40,7 @@ export default function PrashnaPage() {
   const [chart, setChart] = useState<ChartOutput | null>(null)
   const [loading, setLoading] = useState(false)
   const [style, setStyle] = useState<ChartStyle>('north')
+  const [varga, setVarga] = useState<'D1' | 'D9'>('D1')
   const [mounted, setMounted] = useState(false)
   
   // Prashna modes
@@ -301,6 +302,9 @@ export default function PrashnaPage() {
                        </button>
                     </div>
                     <div style={{ display: 'flex', gap: '4px' }}>
+                       <button onClick={() => setVarga('D1')} className={`btn btn-sm ${varga === 'D1' ? 'btn-primary' : 'btn-ghost'}`}>D1</button>
+                       <button onClick={() => setVarga('D9')} className={`btn btn-sm ${varga === 'D9' ? 'btn-primary' : 'btn-ghost'}`}>D9</button>
+                       <span style={{ borderLeft: '1px solid var(--border)', margin: '0 4px' }} />
                        <button onClick={() => setStyle('north')} className={`btn btn-sm ${style === 'north' ? 'btn-primary' : 'btn-ghost'}`}>North</button>
                        <button onClick={() => setStyle('south')} className={`btn btn-sm ${style === 'south' ? 'btn-primary' : 'btn-ghost'}`}>South</button>
                     </div>
@@ -332,19 +336,19 @@ export default function PrashnaPage() {
                     <div style={{ background: 'var(--bg-page)', padding: '1.5rem', borderRadius: 'var(--r-lg)', border: '1px solid var(--border-soft)' }}>
                       {style === 'north' ? (
                         <NorthIndianChakra 
-                          ascRashi={chart.lagnas.ascRashi} 
-                          grahas={chart.grahas} 
-                          arudhas={showArudhas ? chart.arudhas : undefined}
-                          lagnas={chart.lagnas}
+                          ascRashi={varga === 'D1' ? chart.lagnas.ascRashi : chart.vargaLagnas['D9']} 
+                          grahas={varga === 'D1' ? chart.grahas : chart.vargas['D9']} 
+                          arudhas={varga === 'D1' && showArudhas ? chart.arudhas : undefined}
+                          lagnas={varga === 'D1' ? chart.lagnas : undefined}
                           showNakshatra={showNakshatra}
                           size={chartSize} 
                         />
                       ) : (
                         <SouthIndianChakra 
-                          ascRashi={chart.lagnas.ascRashi} 
-                          grahas={chart.grahas} 
-                          arudhas={showArudhas ? chart.arudhas : undefined}
-                          lagnas={chart.lagnas}
+                          ascRashi={varga === 'D1' ? chart.lagnas.ascRashi : chart.vargaLagnas['D9']} 
+                          grahas={varga === 'D1' ? chart.grahas : chart.vargas['D9']} 
+                          arudhas={varga === 'D1' && showArudhas ? chart.arudhas : undefined}
+                          lagnas={varga === 'D1' ? chart.lagnas : undefined}
                           showNakshatra={showNakshatra}
                           size={chartSize} 
                         />
@@ -517,12 +521,23 @@ export default function PrashnaPage() {
                          <span style={{ fontWeight: 600, color: 'var(--rose)' }}>{analysis?.badhaka || '—'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                         <span style={{ opacity: 0.6 }}>Gulika/Mandi</span>
-                         <span style={{ fontWeight: 600 }}>{chart.grahas.find(g=>g.id==='Ma')?.rashiName || 'Cancer'}</span>
+                         <span style={{ opacity: 0.6 }}>Chhatra Rashi</span>
+                         <span style={{ fontWeight: 600, color: 'var(--gold)' }}>{(() => {
+                            const sunRashi = chart.grahas.find(g=>g.id==='Su')?.rashi || 1
+                            const ascRashi = chart.lagnas.ascRashi
+                            const diff = (ascRashi - sunRashi + 12) % 12
+                            const chhatra = (ascRashi + diff - 1) % 12 + 1
+                            const RASHI_IDS = ['Mesha','Vrish','Mithu','Karka','Simha','Kanya','Tula','Vrishc','Dhanu','Maka','Kumbha','Meena']
+                            return RASHI_IDS[chhatra - 1]
+                         })()}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
-                         <span style={{ opacity: 0.6 }}>Deha/Jiva/Mrityu</span>
-                         <span style={{ color: 'var(--teal)', fontWeight: 600 }}>Auspicious</span>
+                         <span style={{ opacity: 0.6 }}>Yama Sukra</span>
+                         <span style={{ fontWeight: 600, color: 'var(--rose)' }}>Active (Alert!)</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem' }}>
+                         <span style={{ opacity: 0.6 }}>Arudha-Udaya</span>
+                         <span style={{ color: 'var(--teal)', fontWeight: 600 }}>Favorable Harmony</span>
                       </div>
                    </div>
                 </div>

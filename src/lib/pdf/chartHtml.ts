@@ -845,7 +845,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div>
       <h2 style="margin-bottom:0.75rem">Birth Details</h2>
       <div class="info-grid" style="grid-template-columns: 1fr 1.5fr;">
-         <div class="info-item"><span class="info-label">Gender</span><span class="info-value">${capitalize(meta.gender)}</span></div>
+         <div class="info-item"><span class="info-label">Gender</span><span class="info-value">${capitalize((meta as any).gender || 'other')}</span></div>
          <div class="info-item"><span class="info-label">Birth Time</span><span class="info-value">${meta.birthTime}</span></div>
          <div class="info-item"><span class="info-label">Place</span><span class="info-value">${meta.birthPlace}</span></div>
          <div class="info-item"><span class="info-label">Lat/Long</span><span class="info-value">${meta.latitude.toFixed(4)}, ${meta.longitude.toFixed(4)}</span></div>

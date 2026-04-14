@@ -10,10 +10,10 @@ import { calculateManglik, calculatePapeSamya } from '@/lib/engine/doshas'
  */
 export function CompatibilityDoshaPanel({ chartA, chartB }: { chartA: ChartOutput; chartB?: ChartOutput }) {
   const m1 = useMemo(() => calculateManglik(chartA.grahas, [], chartA.lagnas.ascRashi), [chartA])
-  const p1 = useMemo(() => calculatePapeSamya(chartA.grahas), [chartA])
+  const p1 = useMemo(() => calculatePapeSamya(chartA.grahas, chartA.lagnas.ascRashi), [chartA])
   
   const m2 = useMemo(() => chartB ? calculateManglik(chartB.grahas, [], chartB.lagnas.ascRashi) : null, [chartB])
-  const p2 = useMemo(() => chartB ? calculatePapeSamya(chartB.grahas) : null, [chartB])
+  const p2 = useMemo(() => chartB ? calculatePapeSamya(chartB.grahas, chartB.lagnas.ascRashi) : null, [chartB])
 
   const nameA = chartA.meta.name
   const nameB = chartB?.meta.name ?? 'Partner'
