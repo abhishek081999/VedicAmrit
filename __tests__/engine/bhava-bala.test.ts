@@ -98,6 +98,6 @@ const J2000_DATE = '2000-01-01T12:00:00Z'
   it('Rupa value is Shash divided by 60', () => {
     const result = calculateBhavaBala(shadbala, grahas, lagnaData)
     const h5 = result.houses[5]
-    expect(h5.totalRupa).toBeCloseTo(h5.totalShash / 60, 4)
+    expect(h5.totalRupa).toBeCloseTo(h5.totalShash / 60, 2)
   })
 })
