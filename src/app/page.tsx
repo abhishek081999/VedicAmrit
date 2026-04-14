@@ -33,6 +33,7 @@ const ProgressionWidget = dynamic(() => import('@/components/dashboard/Progressi
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 const AstroVastuPanel = dynamic(() => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel), { ssr: false })
 const TransitTimeline = dynamic(() => import('@/components/ui/TransitTimeline').then(m => m.TransitTimeline), { ssr: false })
+const TransitScrubber = dynamic(() => import('@/components/dashboard/TransitScrubber').then(m => m.TransitScrubber), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -543,8 +544,8 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap') ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -560,6 +561,8 @@ function HomeContent() {
                   <AstroVastuPanel chart={chart} />
                 ) : activeTab === 'roadmap' ? (
                   <TransitTimeline ascRashi={chart.lagnas.ascRashi} />
+                ) : activeTab === 'transit-scrubber' ? (
+                  <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
                 ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
@@ -567,7 +570,7 @@ function HomeContent() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && activeTab !== 'roadmap' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && activeTab !== 'roadmap' && activeTab !== 'transit-scrubber' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 

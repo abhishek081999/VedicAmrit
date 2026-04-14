@@ -22,19 +22,39 @@ const NAKSHATRA_TABS: { id: string; label: string; icon: string; path?: string }
   { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: '/' },
 ]
 
-const ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
-  { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
-  { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
-  { id: 'roadmap',   label: 'Cosmic Roadmap', icon: '🛣️', path: '/' },
-  { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
-  { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
-  { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
-  { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: '/' },
-  { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: '/' },
-  { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
-
-  { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
+const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: string; path?: string }[] }[] = [
+  {
+    label: 'Core Analysis',
+    tabs: [
+      { id: 'planets',   label: 'Planets',     icon: '✦', path: '/' },
+      { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
+      { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
+      { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
+    ]
+  },
+  {
+    label: 'Predictive Timing',
+    tabs: [
+      { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/' },
+      { id: 'roadmap',   label: 'Cosmic Roadmap', icon: '🛣️', path: '/' },
+      { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
+    ]
+  },
+  {
+    label: 'Strength & Analytics',
+    tabs: [
+      { id: 'ashtakavarga', label: 'Aṣṭakavarga',  icon: '⬡', path: '/' },
+      { id: 'shadbala',  label: 'Ṣaḍbala',      icon: '⚖', path: '/' },
+      { id: 'bhava-bala', label: 'Bhāva Bala',   icon: '⌗', path: '/' },
+      { id: 'vimsopaka',  label: 'Viṁśopaka',    icon: '⑳', path: '/' },
+    ]
+  },
+  {
+    label: 'Calculations',
+    tabs: [
+      { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
+    ]
+  }
 ]
 
 const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[] = [
@@ -325,11 +345,26 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             
             <div style={{
               overflow: 'hidden',
-              maxHeight: isAstroOpen ? '800px' : '0',
+              maxHeight: isAstroOpen ? '1200px' : '0',
               transition: 'max-height 0.3s ease-in-out',
               display: 'flex', flexDirection: 'column', gap: '0.25rem'
             }}>
-              {ASTRO_TABS.map(t => renderTab(t, true))}
+              {ASTRO_GROUPS.map((group, gIdx) => (
+                <div key={group.label} style={{ marginTop: gIdx === 0 ? '0' : '0.5rem' }}>
+                  <div style={{ 
+                    fontSize: '0.62rem', 
+                    fontWeight: 700, 
+                    color: 'var(--text-muted)', 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.1em',
+                    padding: '0.4rem 2rem',
+                    opacity: 0.6
+                  }}>
+                    {group.label}
+                  </div>
+                  {group.tabs.map(t => renderTab(t, true))}
+                </div>
+              ))}
             </div>
 
             <button
