@@ -289,6 +289,8 @@ function HomeContent() {
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
+  const [crmSaving,  setCrmSaving]  = useState(false)
+  const [crmDone,    setCrmDone]    = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
@@ -403,6 +405,38 @@ function HomeContent() {
     }
   }
 
+  async function handleSaveToCRM() {
+    if (!chart || crmSaving) return
+    setCrmSaving(true)
+    try {
+      const res = await fetch('/api/clients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:       chart.meta.name,
+          birthDate:  chart.meta.birthDate,
+          birthTime:  chart.meta.birthTime,
+          birthPlace: chart.meta.birthPlace,
+          latitude:   chart.meta.latitude,
+          longitude:  chart.meta.longitude,
+          timezone:   chart.meta.timezone,
+          status:     'active',
+        })
+      })
+      const json = await res.json()
+      if (res.ok && json.success) {
+        setCrmDone(true)
+        setTimeout(() => setCrmDone(false), 4000)
+      } else {
+        alert(json.error || 'Failed to add client to CRM')
+      }
+    } catch (e) {
+      console.error('CRM Save failed', e)
+    } finally {
+      setCrmSaving(false)
+    }
+  }
+
   useEffect(() => {
     if (!chart || vimshottariTara === 'Mo') { setAltVimshottari(null); return }
     let refLon: number | null = null
@@ -471,7 +505,25 @@ function HomeContent() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.5rem', flexWrap: 'wrap' }}>
-                 {status === 'authenticated' && (
+                  {status === 'authenticated' && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
+                        {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
+                      </button>
+                      
+                      {userPlan === 'platinum' && (
+                        <button 
+                          onClick={handleSaveToCRM} 
+                          disabled={crmSaving || crmDone} 
+                          className={`btn ${crmDone ? 'btn-ghost' : 'btn-secondary'} btn-sm`}
+                          style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}
+                        >
+                          {crmSaving ? 'Adding…' : crmDone ? '✓ In CRM' : '👥 Add to CRM'}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {false && status === 'authenticated' && (
                    <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                    </button>

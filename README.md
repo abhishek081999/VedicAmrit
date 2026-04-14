@@ -291,7 +291,6 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 
 ### Phase 7 — Next to Build
 
-- [ ] **Fix `/api/chart/public` routing bug** — move file to correct path `[CRITICAL]`
 - [ ] **Client Management Dashboard** — `/clients` page, CRM for Platinum users `[PLATINUM]`
 - [ ] **White-label chart sharing** — `brandName` + `brandLogo` in preferences, rendered on share pages and PDFs `[PLATINUM]`
 - [ ] **Bhava Bala engine** — house strength: Dig, Cheshta, Drik, Naisargika `[ENGINE]`
