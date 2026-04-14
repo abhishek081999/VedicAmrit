@@ -689,7 +689,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 { zone: 'South-East', focus: 'Cash Flow & Liquidity', planet: 'Venus', icon: '🔥' },
                 { zone: 'West', focus: 'Profits & Gains', planet: 'Saturn', icon: '⛰' },
               ].map(f => {
-                const z = analysis.find(zone => zone.name.includes(f.zone))!
+                const z = analysis.find(zone => zone.name.includes(f.zone))
+                if (!z) return null
                 return (
                   <div key={f.zone} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(201,168,76,0.2)' }}>
                      <div>
@@ -717,7 +718,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 { zone: 'North-North-East', focus: 'Healing & Support', planet: 'Jupiter', val: 'Health' },
                 { zone: 'East', focus: 'Social Connection', planet: 'Sun', val: 'Vitality' },
               ].map(f => {
-                const z = analysis.find(zone => zone.name === f.zone)!
+                const z = analysis.find(zone => zone.name === f.zone)
+                if (!z) return null
                 return (
                   <div key={f.zone} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-soft)' }}>
                      <div>
@@ -773,7 +775,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 { zone: 'West-South-West', focus: 'Skills & Education', lord: 'Saturn' },
                 { zone: 'East-North-East', focus: 'Social Fun & Joy', lord: 'Sun' },
               ].map(f => {
-                const z = analysis.find(zone => zone.name === f.zone)!
+                const z = analysis.find(zone => zone.name === f.zone)
+                if (!z) return null
                 return (
                   <div key={f.zone}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
