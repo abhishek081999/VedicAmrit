@@ -30,6 +30,7 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
       { id: 'dasha',     label: 'Daśā',        icon: '⏳', path: '/' },
       { id: 'house',     label: 'House',       icon: '🏠', path: '/' },
       { id: 'yogas',     label: 'Yogas',       icon: '✧', path: '/' },
+      { id: 'kp-stellar', label: 'Stellar (KP)', icon: '⭐', path: '/' },
       { id: 'interpretation', label: 'Interpretation', icon: '✧', path: '/' },
     ]
   },
@@ -60,9 +61,10 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
 ]
 
 const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'daily-panchang', label: 'Daily Pañcāṅga', icon: '📅', path: '/panchang' },
-  { id: 'monthly-panchang', label: 'Monthly Calendar', icon: '🗓', path: '/panchang/calendar' },
-  { id: 'muhurta',          label: 'Muhūrta Finder',  icon: '🔍', path: '/muhurta' },
+  { id: 'daily-panchang',   label: 'Daily Pañcāṅga',        icon: '📅', path: '/panchang' },
+  { id: 'monthly-panchang', label: 'Monthly Calendar',       icon: '🗓', path: '/panchang/calendar' },
+  { id: 'muhurta',          label: 'Muhūrta Finder',         icon: '🔍', path: '/muhurta' },
+  { id: 'sbc',              label: 'Sarvatobhadra Chakra',   icon: '⬛', path: '/sbc' },
 ]
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
@@ -217,6 +219,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
             <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Pañcāṅga</Link>
+            <Link href="/sbc"      style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>SBC</Link>
             <Link href="/my/charts" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Library</Link>
           </nav>
           <div className="hide-mobile" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />

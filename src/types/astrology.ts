@@ -284,6 +284,12 @@ export interface GrahaData {
   pushkara:     PushkaraResult    // Auspicious degrees
   declination?: number
   mrityuBhaga:  MrityuBhagaResult // Death-inflicting degrees
+  kp?: {
+    signLord: GrahaId
+    starLord: GrahaId
+    subLord:  GrahaId
+    subSubLord: GrahaId
+  }
 }
 
 // ── Lagna Data ───────────────────────────────────────────────
@@ -427,8 +433,13 @@ export interface ChartOutput {
   bhavaBala?: BhavaBalaResult
   ashtakavarga?: AshtakavargaResult
   yogas?:        YogaResult[]
-  yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
   interpretation: ChartInterpretation
+  kp?: {
+    significators: KPSignificatorResult
+    cusps:         KPCuspalInterlink[]
+    rulingPlanets: KPRulingPlanets
+  }
+  yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
   varshaphal?: {
     returnYear: number
     munthaRashi: number
@@ -599,4 +610,35 @@ export const PLAN_LIMITS: Record<UserPlan, { charts: number; vargas: string[]; d
     vargas: ['all'],  // all 41 schemes
     dashas: ['all'],  // all 30+ systems
   },
+}
+// -- KP System ------------------------------------------------
+
+export interface KPSignificatorLevels {
+  A: GrahaId[]
+  B: GrahaId[]
+  C: GrahaId[]
+  D: GrahaId[]
+}
+
+export interface KPSignificatorResult {
+  houseSignificators: Record<number, KPSignificatorLevels>
+  planetSignificators: Record<string, number[]>
+}
+
+export interface KPCuspalInterlink {
+  house:     number
+  signLord:  GrahaId
+  starLord:  GrahaId
+  subLord:   GrahaId
+  subSubLord:GrahaId
+  degree:    number
+  rashi:     Rashi
+}
+
+export interface KPRulingPlanets {
+  dayLord:   GrahaId
+  moonStarLord: GrahaId
+  moonSignLord: GrahaId
+  lagnaStarLord: GrahaId
+  lagnaSignLord: GrahaId
 }

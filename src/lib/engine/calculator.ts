@@ -62,6 +62,12 @@ import { calculateYogiPoint } from './yogiPoint'
 import { buildChartInterpretation } from './advancedInterpretation'
 import { calculateBhavaBala } from './bhavaBala'
 import { getKPSeedDegree } from './kpSeeds'
+import {
+  getKPStellar,
+  calculateKPSignificators,
+  calculateKPCusps,
+  calculateRulingPlanets
+} from './kpEngine'
 
 // ── Input ─────────────────────────────────────────────────────
 
@@ -143,6 +149,7 @@ function buildGrahas(
       dignity,
       avastha: { baladi, jagradadi },
       charaKaraka: null,
+      kp: getKPStellar(lonSidereal),
       declination: (id === 'Su' ? sunPosEquat.latitude : getPlanetPosition(jd, id === 'Ra' ? NODE_IDS[nodeMode] : SWISSEPH_IDS[id], false, true).latitude),
     }
   })
@@ -194,6 +201,7 @@ function buildGrahas(
     dignity: kDig,
     avastha: { baladi: kBaladi, jagradadi: (kDig === 'exalted' || kDig === 'own') ? 'Jāgrat' : 'Swapna' },
     charaKaraka: null,
+    kp: getKPStellar(ketuLonSid),
     gandanta: checkGandanta(ketuLonSid),
     yuddha: { isWarring: false, planets: [], winner: null, loser: null, degreeDifference: yuddhaResult.degreeDifference, orb: yuddhaResult.orb },
     pushkara: checkPushkara(ketuLonSid),
@@ -426,6 +434,11 @@ export async function calculateChart(
     ashtakavarga: calculateAshtakavarga(grahas, lagnaData),
     yogas: detectYogas(grahas, lagnaData),
     yogiPoint,
+    kp: {
+      significators: calculateKPSignificators(grahas, houses),
+      cusps:         calculateKPCusps(houses),
+      rulingPlanets: calculateRulingPlanets(jd, input.latitude, input.longitude, ayanamshaVal)
+    },
     interpretation,
   }
 }
