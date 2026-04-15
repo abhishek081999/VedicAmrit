@@ -100,6 +100,34 @@
   /* Chart specific labels */
   --chart-sign-green: #8ee07b;
   --chart-label-muted: rgba(201, 168, 76, 0.4);
+
+  /* ── Sarvatobhadra Chakra cell colours (dark) ── */
+  --sbc-nak-bg:   rgba(55, 42, 130, 0.72);
+  --sbc-nak-vdh:  rgba(90, 70, 210, 0.40);
+  --sbc-nak-txt:  rgba(196, 186, 255, 0.95);
+  --sbc-rashi-bg: rgba(110, 78, 20, 0.72);
+  --sbc-rashi-vdh:rgba(200, 148, 40, 0.32);
+  --sbc-rashi-txt:rgba(255, 218, 110, 0.95);
+  --sbc-vara-bg:  rgba(60, 30, 110, 0.72);
+  --sbc-vara-vdh: rgba(130, 90, 230, 0.32);
+  --sbc-vara-txt: rgba(218, 196, 255, 0.95);
+  --sbc-vowel-bg: rgba(18, 70, 88, 0.72);
+  --sbc-vowel-vdh:rgba(40, 160, 190, 0.24);
+  --sbc-vowel-txt:rgba(130, 220, 230, 0.95);
+  --sbc-cons-bg:  rgba(28, 28, 45, 0.74);
+  --sbc-cons-vdh: rgba(80, 80, 120, 0.24);
+  --sbc-cons-txt: rgba(140, 140, 175, 0.90);
+  --sbc-center-bg:rgba(120, 88, 15, 0.82);
+  --sbc-center-txt:rgba(255, 215, 0, 1.00);
+  --sbc-empty-bg: rgba(15, 15, 25, 0.60);
+  --sbc-grid-bg:  rgba(8, 8, 18, 0.96);
+  --sbc-grid-bdr: rgba(100, 80, 200, 0.38);
+  --sbc-hov-bdr:  rgba(255, 215, 0, 0.80);
+  --sbc-hov-shd:  0 0 14px rgba(255, 215, 0, 0.52);
+  --sbc-act-bdr:  rgba(224, 123, 142, 0.70);
+  --sbc-act-shd:  0 0 10px rgba(224, 123, 142, 0.42);
+  --sbc-vdh-bdr:  rgba(255, 215, 0, 0.20);
+  --sbc-center-bdr:rgba(255, 215, 0, 0.45);
 }
 
 /* ── Light theme tokens ─────────────────────────────────────── */
@@ -186,6 +214,34 @@
   /* Chart specific labels */
   --chart-sign-green: #15803d;
   --chart-label-muted: rgba(15, 23, 42, 0.35);
+
+  /* ── Sarvatobhadra Chakra cell colours (light) ── */
+  --sbc-nak-bg:   rgba(99, 80, 200, 0.12);
+  --sbc-nak-vdh:  rgba(99, 80, 200, 0.22);
+  --sbc-nak-txt:  #312e81;
+  --sbc-rashi-bg: rgba(180, 120, 10, 0.10);
+  --sbc-rashi-vdh:rgba(180, 120, 10, 0.22);
+  --sbc-rashi-txt:#78350f;
+  --sbc-vara-bg:  rgba(109, 40, 217, 0.10);
+  --sbc-vara-vdh: rgba(109, 40, 217, 0.20);
+  --sbc-vara-txt: #4c1d95;
+  --sbc-vowel-bg: rgba(13, 148, 136, 0.08);
+  --sbc-vowel-vdh:rgba(13, 148, 136, 0.18);
+  --sbc-vowel-txt:#0f766e;
+  --sbc-cons-bg:  rgba(100, 116, 139, 0.08);
+  --sbc-cons-vdh: rgba(100, 116, 139, 0.18);
+  --sbc-cons-txt: #475569;
+  --sbc-center-bg:rgba(180, 134, 0, 0.14);
+  --sbc-center-txt:#78350f;
+  --sbc-empty-bg: rgba(241, 245, 249, 0.80);
+  --sbc-grid-bg:  rgba(248, 250, 252, 0.98);
+  --sbc-grid-bdr: rgba(99, 80, 200, 0.25);
+  --sbc-hov-bdr:  rgba(180, 134, 0, 0.80);
+  --sbc-hov-shd:  0 0 12px rgba(180, 134, 0, 0.30);
+  --sbc-act-bdr:  rgba(225, 29, 72, 0.60);
+  --sbc-act-shd:  0 0 8px rgba(225, 29, 72, 0.20);
+  --sbc-vdh-bdr:  rgba(180, 134, 0, 0.22);
+  --sbc-center-bdr:rgba(180, 134, 0, 0.50);
 }
 
 /* ── Classic theme tokens ────────────────────────────────────── */
@@ -272,6 +328,34 @@
   /* Chart specific labels */
   --chart-sign-green: #2d5a27;
   --chart-label-muted: rgba(132, 27, 27, 0.35);
+
+  /* ── Sarvatobhadra Chakra cell colours (classic) ── */
+  --sbc-nak-bg:   rgba(74, 64, 128, 0.14);
+  --sbc-nak-vdh:  rgba(74, 64, 128, 0.26);
+  --sbc-nak-txt:  #2e2260;
+  --sbc-rashi-bg: rgba(166, 124, 0, 0.12);
+  --sbc-rashi-vdh:rgba(166, 124, 0, 0.24);
+  --sbc-rashi-txt:#7a5c00;
+  --sbc-vara-bg:  rgba(132, 27, 27, 0.10);
+  --sbc-vara-vdh: rgba(132, 27, 27, 0.20);
+  --sbc-vara-txt: #6b1414;
+  --sbc-vowel-bg: rgba(20, 100, 94, 0.10);
+  --sbc-vowel-vdh:rgba(20, 100, 94, 0.20);
+  --sbc-vowel-txt:#14645e;
+  --sbc-cons-bg:  rgba(80, 70, 50, 0.08);
+  --sbc-cons-vdh: rgba(80, 70, 50, 0.16);
+  --sbc-cons-txt: #4a4030;
+  --sbc-center-bg:rgba(166, 124, 0, 0.16);
+  --sbc-center-txt:#6b4800;
+  --sbc-empty-bg: rgba(253, 250, 243, 0.90);
+  --sbc-grid-bg:  rgba(253, 250, 243, 0.99);
+  --sbc-grid-bdr: rgba(132, 27, 27, 0.22);
+  --sbc-hov-bdr:  rgba(166, 124, 0, 0.80);
+  --sbc-hov-shd:  0 0 12px rgba(166, 124, 0, 0.28);
+  --sbc-act-bdr:  rgba(146, 24, 43, 0.60);
+  --sbc-act-shd:  0 0 8px rgba(146, 24, 43, 0.18);
+  --sbc-vdh-bdr:  rgba(166, 124, 0, 0.22);
+  --sbc-center-bdr:rgba(166, 124, 0, 0.50);
 }
 
 /* ── Typography constants ───────────────────────────────────── */

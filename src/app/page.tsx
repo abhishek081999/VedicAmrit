@@ -37,6 +37,7 @@ const AstroCartographyMap = dynamic(() => import('@/components/ui/AstroCartograp
 const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCartographyAnalysis').then(m => m.AstroCartographyAnalysis), { ssr: false })
 const TransitTimeline = dynamic(() => import('@/components/ui/TransitTimeline').then(m => m.TransitTimeline), { ssr: false })
 const TransitScrubber = dynamic(() => import('@/components/dashboard/TransitScrubber').then(m => m.TransitScrubber), { ssr: false })
+const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -563,8 +564,8 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto' || activeTab === 'kp-stellar') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -606,6 +607,8 @@ function HomeContent() {
                         </div>
                     </div>
                   </div>
+                ) : activeTab === 'kp-stellar' ? (
+                  <KPStellarPanel chart={chart} />
                 ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}

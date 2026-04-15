@@ -5,7 +5,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–8 complete — Gold and Platinum tiers live. Elite Astrocartography, PWA, Bhava Bala, and Client CRM live. Remaining Phase 8 items: Full i18n.**
+**Build Status: Phases 1–9 complete. Phase 10: Sarvatobhadra Chakra live. Remaining Phase 8 items: Full i18n rollout.**
 
 ---
 
@@ -55,6 +55,7 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | **Chart Notes** | Per-chart text annotations with timestamps |
 | **Save Charts** | Up to 10 charts per account |
 | **Atlas** | 5.1M locations via GeoNames FTS5 SQLite — sub-50ms search |
+| **Sarvatobhadra Chakra** | Classical 9×9 predictive grid; transit Vedha analysis; Dhana (financial) pulse meter; body-part resonance alerts; cell-level interaction with row/column vedha glow |
 
 ### Gold — ₹175/month or ₹1,800/year ✅ Live
 
