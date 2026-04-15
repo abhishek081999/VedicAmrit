@@ -59,7 +59,7 @@ function fmtSaved(iso: string): string {
 }
 
 function ChartCard({
-  chart, onLoad, onDelete, onUpdate,
+  chart, isSelected, toggleSelection, onLoad, onDelete, onUpdate,
 }: {
   chart: SavedChart
   isSelected:    boolean
@@ -350,7 +350,7 @@ function ChartCard({
 
 export default function MyChartsPage() {
   const router  = useRouter()
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const { setActiveTab } = useAppLayout()
   const { setChart } = useChart()
 

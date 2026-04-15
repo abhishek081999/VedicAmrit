@@ -49,7 +49,7 @@ export function calculateACG(jd: number, birthLat?: number, birthLng?: number): 
 
   for (const rid of TARGETS) {
     try {
-      const sweId = PLANET_IDS[rid]
+      const sweId = (PLANET_IDS as any)[rid]
       const pos = getPlanetPosition(jd, sweId, false, true)
       planetaryData[rid] = { ra: pos.longitude, dec: pos.latitude }
       
@@ -94,7 +94,7 @@ export function calculateACG(jd: number, birthLat?: number, birthLng?: number): 
       let bearing = 0
       if (birthLat !== undefined && birthLng !== undefined) {
         try {
-          const xin = [ra, dec, 1.0]; const geopos = [birthLng, birthLat, 0]
+          const xin: [number, number, number] = [ra, dec, 1.0]; const geopos: [number, number, number] = [birthLng, birthLat, 0]
           const res = sweph.azalt(jd, C.SE_EQU2HOR, geopos, 0, 0, xin) as any
           if (res && res.data) bearing = res.data[0]
         } catch (e) {}

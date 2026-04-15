@@ -8,7 +8,7 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, ZoomControl, useMapEvents, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { GrahaId } from '@/types/astrology'
+import type { GrahaId, Rashi } from '@/types/astrology'
 import { RASHI_NAMES } from '@/types/astrology'
 
 const MAJOR_CITIES = [
@@ -180,10 +180,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
             <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, zIndex: 1000, background: mapTheme === 'dark' ? 'rgba(10,10,20,0.98)' : '#fff', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--gold)', display: 'flex', gap: '2rem', alignItems: 'center', boxShadow: '0 20px 80px rgba(0,0,0,0.8)' }}>
                 <div>
                    <div style={{ fontSize: '0.6rem', color: 'var(--gold)', fontWeight: 800 }}>CITY ANALYSIS</div>
-                   <div style={{ color: mapTheme === 'dark' ? '#fff' : '#000', fontSize: '1.1rem', fontWeight: 800 }}>{RASHI_NAMES[Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1]} ASC</div>
+                   <div style={{ color: mapTheme === 'dark' ? '#fff' : '#000', fontSize: '1.1rem', fontWeight: 800 }}>{RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} ASC</div>
                 </div>
                 <div style={{ flex: 1, fontSize: '0.8rem', color: mapTheme === 'dark' ? '#ccc' : '#444' }}>
-                   Analyzing this region against your {activeTheme} goals. The {RASHI_NAMES[Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1]} rising sign creates a different life foundation than your birthplace.
+                   Analyzing this region against your {activeTheme} goals. The {RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} rising sign creates a different life foundation than your birthplace.
                 </div>
                 <button onClick={() => setRelocatedPoint(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>✕</button>
             </div>

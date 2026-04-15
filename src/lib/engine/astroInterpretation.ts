@@ -60,5 +60,29 @@ export const ACG_INTERPRETATIONS: Record<GrahaId, Record<string, string>> = {
     DS: "Attracts foreign or highly unusual partners. Intense, 'fated' connections.",
     MC: "Sudden rises or falls in fame. Unconventional career paths in technology or media.",
     IC: "Unusual home environment. Feeling like an outsider in one's own roots."
+  },
+  Ke: {
+    AS: "Detachment and spiritual liberation. A place for solitary retreat or breaking past karmic cycles.",
+    DS: "Spiritual or 'mysterious' partners. Relationships that require letting go of ego.",
+    MC: "Unconventional or spiritual career. Recognition comes from non-traditional or hidden works.",
+    IC: "Deeply private or nomadic home life. Breaking free from family traditions."
+  },
+  Ur: {
+    AS: "Sudden changes, rebellion, and genius. A place for total self-revolution.",
+    DS: "Eccentric, unstable, or highly independent partners. Sparks of excitement.",
+    MC: "Breakthroughs in tech, science, or activism. Radical career shifts occur here.",
+    IC: "Highly unconventional or technological home. Frequent disruptions but high freedom."
+  },
+  Ne: {
+    AS: "Dreamlike, artistic, or confusing presence. Great for film, music, and spiritual visions.",
+    DS: "Soulmate connections or deceptive partners. Boundary-less relationships.",
+    MC: "Career in spirituality, arts, or charity. Success through intuition rather than logic.",
+    IC: "Home near water or a place of retreat. Potential for boundary issues or idealistic family life."
+  },
+  Pl: {
+    AS: "Intense transformation, power, and rebirth. A place of 'do or die' personal evolution.",
+    DS: "Power struggles or deep psychological bonds. Intense sexual or financial partnerships.",
+    MC: "Obsessive career drive. Major transformations in public standing or total career destruction/rebirth.",
+    IC: "Deep family secrets or intense power dynamics within the home. A place of 'roots' reconstruction."
   }
 }

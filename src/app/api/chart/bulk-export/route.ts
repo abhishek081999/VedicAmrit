@@ -112,10 +112,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Generate ZIP binary
-    const zipBlob = await zip.generateAsync({ type: 'nodebuffer' })
+    const zipData = await zip.generateAsync({ type: 'uint8array' })
 
     const timestamp = new Date().toISOString().slice(0, 10)
-    return new NextResponse(zipBlob, {
+    return new NextResponse(zipData as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/zip',
