@@ -5,4 +5,5 @@
 
 import { handlers } from '@/auth'
 
+// Auth.js route
 export const { GET, POST } = handlers

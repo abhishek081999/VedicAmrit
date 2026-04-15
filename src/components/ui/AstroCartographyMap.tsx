@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState, useMemo } from 'react'
-import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, ZoomControl, useMapEvents, Marker } from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, ZoomControl, useMapEvents, Marker, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { GrahaId, Rashi } from '@/types/astrology'
@@ -33,7 +33,7 @@ function CitySearch({ onSelect, isDark }: { onSelect: (lat: number, lng: number)
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [open, setOpen] = useState(false)
-  const map = L.useMap()
+  const map = useMap()
 
   const search = async (val: string) => {
     setQ(val)
@@ -262,8 +262,6 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           )}
         </div>
 
-        <CitySearch onSelect={handleMapClick} isDark={mapTheme === 'dark'} />
-
         {relocatedPoint && relocationStats && (
             <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, zIndex: 1000, background: mapTheme === 'dark' ? 'rgba(10,10,20,0.98)' : '#fff', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--gold)', display: 'flex', gap: '2rem', alignItems: 'center', boxShadow: '0 20px 80px rgba(0,0,0,0.8)' }}>
                 <div>
@@ -283,6 +281,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
         )}
 
         <MapContainer center={birthCoords || [20,0]} zoom={2} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+          <CitySearch onSelect={handleMapClick} isDark={mapTheme === 'dark'} />
           <ClickHandler onClick={handleMapClick} /><ZoomControl position="bottomright" />
           <TileLayer url={mapTheme === 'dark' ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"} />
 
