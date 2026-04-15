@@ -11,12 +11,13 @@
 //    • Abhijit Muhurta (most auspicious window of the day)
 // ─────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
+import { MuhurtaTimeline } from '@/components/ui/MuhurtaTimeline'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {
@@ -313,6 +314,27 @@ export default function MuhurtaPage() {
   const [minGrade,  setMinGrade]  = useState<'A' | 'B' | 'C' | 'D'>('B')
 
   const [location, setLocation] = useState<LocationValue>(getSavedLocation)
+  const [timelineData, setTimelineData] = useState<any[]>([])
+  const [timelineLoading, setTimelineLoading] = useState(false)
+
+  // Fetch 24h timeline
+  const fetchTimeline = useCallback(async () => {
+    setTimelineLoading(true)
+    try {
+      const natalNak = chart?.panchang?.nakshatra?.index ?? 0
+      const res = await fetch(`/api/muhurta/timeline?lat=${location.lat}&lng=${location.lng}&tz=${encodeURIComponent(location.tz)}&natalNak=${natalNak}`)
+      const data = await res.json()
+      if (Array.isArray(data)) setTimelineData(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setTimelineLoading(false)
+    }
+  }, [location, chart])
+
+  useEffect(() => {
+    fetchTimeline()
+  }, [fetchTimeline])
 
   const findMuhurta = useCallback(async () => {
     setLoading(true)
@@ -384,7 +406,13 @@ export default function MuhurtaPage() {
         </nav>
       </header>
 
-      <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
+        {/* Advanced Personal Timeline */}
+        <section>
+          <MuhurtaTimeline data={timelineData} loading={timelineLoading} />
+        </section>
+
         <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
             Find Auspicious Times

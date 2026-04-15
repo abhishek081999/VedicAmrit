@@ -5,7 +5,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–8 complete — Gold and Platinum tiers live. Elite Astrocartography, Bhava Bala, and Client CRM live. Remaining Phase 8 items: Full i18n & PWA.**
+**Build Status: Phases 1–8 complete — Gold and Platinum tiers live. Elite Astrocartography, PWA, Bhava Bala, and Client CRM live. Remaining Phase 8 items: Full i18n.**
 
 ---
 
@@ -90,7 +90,8 @@ Everything in Gold, plus:
 
 ### 🚀 Latest Improvements (v2.4.x — April 2026) ✅
 
-- **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
+- **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Local Space (Azimuth)** lines, **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
+- **Progressive Web App (PWA)**: Full offline resilience with Service Workers, Web manifest v3, and native-grade installability for iOS/Android/Desktop.
 - **Global Resonance Intelligence**: Automated ranking of the top world cities (Dubai, NYC, London, etc.) based on your natal power lines and thematic goals.
 - **Thematic Strategy Mapping**: One-click filters for **Wealth**, **Love**, **Career**, and **Spiritual** relocation analysis.
 - **Dual-Layer Super-Imposition**: Simultaneously visualize natal potential and current planetary activations on a single interactive map.
@@ -318,9 +319,9 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 ### Phase 8 — Scale + Polish 🚀
 
 - [x] **Admin Dashboard** — Internal metrics, user management, and system health `[PHASE 8]`
-- [x] **Astrocartography** — Planetary relocation mapping and "Power Line" world view `[PHASE 8]`
+- [x] **Astrocartography** — NASA-grade relocation mapping with Local Space (Azimuth) intelligence `[PHASE 8]`
+- [x] **PWA Support** — Offline resilience, manifest v3, and installable mobile experience `[PHASE 8]`
 - [ ] **Full i18n** — Hindi/Sanskrit rollout for all UI components and tables `[PHASE 8]`
-- [ ] **PWA Support** — Offline support and installable mobile app experience `[PHASE 8]`
 
 ---
 
@@ -339,4 +340,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.3.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
+*v2.5.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*

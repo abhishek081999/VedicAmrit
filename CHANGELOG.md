@@ -5,6 +5,28 @@ All notable changes to the **Vedaansh** project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-04-15
+
+### Added
+- **Elite Astrocartography (ACG) Suite**: 
+    - NASA-grade interactive relocation mapping.
+    - **Cyclo-Carto-Graphy**: Real-time transit activation on map.
+    - **Local Space**: Azimuth line projections.
+    - **Paran Detection**: Latitude crossings and planetary intersections.
+    - **Global Resonance Intelligence**: Automated world city ranking based on natal power.
+- **Progressive Web App (PWA)**:
+    - Native-grade installability for all platforms.
+    - Full offline resilience via Service Workers.
+    - Web Manifest v3 integration.
+- **Admin Command Center**: Advanced internal metrics, user management, and system health monitoring.
+- **Platinum Client CRM**: Dedicated CRM for professional consultants with session notes, remedy trackers, and active dasha alerts.
+- **Bhava Bala Engine**: House strength calculations (Adhipati, Dig, and Drishti Bala) with visualization components.
+
+### Fixed
+- **Public Chart Routing**: Resolved 404/pathing issues for public chart sharing and implemented Platinum branding injection.
+- **Infrastructure**: Optimized asset loading for PWA and resolved service worker registration edge cases.
+
+
 ## [2.2.5] - 2026-03-24
 
 ### Changed
