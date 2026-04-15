@@ -85,6 +85,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
   const [isNakshatraOpen, setIsNakshatraOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [isOffline, setIsOffline] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   useEffect(() => {
     const saved = localStorage.getItem('astro-nav-expanded')
@@ -98,6 +99,17 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     const savedN = localStorage.getItem('nakshatra-nav-expanded')
     if (savedN !== null) {
       setIsNakshatraOpen(savedN === 'true')
+    }
+
+    // PWA: Monitor online/offline status
+    setIsOffline(!navigator.onLine)
+    const onOnline = () => setIsOffline(false)
+    const onOffline = () => setIsOffline(true)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
     }
   }, [])
 
@@ -196,6 +208,9 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           >
             Vedaansh
           </span>
+          {isOffline && (
+            <div style={{ background: 'var(--rose)', color: '#fff', fontSize: '0.6rem', padding: '2px 8px', borderRadius: 4, fontWeight: 800, letterSpacing: '0.05em' }}>OFFLINE</div>
+          )}
         </div>
 
         {/* Right: Actions */}

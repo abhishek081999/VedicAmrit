@@ -29,6 +29,53 @@ interface ACGLineData {
 }
 interface ACGParan { p1: GrahaId; p2: GrahaId; lat: number; lon: number; type: string; }
 
+function CitySearch({ onSelect, isDark }: { onSelect: (lat: number, lng: number) => void, isDark: boolean }) {
+  const [q, setQ] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [open, setOpen] = useState(false)
+  const map = L.useMap()
+
+  const search = async (val: string) => {
+    setQ(val)
+    if (val.length < 2) { setResults([]); return }
+    const res = await fetch(`/api/atlas/search?q=${val}`)
+    const json = await res.json()
+    if (json.results) setResults(json.results)
+  }
+
+  return (
+    <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 1000, width: 280 }}>
+      <input 
+        value={q} 
+        onChange={e => search(e.target.value)} 
+        onFocus={() => setOpen(true)}
+        placeholder="Type a city (e.g. Dubai, NYC)..." 
+        style={{ 
+          width: '100%', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--gold)', 
+          background: isDark ? 'rgba(10,10,20,0.95)' : '#fff', color: isDark ? '#fff' : '#000',
+          fontSize: '0.85rem', fontWeight: 600, outline: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+        }} 
+      />
+      {open && results.length > 0 && (
+        <div style={{ 
+          marginTop: 8, background: isDark ? 'rgba(10,10,20,0.98)' : '#fff', borderRadius: 12, border: '1px solid var(--border-soft)', 
+          maxHeight: 300, overflowY: 'auto' 
+        }}>
+          {results.map((r, i) => (
+            <div 
+              key={i} 
+              onClick={() => { map.flyTo([r.latitude, r.longitude], 8); onSelect(r.latitude, r.longitude); setOpen(false); setQ(r.name) }} 
+              style={{ padding: '10px 15px', borderBottom: '1px solid var(--border-soft)', cursor: 'pointer', fontSize: '0.8rem', color: isDark ? '#ccc' : '#444' }}
+            >
+              <strong>{r.name}</strong>, {r.country}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 const COLORS: Record<string, string> = {
   Su: '#FFD700', Mo: '#FFFFFF', Ma: '#FF4500', Me: '#00FF7F', Ju: '#FFA500', Ve: '#FF69B4', Sa: '#8A2BE2', Ra: '#A9A9A9',
 }
@@ -69,15 +116,30 @@ const getIcon = (glyph: string, color: string, glow = false) => {
     return GLYPH_ICONS[key]
 }
 
+function getDestination(lat: number, lng: number, bearing: number, distance: number) {
+    const R = 6371; 
+    const ad = distance / R;
+    const la1 = lat * Math.PI / 180;
+    const lo1 = lng * Math.PI / 180;
+    const br = bearing * Math.PI / 180;
+
+    const la2 = Math.asin(Math.sin(la1) * Math.cos(ad) + Math.cos(la1) * Math.sin(ad) * Math.cos(br));
+    const lo2 = lo1 + Math.atan2(Math.sin(br) * Math.sin(ad) * Math.cos(la1), Math.cos(ad) - Math.sin(la1) * Math.sin(la2));
+
+    return [la2 * 180 / Math.PI, ((lo2 * 180 / Math.PI + 540) % 360) - 180];
+}
+
 export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisiblePlanetsChange }: Props) {
   const [natalData, setNatalData] = useState<ACGLineData[]>([])
   const [transitData, setTransitData] = useState<ACGLineData[]>([])
   const [natalParans, setNatalParans] = useState<ACGParan[]>([])
+  const [currentDashaLord, setCurrentDashaLord] = useState<GrahaId | null>(null)
   const [loading, setLoading] = useState(true)
   const [visiblePlanets, setVisiblePlanets] = useState<Set<GrahaId>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
   const [viewMode, setViewMode] = useState<'natal' | 'transit' | 'both'>('natal')
   const [activeTheme, setActiveTheme] = useState('all')
   const [showAspects, setShowAspects] = useState(false)
+  const [showLocalSpace, setShowLocalSpace] = useState(false)
   const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark')
   
   const [relocatedPoint, setRelocatedPoint] = useState<[number, number] | null>(null)
@@ -94,7 +156,11 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
       try {
         const natalUrl = `/api/chart/astrocartography?jd=${natalJd}${birthCoords ? `&lat=${birthCoords[0]}&lng=${birthCoords[1]}` : ''}`
         const nRes = await fetch(natalUrl); const nJson = await nRes.json()
-        if (nJson.success) { setNatalData(nJson.lines); setNatalParans(nJson.parans); }
+        if (nJson.success) { 
+          setNatalData(nJson.lines); 
+          setNatalParans(nJson.parans); 
+          if (nJson.currentDashaLord) setCurrentDashaLord(nJson.currentDashaLord);
+        }
 
         const todayJd = (Date.now() / 86400000) + 2440587.5;
         const transitUrl = `/api/chart/astrocartography?jd=${todayJd}${birthCoords ? `&lat=${birthCoords[0]}&lng=${birthCoords[1]}` : ''}`
@@ -117,7 +183,18 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
     const activeJd = viewMode === 'transit' ? (Date.now() / 86400000) + 2440587.5 : natalJd;
     try {
       const res = await fetch('/api/chart/relocate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jd: activeJd, lat, lng }) })
-      const json = await res.json(); if (json.success) setRelocationStats(json)
+      const json = await res.json(); 
+      if (json.success) {
+          // Find nearest planet line (MC/IC)
+          let nearest = { planet: '' as GrahaId, dist: 999, lineType: '' }
+          natalData.forEach(p => {
+              const dMC = Math.abs(lng - p.mcLine)
+              const dIC = Math.abs(lng - p.icLine)
+              if (dMC < nearest.dist) nearest = { planet: p.grahaId, dist: dMC, lineType: 'MC' }
+              if (dIC < nearest.dist) nearest = { planet: p.grahaId, dist: dIC, lineType: 'IC' }
+          })
+          setRelocationStats({ ...json, nearest })
+      }
     } catch (e) {}
   }, [viewMode, natalJd])
 
@@ -152,7 +229,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
              <button onClick={() => setViewMode('both')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'both' ? '#3B82F6' : 'none', color: viewMode === 'both' ? '#fff' : '#888', fontSize: '0.75rem', fontWeight: 800 }}>⭐ BOTH</button>
           </div>
           <div style={{ flex: 1 }} />
-          <button onClick={() => setShowAspects(!showAspects)} style={{ background: 'none', border: '1px solid var(--gold)', borderRadius: 6, padding: '6px 12px', fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 700, cursor: 'pointer' }}>{showAspects ? 'Hide Aspect Harmonics' : 'Show Aspect Harmonics'}</button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => setShowAspects(!showAspects)} style={{ background: showAspects ? 'var(--gold)' : 'none', border: '1px solid var(--gold)', borderRadius: 6, padding: '6px 12px', fontSize: '0.65rem', color: showAspects ? '#000' : 'var(--gold)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>{showAspects ? 'Aspects: ON' : 'Show Aspects'}</button>
+            <button onClick={() => setShowLocalSpace(!showLocalSpace)} style={{ background: showLocalSpace ? '#3B82F6' : 'none', border: '1px solid #3B82F6', borderRadius: 6, padding: '6px 12px', fontSize: '0.65rem', color: showLocalSpace ? '#fff' : '#3B82F6', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>{showLocalSpace ? 'Local Space: ON' : 'Show Local Space'}</button>
+          </div>
       </div>
 
       <div style={{ position: 'relative', width: '100%', height: 750, borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
@@ -174,7 +254,15 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           })}
           <div style={{ height: 1, background: 'var(--border-soft)', margin: '15px 0' }} />
           <button onClick={() => setMapTheme(mapTheme === 'dark' ? 'light' : 'dark')} style={{ margin: '0 auto', display: 'block', background: 'none', border: 'none', color: '#888', fontSize: '0.6rem', cursor: 'pointer' }}>🌗 Theme: {mapTheme.toUpperCase()}</button>
+          {currentDashaLord && (
+            <div style={{ marginTop: 15, textAlign: 'center' }}>
+              <div style={{ fontSize: '0.55rem', color: COLORS[currentDashaLord], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Dasha Lord</div>
+              <div style={{ fontSize: '0.9rem', color: COLORS[currentDashaLord], fontWeight: 900 }}>{NAMES[currentDashaLord]} Highlighted</div>
+            </div>
+          )}
         </div>
+
+        <CitySearch onSelect={handleMapClick} isDark={mapTheme === 'dark'} />
 
         {relocatedPoint && relocationStats && (
             <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, zIndex: 1000, background: mapTheme === 'dark' ? 'rgba(10,10,20,0.98)' : '#fff', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--gold)', display: 'flex', gap: '2rem', alignItems: 'center', boxShadow: '0 20px 80px rgba(0,0,0,0.8)' }}>
@@ -183,7 +271,12 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                    <div style={{ color: mapTheme === 'dark' ? '#fff' : '#000', fontSize: '1.1rem', fontWeight: 800 }}>{RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} ASC</div>
                 </div>
                 <div style={{ flex: 1, fontSize: '0.8rem', color: mapTheme === 'dark' ? '#ccc' : '#444' }}>
-                   Analyzing this region against your {activeTheme} goals. The {RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} rising sign creates a different life foundation than your birthplace.
+                   Analyzing this region against your {activeTheme} goals. The {RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} rising sign creates a different life foundation.
+                   {relocationStats.nearest && relocationStats.nearest.dist < 5 && (
+                       <div style={{ marginTop: 5, color: COLORS[relocationStats.nearest.planet], fontWeight: 800 }}>
+                           🎯 {relocationStats.nearest.dist.toFixed(1)}° from {NAMES[relocationStats.nearest.planet]} {relocationStats.nearest.lineType} Line
+                       </div>
+                   )}
                 </div>
                 <button onClick={() => setRelocatedPoint(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>✕</button>
             </div>
@@ -201,19 +294,25 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           ))}
 
           {/* Natal Layer */}
-          {(viewMode === 'natal' || viewMode === 'both') && natalData.filter(p => visiblePlanets.has(p.grahaId)).map(p => (
+          {(viewMode === 'natal' || viewMode === 'both') && natalData.filter(p => visiblePlanets.has(p.grahaId)).map(p => {
+              const isDashaActive = p.grahaId === currentDashaLord;
+              const weight = isDashaActive ? 4 : 2;
+              const opacity = isDashaActive ? 1 : 0.8;
+              
+              return (
               <React.Fragment key={`natal-${p.grahaId}`}>
-                <Polyline key={`nmc-${p.grahaId}`} positions={[[-85, p.mcLine], [85, p.mcLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: 2 }} />
-                <Polyline key={`nic-${p.grahaId}`} positions={[[-85, p.icLine], [85, p.icLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: 1, dashArray: '5,5', opacity: 0.5 }} />
+                <Polyline key={`nmc-${p.grahaId}`} positions={[[-85, p.mcLine], [85, p.mcLine]]} pathOptions={{ color: COLORS[p.grahaId], weight, opacity }} />
+                <Polyline key={`nic-${p.grahaId}`} positions={[[-85, p.icLine], [85, p.icLine]]} pathOptions={{ color: COLORS[p.grahaId], weight: weight/2, dashArray: '5,5', opacity: opacity * 0.5 }} />
                 {showAspects && p.aspects.map((asp, idx) => (
                    <Polyline key={`nasp-${p.grahaId}-${idx}`} positions={[[-70, asp.lon], [70, asp.lon]]} pathOptions={{ color: COLORS[p.grahaId], weight: 1, dashArray: asp.type === 'Trine' ? '12,12' : '4,8', opacity: 0.6 }} />
                 ))}
-                {p.asCurve.map((seg, i) => <Polyline key={`nas-${p.grahaId}-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight: 2 }} />)}
-                {p.dsCurve.map((seg, i) => <Polyline key={`nds-${p.grahaId}-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight: 2 }} />)}
-                <Marker key={`nmg-${p.grahaId}`} position={[80, p.mcLine]} icon={getIcon(GLYPHS[p.grahaId], COLORS[p.grahaId])} />
-                <CircleMarker key={`nz-${p.grahaId}`} center={p.zenith} radius={5} pathOptions={{ fillColor: COLORS[p.grahaId], color: '#000', weight: 1.5, fillOpacity: 1 }} />
+                {p.asCurve.map((seg, i) => <Polyline key={`nas-${p.grahaId}-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight, opacity }} />)}
+                {p.dsCurve.map((seg, i) => <Polyline key={`nds-${p.grahaId}-${i}`} positions={seg} pathOptions={{ color: COLORS[p.grahaId], weight, opacity }} />)}
+                <Marker key={`nmg-${p.grahaId}`} position={[80, p.mcLine]} icon={getIcon(GLYPHS[p.grahaId], COLORS[p.grahaId], isDashaActive)} />
+                <CircleMarker key={`nz-${p.grahaId}`} center={p.zenith} radius={isDashaActive ? 8 : 5} pathOptions={{ fillColor: COLORS[p.grahaId], color: '#000', weight: 1.5, fillOpacity: 1 }} />
               </React.Fragment>
-          ))}
+              )
+          })}
 
           {/* Transit Layer */}
           {(viewMode === 'transit' || viewMode === 'both') && transitData.filter(p => visiblePlanets.has(p.grahaId)).map(p => (
@@ -223,6 +322,23 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
                 <Marker key={`tmg-${p.grahaId}`} position={[-80, p.mcLine]} icon={getIcon(GLYPHS[p.grahaId], COLORS[p.grahaId], true)} />
               </React.Fragment>
           ))}
+
+          {/* Local Space Lines */}
+          {showLocalSpace && birthCoords && natalData.filter(p => visiblePlanets.has(p.grahaId)).map(p => {
+              // Convert bearing: swisseph azalt is from South (0) clockwise.
+              // Standard destination formula uses bearing from North (0) clockwise.
+              const bearingFromNorth = (p.localSpaceBearing + 180) % 360;
+              const dest = getDestination(birthCoords[0], birthCoords[1], bearingFromNorth, 15000); // 15,000 km ray
+              return (
+                <Polyline 
+                  key={`ls-${p.grahaId}`} 
+                  positions={[birthCoords, dest as [number, number]]} 
+                  pathOptions={{ color: COLORS[p.grahaId], weight: 1, dashArray: '10,5', opacity: 0.7 }}
+                >
+                    <Tooltip sticky>Local Space Ray: {NAMES[p.grahaId]}</Tooltip>
+                </Polyline>
+              )
+          })}
 
           {/* Parans */}
           {(viewMode === 'natal' || viewMode === 'both') && natalParans.filter(p => visiblePlanets.has(p.p1) && visiblePlanets.has(p.p2)).map((p, i) => (

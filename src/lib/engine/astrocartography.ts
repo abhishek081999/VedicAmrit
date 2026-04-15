@@ -33,6 +33,7 @@ export interface ACGLines {
 export interface ACGResult {
   lines: ACGLines[]
   parans: ACGParan[]
+  currentDashaLord?: GrahaId
 }
 
 function norm(lon: number) {
@@ -131,5 +132,15 @@ export function calculateACG(jd: number, birthLat?: number, birthLng?: number): 
     }
   }
 
-  return { lines, parans }
+  let currentDashaLord: GrahaId | undefined = undefined
+  try {
+    const moonPos = getPlanetPosition(jd, (PLANET_IDS as any).Mo, false, true)
+    const birthDate = new Date((jd - 2440587.5) * 86400000)
+    const { calcVimshottari, getCurrentDasha } = require('./dasha/vimshottari')
+    const dashaTree = calcVimshottari(moonPos.longitude, birthDate, 1)
+    const current = getCurrentDasha(dashaTree)
+    if (current.length > 0) currentDashaLord = current[0].lord as GrahaId
+  } catch (e) {}
+
+  return { lines, parans, currentDashaLord }
 }

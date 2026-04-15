@@ -87,12 +87,13 @@ export const metadata: Metadata = {
 // ── Viewport ──────────────────────────────────────────────────
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: dark)',  color: '#0e0e18' },
-    { media: '(prefers-color-scheme: light)', color: '#faf8f2' },
+    { media: '(prefers-color-scheme: dark)',  color: '#0b0b14' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
   ],
   width:          'device-width',
   initialScale:    1,
   maximumScale:    5,
+  viewportFit:     'cover',
 }
 
 // ── Root Layout ───────────────────────────────────────────────
@@ -103,8 +104,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="icon" type="image/svg+xml" href="/veda-icon.svg" />
-        <link rel="apple-touch-icon" href="/veda-icon.svg" />
-        <link rel="manifest"   href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Vedaansh" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>

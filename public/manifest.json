@@ -1,27 +1,35 @@
 {
-  "name": "Vedaansh — Free Vedic Astrology Platform",
+  "name": "Vedaansh Jyotish",
   "short_name": "Vedaansh",
-  "description": "Premium Vedic birth charts, Dasha, 41 vargas, and Panchang with Swiss Ephemeris precision.",
+  "description": "Premium Vedic Astrology & Astrocartography Platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e1117",
-  "theme_color": "#c9a84c",
+  "background_color": "#0b0b14",
+  "theme_color": "#0b0b14",
   "icons": [
     {
-      "src": "/veda-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Chart",
+      "url": "/?new=true",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "name": "Daily Panchang",
+      "url": "/panchang",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -303,6 +303,42 @@ function buildAstroVastuSummary(chart: ChartOutput): string {
     </table>`
 }
 
+function buildACGReport(chart: ChartOutput): string {
+  const { calculateACG } = require('@/lib/engine/astrocartography')
+  const { jd, latitude, longitude } = chart.meta
+  const acg = calculateACG(jd, latitude, longitude)
+  
+  const MAJOR_CITIES = [
+    { name: 'London', lat: 51.5074, lng: -0.1278 }, { name: 'New York', lat: 40.7128, lng: -74.0060 },
+    { name: 'Tokyo', lat: 35.6895, lng: 139.6917 }, { name: 'Dubai', lat: 25.2048, lng: 55.2708 },
+    { name: 'Singapore', lat: 1.3521, lng: 103.8198 }, { name: 'Mumbai', lat: 19.0760, lng: 72.8777 },
+    { name: 'Zurich', lat: 47.3769, lng: 8.5417 }, { name: 'Los Angeles', lat: 34.0522, lng: -118.2437 }
+  ]
+
+  const results = MAJOR_CITIES.map(city => {
+    let score = 0; let active = ''
+    acg.lines.forEach((p: any) => {
+      const off = Math.min(Math.abs(city.lng - p.mcLine), Math.abs(city.lng - p.icLine))
+      if (off < 2.0) { score += 40; active = p.grahaId }
+    })
+    return { ...city, score, active }
+  }).sort((a,b) => b.score - a.score).filter(c => c.score > 0).slice(0, 5)
+
+  const rows = results.map((c, i) => `
+    <tr>
+      <td style="font-weight:700">#${i+1} — ${c.name}</td>
+      <td>${c.country || 'Global Site'}</td>
+      <td style="color:${THEME.accent};font-weight:800">${c.active} Alignment</td>
+      <td style="font-weight:700">${c.score} Pts</td>
+    </tr>`).join('')
+
+  return `
+    <table class="data-table">
+      <thead><tr><th>Destination</th><th>Region</th><th>Primary Influence</th><th>Resonance</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4">Calculating global power spots...</td></tr>'}</tbody>
+    </table>`
+}
+
 // ── Main HTML Document ────────────────────────────────────────
 
 export function generateChartHTML(chart: ChartOutput, branding?: Branding): string {
@@ -546,6 +582,34 @@ ${chart.varshaphal ? `
   </div>
 </div>
 
+<!-- PAGE 6: GLOBAL POWER MAPPING (Platinum Exclusive) -->
+<div class="page">
+  <h2 class="section-title"><span>07</span> Global Power Intelligence (Astrocartography)</h2>
+  <div style="margin-bottom: 2rem; padding: 1.5rem; background: ${THEME.primary}; color: #fff; border-radius: 12px;">
+    <div style="font-weight: 800; font-size: 10px; opacity: 0.7; text-transform: uppercase;">Relocation Potential</div>
+    <div style="font-size: 1.15rem; font-weight: 300; line-height: 1.6;">Where on Earth is your energy most supported? We analyze planetary lines of angularity to find your peaks of resonance.</div>
+  </div>
+
+  <h3 style="font-size: 1.1rem; color: ${THEME.primary}; margin-bottom: 1rem; font-weight: 400; border-left: 3px solid ${THEME.accent}; padding-left: 10px;">Top Resonance Destinations</h3>
+  ${buildACGReport(chart)}
+
+  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div style="padding: 1.25rem; border: 1px solid ${THEME.border}; border-radius: 12px;">
+       <div style="font-weight: 800; font-size: 10px; color: ${THEME.accent}; margin-bottom: 1rem; text-transform: uppercase;">Relocation Tip</div>
+       <div style="font-size: 11px; line-height: 1.6;">Moving towards your <strong>Jupiter MC</strong> or <strong>Venus MC</strong> lines traditionally boosts prosperity and career social-standing. Avoid long-term settlement directly on <strong>Saturn AS</strong> or <strong>Rahu IC</strong> lines without specific remedy consultation.</div>
+    </div>
+    <div style="padding: 1.25rem; border: 1px solid ${THEME.primary}; border-radius: 12px; background: ${THEME.surface};">
+       <div style="font-weight: 800; font-size: 10px; color: ${THEME.primary}; margin-bottom: 1rem; text-transform: uppercase;">The Zenith Effect</div>
+       <div style="font-size: 11px; line-height: 1.6;">Destinations where a planet is at its "Zenith" (directly overhead) provide the most pure and unadulterated form of that planet's karma. This is usually the strongest point in the chart.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>${meta.name} — Confidential</div>
+    <div>Page 6</div>
+  </div>
+</div>
+
 <!-- PAGE 6: INTERPRETATION & YOGAS -->
 <div class="page">
   <h2 class="section-title"><span>07</span> Karmic Synthesis & Global Insights</h2>
@@ -586,7 +650,7 @@ ${chart.varshaphal ? `
 
   <div class="footer">
     <div>${meta.name} — Confidential</div>
-    <div>Page 6</div>
+    <div>Page 7</div>
   </div>
 </div>
 
