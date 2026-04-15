@@ -128,3 +128,28 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   }).then(res => ({ success: !res.error, ...res }))
     .catch(err => ({ success: false, error: err }))
 }
+
+export async function sendChartEmail(toEmail: string, chartName: string, htmlContent: string, senderName: string = appName) {
+  return resend.emails.send({
+    from: `${senderName} <${fromEmail}>`,
+    to: [toEmail],
+    subject: `Your Jyotish Master Dossier — ${chartName}`,
+    html: `
+      <div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+        <h2 style="color: #1a1b1e;">Hello,</h2>
+        <p>Please find attached your professional <strong>Jyotish Master Dossier</strong> for <strong>${chartName}</strong>.</p>
+        <p>This comprehensive report includes your Rashi and Navamsha charts, Vimshottari Dasha timeline, planetary strengths (Shadbala), and specialized Astro-Vastu insights.</p>
+        <p style="margin-top: 30px;">Best regards,<br/><strong>${senderName}</strong></p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+        <p style="font-size: 12px; color: #999;">Sent via Vedaansh Jyotish Platform.</p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `${chartName.replace(/[^a-z0-9]/gi, '_')}-jyotish.html`,
+        content: Buffer.from(htmlContent).toString('base64'),
+      }
+    ]
+  }).then(res => ({ success: !res.error, ...res }))
+    .catch(err => ({ success: false, error: err }))
+}

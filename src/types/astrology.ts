@@ -429,6 +429,12 @@ export interface ChartOutput {
   yogas?:        YogaResult[]
   yogiPoint:    YogiPointResult  // Yogi/Sahayogi/Avayogi points for prosperity analysis
   interpretation: ChartInterpretation
+  varshaphal?: {
+    returnYear: number
+    munthaRashi: number
+    completedAge: number
+    tajikaYogas: any[]
+  }
 }
 
 // ── Chart Interpretation ───────────────────────────────────────

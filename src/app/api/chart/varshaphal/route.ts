@@ -73,18 +73,18 @@ export async function POST(req: NextRequest) {
     const munthaRashi = getMunthaRashi(natalAscRashi, completedAge)
     const tajikaYogas = getTajikaYogas(chart.grahas)
 
+    // 5. Attach Varshaphal metadata to the chart object for export
+    chart.varshaphal = {
+      returnYear,
+      munthaRashi,
+      completedAge,
+      tajikaYogas,
+    }
+
     return NextResponse.json({
       success: true,
       chart,
-      meta: {
-        returnYear,
-        returnJD,
-        returnDateUTC: returnDate.toISOString(),
-        natalSunSidereal,
-        munthaRashi,
-        tajikaYogas,
-        completedAge
-      },
+      meta: chart.varshaphal,
     })
   } catch (err) {
     console.error('[varshaphal]', err)

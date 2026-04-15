@@ -31,7 +31,10 @@ const HousePanel = dynamic(() => import('@/components/ui/HousePanel').then(m => 
 const ActiveHousesCard = dynamic(() => import('@/components/dashboard/ActiveHousesCard').then(m => m.ActiveHousesCard), { ssr: false })
 const ProgressionWidget = dynamic(() => import('@/components/dashboard/ProgressionWidget').then(m => m.ProgressionWidget), { ssr: false })
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
+const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const AstroVastuPanel = dynamic(() => import('@/components/ui/AstroVastuPanel').then(m => m.AstroVastuPanel), { ssr: false })
+const AstroCartographyMap = dynamic(() => import('@/components/ui/AstroCartographyMap'), { ssr: false })
+const AstroCartographyAnalysis = dynamic(() => import('@/components/ui/AstroCartographyAnalysis').then(m => m.AstroCartographyAnalysis), { ssr: false })
 const TransitTimeline = dynamic(() => import('@/components/ui/TransitTimeline').then(m => m.TransitTimeline), { ssr: false })
 const TransitScrubber = dynamic(() => import('@/components/dashboard/TransitScrubber').then(m => m.TransitScrubber), { ssr: false })
 
@@ -280,17 +283,21 @@ import { Suspense } from 'react'
 
 function HomeContent() {
   const { data: session, status } = useSession()
-  const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
+  const { chart, setChart, isFormOpen, setIsFormOpen } = useChart()
   const { activeTab } = useAppLayout()
+  
+  const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
   const [userPrefs, setUserPrefs] = useState<ChartSettings>(DEFAULT_SETTINGS)
   const [transitGrahas, setTransitGrahas] = useState<import('@/types/astrology').GrahaData[] | null>(null)
   const [dashaSystem, setDashaSystem] = useState<'vimshottari' | 'ashtottari' | 'yogini' | 'chara'>( 'vimshottari')
   const [vimshottariTara, setVimshottariTara] = useState<string>('Mo')
   const [activeVarga, setActiveVarga] = useState<string>('D1')
   const [altVimshottari, setAltVimshottari] = useState<import('@/types/astrology').DashaNode[] | null>(null)
+  const [selectedAcgPlanets, setSelectedAcgPlanets] = useState<Set<any>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
+  const [activeAcgParans, setActiveAcgParans] = useState<any[]>([])
+  const [acgNatalData, setAcgNatalData] = useState<any[]>([])
   const searchParams = useSearchParams()
-  
-  const { chart, setChart, isFormOpen, setIsFormOpen } = useChart()
+
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
@@ -299,6 +306,15 @@ function HomeContent() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
+
+  const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
+    setSelectedAcgPlanets(prev => {
+        if (prev.size === planets.size && Array.from(planets).every(p => prev.has(p))) return prev
+        return planets
+    })
+    setActiveAcgParans(parans)
+    if (rawNatal) setAcgNatalData(rawNatal)
+  }, [])
 
   // 1. Fetch default chart if logged in (with client-side caching)
   useEffect(() => {
@@ -533,7 +549,10 @@ function HomeContent() {
                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                    </button>
                  )}
-                 <ExportPdfButton chart={chart} compact />
+                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+                   <ExportPdfButton chart={chart} compact />
+                   <EmailChartButton chart={chart} compact />
+                 </div>
                  <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm" style={{ background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-bright)' }}>
                    ✎ Edit Details
                  </button>
@@ -544,8 +563,8 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber') ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'astro-vastu' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'roadmap' || activeTab === 'transit-scrubber' || activeTab === 'astro-carto') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -563,6 +582,30 @@ function HomeContent() {
                   <TransitTimeline ascRashi={chart.lagnas.ascRashi} />
                 ) : activeTab === 'transit-scrubber' ? (
                   <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
+                ) : activeTab === 'astro-carto' ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '0 1rem' }}>
+                    <div style={{ padding: '1.25rem 0 0' }}>
+                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>Global Relocation Intelligence</h2>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: 700, lineHeight: 1.6 }}>
+                        Mapping your birth potential across the globe. Tap any location on the map to see how your horizons shift, or explore the active power lines below.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
+                        <AstroCartographyMap 
+                          jd={chart.meta.julianDay} 
+                          birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
+                          onVisiblePlanetsChange={handleAcgPlanetsChange}
+                        />
+                        <div style={{ position: 'sticky', top: '1.5rem' }}>
+                           <AstroCartographyAnalysis 
+                              visiblePlanets={selectedAcgPlanets} 
+                              parans={activeAcgParans}
+                              natalData={acgNatalData}
+                           />
+                        </div>
+                    </div>
+                  </div>
                 ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}
@@ -570,7 +613,7 @@ function HomeContent() {
             )}
 
              {/* Responsive: Dominant CHART | Tab Analysis — hidden when full-width workspace active */}
-             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && activeTab !== 'roadmap' && activeTab !== 'transit-scrubber' && <div className="chart-layout-grid">
+             {!activeTab.startsWith('nakshatra-') && activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'astro-vastu' && activeTab !== 'roadmap' && activeTab !== 'transit-scrubber' && activeTab !== 'astro-carto' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
                  flex: '1 1 600px', 

@@ -474,6 +474,7 @@ function AccountContent() {
             {[
               { href: '/my/charts',  icon: '📂', label: 'Saved Charts',   sub: 'View your chart history' },
               { href: '/',           icon: '✦',  label: 'New Chart',       sub: 'Cast a birth chart' },
+              ...(user?.role === 'admin' ? [{ href: '/admin', icon: '🛡️', label: 'Admin Panel', sub: 'System Analytics' }] : []),
               { href: '/panchang',   icon: '📅', label: 'Daily Pañcāṅga', sub: 'Today\'s Pañcāṅga' },
               { href: '/muhurta',    icon: '🔍', label: 'Muhūrta Finder', sub: 'Find auspicious times' },
             ].map(({ href, icon, label, sub }: { href: string; icon: string; label: string; sub: string }) => (

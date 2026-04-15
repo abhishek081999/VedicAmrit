@@ -10,6 +10,7 @@ import type { ChartOutput, GrahaData, Rashi } from '@/types/astrology'
 import { VargaSwitcher } from '@/components/chakra/VargaSwitcher'
 import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { GRAHA_NAMES, RASHI_NAMES } from '@/types/astrology'
+import { ExportPdfButton } from '@/components/ui/ExportPdfButton'
 
 interface VarshaphalPanelProps {
   natalChart: ChartOutput
@@ -164,9 +165,12 @@ export function VarshaphalPanel({ natalChart }: VarshaphalPanelProps) {
                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 700 }}>
                       Varshaphal Chart · {result.chart.meta.name}
                    </div>
-                   <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', background: 'var(--gold-faint)', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
-                      {year} Return
-                   </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                       <div style={{ fontSize: '0.7rem', color: 'var(--text-gold)', background: 'var(--gold-faint)', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                          {year} Return
+                       </div>
+                       <ExportPdfButton chart={result.chart} compact style={{ height: 24, padding: '0 8px' }} />
+                    </div>
                 </div>
                 <VargaSwitcher
                   vargas={result.chart.vargas}

@@ -69,7 +69,7 @@ async function verifyCredentials(
     const db     = client.db(process.env.MONGODB_DB_NAME || 'jyotish')
     const user   = await db.collection('users').findOne(
       { email: email.toLowerCase() },
-      { projection: { _id: 1, email: 1, name: 1, image: 1, plan: 1, passwordHash: 1, emailVerified: 1 } },
+      { projection: { _id: 1, email: 1, name: 1, image: 1, role: 1, plan: 1, passwordHash: 1, emailVerified: 1 } },
     )
 
     if (!user || !user.passwordHash) return null
@@ -86,6 +86,7 @@ async function verifyCredentials(
       email: user.email,
       name:  user.name,
       image: user.image ?? null,
+      role:  user.role ?? 'user',
       plan:  user.plan ?? 'free',
     }
   } catch (err) {
@@ -134,13 +135,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user, trigger, session }) {
       // On sign-in, embed plan into token
       if (user) {
+        token.role  = (user as any).role  ?? 'user'
         token.plan  = (user as any).plan  ?? 'free'
         token.id    = user.id
       }
 
       // On session update (e.g., after plan upgrade)
-      if (trigger === 'update' && session?.plan) {
-        token.plan = session.plan
+      if (trigger === 'update') {
+        if (session?.plan) token.plan = session.plan
+        if (session?.role) token.role = session.role
       }
 
       return token
@@ -149,7 +152,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       // Expose plan and id in the client-facing session
       if (session.user) {
-        (session.user as any).plan = token.plan ?? 'free'
+        (session.user as any).role = token.role ?? 'user'
+        ;(session.user as any).plan = token.plan ?? 'free'
         ;(session.user as any).id  = token.id   ?? token.sub
       }
       return session
@@ -194,6 +198,7 @@ declare module 'next-auth' {
       email: string
       name:  string
       image: string | null
+      role:  'user' | 'admin'
       plan:  'free' | 'gold' | 'platinum'
     }
   }
@@ -202,6 +207,7 @@ declare module 'next-auth' {
 // next-auth v5 beta: JWT types live in 'next-auth' not 'next-auth/jwt'
 declare module 'next-auth' {
   interface JWT {
+    role: 'user' | 'admin'
     plan: 'free' | 'gold' | 'platinum'
     id:   string
   }

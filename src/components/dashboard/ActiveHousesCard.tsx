@@ -112,7 +112,7 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
                      const rashiOfHouse = ((ascRashi + h - 2) % 12) + 1
                      const isRuling = RASHI_LORD[rashiOfHouse] === l
                      if (isOccupying || isRuling) {
-                         return <span key={l} style={{ color: 'var(--gold)' }}>
+                         return <span key={`${l}-${idx}`} style={{ color: 'var(--gold)' }}>
                              ● {idx === 0 ? 'MD' : 'AD'} Lord {l} ({isOccupying ? 'in' : 'rules'})
                          </span>
                      }

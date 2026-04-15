@@ -6,7 +6,7 @@
 import mongoose, { Schema, model, models, type Document, type Types } from 'mongoose'
 import type {
   UserPlan, AyanamshaMode, ChartStyle, HouseSystem, NodeMode, KarakaScheme
-} from '@/types/astrology'
+} from '../../../types/astrology'
 
 // ── Interfaces ────────────────────────────────────────────────
 
@@ -34,6 +34,7 @@ export interface IUser extends Document {
   email:        string
   name:         string
   image:        string | null
+  role:         'user' | 'admin'
   plan:         UserPlan
   planExpiresAt:Date | null
 
@@ -88,6 +89,7 @@ const UserSchema = new Schema<IUser>({
   email:        { type: String, required: true, unique: true, lowercase: true, trim: true },
   name:         { type: String, required: true, trim: true },
   image:        { type: String, default: null },
+  role:         { type: String, enum: ['user', 'admin'], default: 'user' },
   plan:         { type: String, enum: ['free','gold','platinum'], default: 'free' },
   planExpiresAt:{ type: Date,   default: null },
 

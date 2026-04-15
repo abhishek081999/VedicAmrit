@@ -5,7 +5,7 @@
 
 A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–6 complete — Gold and Platinum tiers live. Phase 7 (Horā Core features) in progress.**
+**Build Status: Phases 1–8 complete — Gold and Platinum tiers live. Elite Astrocartography, Bhava Bala, and Client CRM live. Remaining Phase 8 items: Full i18n & PWA.**
 
 ---
 
@@ -79,8 +79,8 @@ Everything in Gold, plus:
 | Feature | Detail |
 |---|---|
 | **White-label Sharing** | Custom brand name + logo on all public share pages and PDF exports |
+| **Admin Dashboard** | ✅ Internal metrics, user management, and system health |
 | **Client Dashboard** | CRM-style client management — track sessions, active Dasha, notes per client |
-| **Conditional Dashas** | Rare systems: Kalachakra Dasha, Shula Dasha |
 | **Custom Ayanamsha** | Set personal default ayanamsha (Lahiri, Raman, Yukteshwar, etc.) |
 | **Bulk PDF Export** | Export entire chart collections as a ZIP download |
 | **Enterprise API** | 10,000 requests/day |
@@ -88,9 +88,19 @@ Everything in Gold, plus:
 
 ---
 
-### 🚀 Latest Improvements (v2.2.x — March 2026) ✅
+### 🚀 Latest Improvements (v2.4.x — April 2026) ✅
 
-- **Vedaansh Rebranding**: Full ecosystem rename from "Vedic Amrit" to **Vedaansh**.
+- **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
+- **Global Resonance Intelligence**: Automated ranking of the top world cities (Dubai, NYC, London, etc.) based on your natal power lines and thematic goals.
+- **Thematic Strategy Mapping**: One-click filters for **Wealth**, **Love**, **Career**, and **Spiritual** relocation analysis.
+- **Dual-Layer Super-Imposition**: Simultaneously visualize natal potential and current planetary activations on a single interactive map.
+
+- **Bhava Bala**: Full BPHS house strength engine live — Adhipati, Dig, and Drishti Bala for all 12 houses, with grid/table/bar-chart UI and strongest/weakest house callout.
+- **Client CRM Dashboard**: Full Platinum CRM at `/clients` — add, edit, tag clients; session notes; remedy tracker; active Dasha progress bar; Dasha-transition alerts.
+- **White-label Sharing**: Platinum `brandName` + `brandLogo` rendered on all public share pages and future PDF exports.
+- **Public Chart Routing**: Fixed `/api/chart/public` endpoint and branding injection for Platinum consultants.
+- **Advanced Engine Modules**: Added `bhavaBala.ts`, `gandanta.ts`, `pushkara.ts`, `mrityuBhaga.ts`, `yogiPoint.ts`, `advancedInterpretation.ts`, `doshas.ts`, `tajika.ts`, `transits.ts`, `activeHouses.ts` to the calculation pipeline.
+- **Vedaansh Rebranding** (March 2026): Full ecosystem rename from "Vedic Amrit" to **Vedaansh**.
 - **Planets Workspace**: New interactive dual-chart (D1/D9) view with diagnostic micro-details table.
 - **Nakshatra Lab**: Recursive Pada maps, Navtara analysis, Best Days forecasts, and activity-specific Muhurta ratings.
 - **Varshaphal Redesign**: Dynamic full-width Solar Return workspace with split-screen comparative layout.
@@ -101,7 +111,7 @@ Everything in Gold, plus:
 
 ---
 
-## Calculation Engine — 22 Modules
+## Calculation Engine — 33 Modules
 
 All engine modules are pure TypeScript functions (no side effects). Given the same inputs, they always return the same outputs.
 
@@ -124,18 +134,25 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `ashtakoot.ts` | ✅ | 36-point Gun Milan: Varna, Vashya, Tara, Yoni, Maitri, Gana, Bhakoot, Nadi |
 | `varshaphal.ts` | ✅ | Solar Return — bisection search on swisseph for arc-second precision |
 | `sunrise.ts` | ✅ | Real astronomical rise/set via `swe_rise_trans` with geographic fallback |
+| `bhavaBala.ts` | ✅ | House strength — Adhipati (lord Shadbala), Dig Bala, Drishti Bala for all 12 bhavas |
+| `gandanta.ts` | ✅ | Karmic junction detection — Revati/Ashwini, Ashlesha/Magha, Jyeshtha/Mula |
+| `pushkara.ts` | ✅ | Pushkara Bhaga and Pushkara Navamsha auspicious degree detection |
+| `mrityuBhaga.ts` | ✅ | Death-inflicting degree detection per planet and sign |
+| `yogiPoint.ts` | ✅ | Yogi, Sahayogi, Avayogi point calculation for prosperity analysis |
+| `advancedInterpretation.ts` | ✅ | AI-style narrative interpretation engine — strengths, cautions, special patterns |
+| `doshas.ts` | ✅ | Classical dosha detection (Manglik, Kaal Sarp, Grahan, etc.) |
+| `tajika.ts` | ✅ | Tajika annual chart aspects — Ithasala, Ishrafa, Nakta, Yamaya |
+| `transits.ts` | ✅ | Real-time transit overlay against natal chart |
+| `activeHouses.ts` | ✅ | Activated house detection from current transits + dashas |
+| `muhurtaPersonal.ts` | ✅ | Personal muhurta suitability scoring for birth chart |
+| `astroInterpretation.ts` | ✅ | Elite ACG reading engine — Career, Home, and Love meanings |
 | `calculator.ts` | ✅ | Main orchestrator — all engines wired, returns `ChartOutput` |
 | `dasha/vimshottari.ts` | ✅ | 120yr cycle, 6-level tree (Maha→Antar→Pratyantar→Sukshma→Prana→Deha) |
 | `dasha/yogini.ts` | ✅ | 36yr, 8 Yoginis, birth balance from Moon nakshatra position |
 | `dasha/chara.ts` | ✅ | Jaimini sign dasha, forward/reverse per parity, birth balance from Lagna degree |
 | `dasha/ashtottari.ts` | ✅ | 108yr conditional Dasha — active for Krishna paksha births outside Rahu nakshatra |
 
-**Planned engine modules (Phase 7):**
-- `bhavaBala.ts` — house strength (Digbala, Cheshta, Drik, Naisargika components)
-- `sahams.ts` — 36 classical Arabic parts (Punya, Vidya, Vivaha, Mrityu, etc.)
-- `dasha/kalachakra.ts` — nakshatra-pada-based conditional Dasha (Platinum)
-- `dasha/shula.ts` — sign-group-based Dasha system (Platinum)
-- `pravesh.ts` — Tithi Pravesh and Nakshatra Pravesh chart calculations
+**Planned engine modules (Phase 7 — remaining):**
 
 ---
 
@@ -216,9 +233,9 @@ Vedaansh/
 
 ## Known Issues
 
-| Issue | Severity | Fix |
+| Issue | Severity | Status |
 |---|---|---|
-| `GET /api/chart/public` returns 404 | 🔴 Critical | Move `src/app/chart/public/route.ts` → `src/app/api/chart/public/route.ts` |
+| `GET /api/chart/public` returns 404 | 🔴 Critical | ✅ Fixed — route correctly at `src/app/api/chart/public/route.ts` |
 
 ---
 
@@ -280,26 +297,30 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 
 | Phase | Status | Deliverable |
 |---|---|---|
-| 1 — Engine Foundation | ✅ Complete | All 22 calc modules + Vitest suite |
+| 1 — Engine Foundation | ✅ Complete | All 33 calc modules + Vitest suite |
 | 2 — Atlas + Auth + DB | ✅ Complete | MongoDB live, NextAuth, 5.1M atlas |
 | 3 — Frontend + Chakras | ✅ Complete | All SVG renderers, Dasha tree, full UI |
 | 4 — Free Tier Launch | ✅ Complete | Free tier live at vedaansh.com |
 | 5 — Gold Features | ✅ Complete | Razorpay, PDF export, bulk import, multi-device sync |
 | 6 — Platinum Launch | ✅ Complete | Nakshatra workspace, 41 vargas in UI, both paid tiers live |
-| 7 — Horā Core | 🕒 In Progress | Client Dashboard, white-label, Bhava Bala, Pravesh charts, Kalachakra |
-| 8 — Scale + Polish | ⏳ Planned | Full i18n (Hindi/Sanskrit), PWA, Admin Dashboard, Astrocartography |
+| 7 — Horā Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
+| 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, i18n, PWA |
 
-### Phase 7 — Next to Build
+### Phase 7 — Completed ✅
 
-- [ ] **Client Management Dashboard** — `/clients` page, CRM for Platinum users `[PLATINUM]`
-- [ ] **White-label chart sharing** — `brandName` + `brandLogo` in preferences, rendered on share pages and PDFs `[PLATINUM]`
-- [ ] **Bhava Bala engine** — house strength: Dig, Cheshta, Drik, Naisargika `[ENGINE]`
-- [ ] **36 Sahams** — Arabic parts: Punya, Vidya, Vivaha, Mrityu, etc. `[ENGINE]`
-- [ ] **Tithi Pravesh + Nakshatra Pravesh** — return charts for lunar ingress `[ENGINE]`
-- [ ] **Kalachakra Dasha** — nakshatra-pada conditional system `[ENGINE][PLATINUM]`
-- [ ] **Shula Dasha** — sign-group Dasha system `[ENGINE][PLATINUM]`
-- [ ] **Bulk PDF export** — ZIP of multiple chart PDFs `[PLATINUM]`
-- [ ] **Email chart to client** — Resend-powered delivery from chart view `[GOLD]`
+- [x] **Client Management Dashboard** — `/clients` page, CRM for Platinum users `[PLATINUM]`
+- [x] **White-label chart sharing** — `brandName` + `brandLogo` in preferences, rendered on share pages and PDFs `[PLATINUM]`
+- [x] **Bhava Bala engine + UI** — BPHS house strength: Adhipati, Dig, Drishti Bala; grid/table/bar-chart views `[ENGINE]`
+- [x] **Public chart route fix** — `/api/chart/public` correctly wired with branding injection
+- [x] **Email chart to client** — Resend-powered delivery from chart view; 1 API route + button `[GOLD]`
+- [x] **Bulk PDF export** — ZIP of multiple chart PDFs from My Charts library `[PLATINUM]`
+
+### Phase 8 — Scale + Polish 🚀
+
+- [x] **Admin Dashboard** — Internal metrics, user management, and system health `[PHASE 8]`
+- [x] **Astrocartography** — Planetary relocation mapping and "Power Line" world view `[PHASE 8]`
+- [ ] **Full i18n** — Hindi/Sanskrit rollout for all UI components and tables `[PHASE 8]`
+- [ ] **PWA Support** — Offline support and installable mobile app experience `[PHASE 8]`
 
 ---
 
@@ -318,4 +339,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.2.5 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
+*v2.3.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*

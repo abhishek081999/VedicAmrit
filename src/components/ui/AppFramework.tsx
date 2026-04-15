@@ -54,6 +54,7 @@ const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: st
     label: 'Calculations',
     tabs: [
       { id: 'panchang',  label: 'Natal Pañcāṅga', icon: '📅', path: '/' },
+      { id: 'astro-carto', label: 'Astro-Cartography', icon: '🌍', path: '/' },
     ]
   }
 ]

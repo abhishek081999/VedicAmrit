@@ -59,10 +59,11 @@ function fmtSaved(iso: string): string {
 }
 
 function ChartCard({
-  chart, onLoad, onDelete, onUpdate,
+  chart, isSelected, toggleSelection, onLoad, onDelete, onUpdate,
 }: {
   chart: SavedChart
-  key?:          string
+  isSelected:    boolean
+  toggleSelection: (id: string) => void
   onLoad:        (c: SavedChart) => void
   onDelete:      (id: string) => void | Promise<void>
   onUpdate:      (id: string, update: ChartUpdate) => void
@@ -173,6 +174,17 @@ function ChartCard({
     }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <input 
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => toggleSelection(chart._id)}
+          onClick={(e) => e.stopPropagation()}
+          style={{ 
+            width: 16, height: 16, 
+            accentColor: 'var(--gold)',
+            cursor: 'pointer' 
+          }}
+        />
         <span style={{
           fontFamily: 'var(--font-display)', fontSize: '1.05rem',
           fontWeight: 600, color: 'var(--text-primary)', flex: 1,
@@ -338,7 +350,7 @@ function ChartCard({
 
 export default function MyChartsPage() {
   const router  = useRouter()
-  const { status } = useSession()
+  const { data: session, status } = useSession()
   const { setActiveTab } = useAppLayout()
   const { setChart } = useChart()
 
@@ -355,7 +367,53 @@ export default function MyChartsPage() {
   const [page,        setPage]        = useState(1)
   const [search,      setSearch]      = useState('')
   const [exporting,        setExporting]        = useState(false)
+  const [bulkExporting,    setBulkExporting]    = useState(false)
   const [tmplDownloading,  setTmplDownloading]  = useState(false)
+  const [selectedIds,      setSelectedIds]      = useState<string[]>([])
+
+  const userPlan = (session?.user as any)?.plan ?? 'free'
+
+  async function handleBulkZipExport() {
+    if (userPlan !== 'platinum') {
+      window.location.href = '/pricing?highlight=platinum'
+      return
+    }
+    if (selectedIds.length === 0) return
+    
+    setBulkExporting(true)
+    try {
+      const res = await fetch('/api/chart/bulk-export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chartIds: selectedIds })
+      })
+      
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        alert(json.error || 'Bulk export failed')
+        return
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Vedaansh_Charts_Export_${new Date().toISOString().slice(0, 10)}.zip`
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+      setSelectedIds([])
+    } catch {
+      alert('Could not export ZIP. Please try again.')
+    } finally {
+      setBulkExporting(false)
+    }
+  }
+
+  function toggleSelection(id: string) {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
 
   async function handleExportAll() {
     setExporting(true)
@@ -568,10 +626,65 @@ export default function MyChartsPage() {
       {!loading && filtered.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.85rem' }}>
           {filtered.map((chart) => (
-            <ChartCard key={chart._id} chart={chart} onLoad={handleLoad} onDelete={handleDelete} onUpdate={handleUpdate} />
+            <ChartCard 
+              key={chart._id} 
+              chart={chart} 
+              isSelected={selectedIds.includes(chart._id)}
+              toggleSelection={toggleSelection}
+              onLoad={handleLoad} 
+              onDelete={handleDelete} 
+              onUpdate={handleUpdate} 
+            />
           ))}
         </div>
       )}
+
+      {/* Floating Action Bar for Bulk Selection */}
+      {selectedIds.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--surface-1)',
+          border: '1px solid var(--border-bright)',
+          borderRadius: 'var(--r-lg)',
+          padding: '0.8rem 1.5rem',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1.5rem',
+          zIndex: 1000,
+          animation: 'fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+            {selectedIds.length} chart{selectedIds.length > 1 ? 's' : ''} selected
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              onClick={handleBulkZipExport}
+              disabled={bulkExporting}
+              className="btn btn-primary btn-sm"
+              style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              {bulkExporting ? '📦 Zipping…' : '⬇ Download ZIP'}
+            </button>
+            <button
+              onClick={() => setSelectedIds([])}
+              className="btn btn-ghost btn-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+      `}</style>
 
       {pag && pag.pages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '2rem', flexWrap: 'wrap' }}>
