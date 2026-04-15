@@ -12,6 +12,7 @@ import {
   Zap,
   AlertTriangle
 } from 'lucide-react';
+import { MuhurtaDiagnostics } from './MuhurtaDiagnostics';
 
 interface TimelineDataPoint {
   time: string;
@@ -26,10 +27,11 @@ interface MuhurtaTimelineProps {
 const activities = [
   { id: 'BUSINESS', label: 'Business', icon: Briefcase },
   { id: 'TRAVEL', label: 'Travel', icon: Plane },
+  { id: 'MARRIAGE', label: 'Marriage', icon: Heart },
   { id: 'REAL_ESTATE', label: 'Property', icon: Home },
-  { id: 'RELATIONSHIP', label: 'Connection', icon: Heart },
   { id: 'HEALTH', label: 'Wellness', icon: Stethoscope },
-  { id: 'SPIRITUAL', label: 'Spiritual', icon: Sprout },
+  { id: 'EDUCATION', label: 'Knowledge', icon: Sprout },
+  { id: 'GENERAL', label: 'General', icon: Zap },
 ];
 
 export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
@@ -121,9 +123,25 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
           </div>
         </div>
         {bestTimeStr && (
-          <div style={{ padding: '0.75rem 1rem', background: 'var(--gold-faint)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <AlertTriangle className="w-4 h-4 text-[var(--gold)]" />
-            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-gold)' }}>Peak resonance at <strong>{bestTimeStr}</strong> for {activityLabel.toLowerCase()} initiatives.</p>
+          <div style={{ padding: '0.75rem 1rem', background: 'var(--gold-faint)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <AlertTriangle className="w-4 h-4 text-[var(--gold)]" />
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-gold)', fontWeight: 600 }}>
+                Peak resonance at {bestTimeStr}
+              </p>
+            </div>
+            
+            <MuhurtaDiagnostics diagnostics={bestWindow?.info.diagnostics} />
+            
+            {bestWindow?.info.factors.length > 0 && (
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', borderTop: '1px solid rgba(201,168,76,0.1)', paddingTop: '0.8rem', marginTop: '0.4rem' }}>
+                  {bestWindow?.info.factors.filter((f: string) => !f.includes(':')).map((f: string, i: number) => (
+                    <span key={i} style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '4px', color: 'var(--text-gold)' }}>
+                      {f}
+                    </span>
+                  ))}
+               </div>
+            )}
           </div>
         )}
       </div>

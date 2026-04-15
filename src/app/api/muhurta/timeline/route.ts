@@ -14,6 +14,9 @@ import {
 } from '@/lib/engine/nakshatra';
 import { dateToJD, getPlanetPosition, SWISSEPH_IDS, getAyanamsha } from '@/lib/engine/ephemeris';
 import { analyzeMuhurta, MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis';
+import { calcHouses } from '@/lib/engine/houses';
+import { getChoghadiya, getMuhurtaPanchaka } from '@/lib/engine/muhurtaAdvanced';
+import { getHoraLord } from '@/lib/engine/nakshatra';
 
 export async function GET(req: NextRequest) {
   let lastStage = 'initialization';
@@ -23,7 +26,8 @@ export async function GET(req: NextRequest) {
     const lat = parseFloat(searchParams.get('lat') || '28.6139');
     const lng = parseFloat(searchParams.get('lng') || '77.2090');
     const tz = searchParams.get('tz') || 'Asia/Kolkata';
-    const natalNakIndex = parseInt(searchParams.get('natalNak') || '0');
+    const natalNak = parseInt(searchParams.get('natalNak') || '0');
+    const natalSign = parseInt(searchParams.get('natalSign') || '1');
     const ayanMode = (searchParams.get('ayan') || 'lahiri') as any;
 
     lastStage = 'planetary-engine';
@@ -87,6 +91,33 @@ export async function GET(req: NextRequest) {
       const isYamaganda = currentTime >= yamaganda.start && currentTime <= yamaganda.end;
       const isAbhijit = abhijit ? (currentTime >= abhijit.start && currentTime <= abhijit.end) : false;
 
+      lastStage = `interval-${i}-advanced`;
+      const houseData = calcHouses(jd, lat, lng, ayanMode);
+      const lagnaIndex = houseData.ascRashi; // 1-12
+
+      const panchaka = getMuhurtaPanchaka(tithi.number, vara.number, nakshatra.index + 1, lagnaIndex);
+      
+      const choghadiyaRes = getChoghadiya(currentTime, sunInfoToday.sunrise, sunInfoToday.sunset, sunInfoNext.sunrise, vara.number);
+
+      // Calculate Hora
+      let horaLord;
+      const isDaytime = currentTime >= sunInfo.sunrise && currentTime < sunInfo.sunset;
+      if (isDaytime) {
+        const dayDuration = sunInfo.sunset.getTime() - sunInfo.sunrise.getTime();
+        const horaDuration = dayDuration / 12;
+        const horaIndex = Math.floor((currentTime.getTime() - sunInfo.sunrise.getTime()) / horaDuration);
+        horaLord = getHoraLord(vara.lord, horaIndex);
+      } else {
+        const nightStart = sunInfo.sunset.getTime();
+        const nightEnd = sunInfoNext.sunrise.getTime();
+        const nightDuration = nightEnd - nightStart;
+        const horaDuration = nightDuration / 12;
+        let diff = currentTime.getTime() - nightStart;
+        if (diff < 0) diff += 24 * 3600000;
+        const horaIndex = 12 + Math.floor(diff / horaDuration);
+        horaLord = getHoraLord(vara.lord, horaIndex);
+      }
+
       lastStage = `interval-${i}-scoring`;
       const activities: MuhurtaActivity[] = ['BUSINESS', 'TRAVEL', 'REAL_ESTATE', 'RELATIONSHIP', 'HEALTH', 'SPIRITUAL'];
       const scores: any = {};
@@ -95,8 +126,11 @@ export async function GET(req: NextRequest) {
         try {
           scores[act] = analyzeMuhurta(act, {
             tithi, nakshatra, yoga, karana, vara,
-            isRahuKalam, isGulikaKalam, isYamaganda, isAbhijit
-          }, natalNakIndex);
+            isRahuKalam, isGulikaKalam, isYamaganda, isAbhijit,
+            horaLord,
+            choghadiya: choghadiyaRes,
+            panchaka
+          }, { moonNak: natalNak, moonSign: natalSign });
         } catch (scoringError) {
           scores[act] = { score: 0, label: 'Neutral', factors: ['Error in calculation'] };
         }

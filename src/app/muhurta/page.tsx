@@ -18,6 +18,7 @@ import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import { calcTaraBala, calcChandraBala } from '@/lib/engine/muhurtaPersonal'
 import { MuhurtaTimeline } from '@/components/ui/MuhurtaTimeline'
+import { analyzeMuhurta, type MuhurtaActivity } from '@/lib/engine/muhurtaAnalysis'
 
 // ── Types ─────────────────────────────────────────────────────
 interface DayPanchang {
@@ -51,65 +52,16 @@ interface MuhurtaResult {
 
 // ── Purpose definitions ───────────────────────────────────────
 const PURPOSES = [
-  { id: 'marriage',      label: 'Marriage / Vivāha',       icon: '💍' },
-  { id: 'business',      label: 'Business Start',           icon: '💼' },
-  { id: 'travel',        label: 'Travel / Journey',         icon: '✈️' },
-  { id: 'education',     label: 'Education / Vidyārambha',  icon: '📚' },
-  { id: 'medical',       label: 'Medical / Surgery',        icon: '🏥' },
-  { id: 'property',      label: 'Property / Gṛhapravesh',  icon: '🏠' },
-  { id: 'general',       label: 'General Auspicious',       icon: '✨' },
+  { id: 'MARRIAGE',    label: 'Marriage / Vivāha',       icon: '💍' },
+  { id: 'BUSINESS',    label: 'Business Start',           icon: '💼' },
+  { id: 'TRAVEL',      label: 'Travel / Journey',         icon: '✈️' },
+  { id: 'EDUCATION',   label: 'Education / Vidyārambha',  icon: '📚' },
+  { id: 'HEALTH',      label: 'Medical / Surgery',        icon: '🏥' },
+  { id: 'REAL_ESTATE', label: 'Property / Gṛhapravesh',  icon: '🏠' },
+  { id: 'GENERAL',     label: 'General Auspicious',       icon: '✨' },
 ]
 
-// ── Scoring rules per purpose ─────────────────────────────────
-const PURPOSE_RULES: Record<string, {
-  goodVara: number[]       // vara numbers (0=Sun…6=Sat)
-  goodNak: string[]        // nakshatra names
-  badTithi: number[]       // tithi numbers to avoid
-  goodTithi: number[]      // preferred tithi numbers
-}> = {
-  marriage: {
-    goodVara:  [1, 3, 4, 5],   // Mon, Wed, Thu, Fri
-    goodNak:   ['Rohini','Mrigashira','Magha','Uttara Phalguni','Hasta','Swati','Anuradha','Mula','Uttara Ashadha','Uttara Bhadrapada','Revati'],
-    badTithi:  [4, 8, 9, 12, 14, 15, 30],
-    goodTithi: [2, 3, 5, 7, 10, 11, 13],
-  },
-  business: {
-    goodVara:  [1, 3, 4, 5],   // Mon, Wed, Thu, Fri
-    goodNak:   ['Rohini','Pushya','Hasta','Chitra','Anuradha','Shravana','Dhanishtha','Shatabhisha'],
-    badTithi:  [4, 8, 12, 14],
-    goodTithi: [2, 3, 5, 6, 7, 10, 11, 13],
-  },
-  travel: {
-    goodVara:  [1, 3, 4],      // Mon, Wed, Thu
-    goodNak:   ['Ashwini','Mrigashira','Punarvasu','Pushya','Hasta','Jyeshtha','Mula','Shravana'],
-    badTithi:  [4, 8, 12, 14, 15],
-    goodTithi: [2, 3, 5, 7, 11, 13],
-  },
-  education: {
-    goodVara:  [1, 3, 4],      // Mon, Wed, Thu
-    goodNak:   ['Rohini','Mrigashira','Punarvasu','Hasta','Chitra','Swati','Anuradha','Shravana'],
-    badTithi:  [4, 8, 12, 14],
-    goodTithi: [2, 5, 6, 7, 10, 11],
-  },
-  medical: {
-    goodVara:  [1, 3],         // Mon, Wed (avoid surgery on Tue/Sat)
-    goodNak:   ['Ashwini','Pushya','Hasta','Uttara Phalguni','Uttara Ashadha','Shravana'],
-    badTithi:  [4, 8, 9, 12, 14],
-    goodTithi: [1, 2, 3, 6, 7, 10, 11, 13],
-  },
-  property: {
-    goodVara:  [1, 3, 4, 5],   // Mon, Wed, Thu, Fri
-    goodNak:   ['Rohini','Uttara Phalguni','Hasta','Uttara Ashadha','Uttara Bhadrapada'],
-    badTithi:  [4, 8, 12, 14],
-    goodTithi: [2, 3, 5, 7, 10, 13],
-  },
-  general: {
-    goodVara:  [1, 3, 4, 5],
-    goodNak:   ['Rohini','Mrigashira','Pushya','Uttara Phalguni','Hasta','Chitra','Swati','Anuradha','Shravana','Dhanishtha','Revati'],
-    badTithi:  [4, 8, 12, 14],
-    goodTithi: [2, 3, 5, 7, 10, 11, 13],
-  },
-}
+// Purpose rules are now managed in src/lib/engine/muhurtaAnalysis.ts
 
 // ── Helpers ───────────────────────────────────────────────────
 function fmtTime(iso: string): string {
@@ -145,67 +97,36 @@ const GRADE_COLOR: Record<string, { bg: string; border: string; text: string }> 
 }
 
 // ── Scoring function ──────────────────────────────────────────
-function scorePanchang(p: DayPanchang, purpose: string, natal?: { moonNak: number; moonSign: number }): MuhurtaResult {
-  const rules = PURPOSE_RULES[purpose] ?? PURPOSE_RULES.general
-  let score = 50
-  const reasons: string[] = []
+function scorePanchang(p: DayPanchang, purpose: string, natal: { moonNak: number; moonSign: number }): MuhurtaResult {
+  const result = analyzeMuhurta(purpose as MuhurtaActivity, {
+    tithi: p.tithi as any,
+    nakshatra: p.nakshatra as any,
+    yoga: p.yoga as any,
+    karana: p.karana as any,
+    vara: p.vara as any,
+    isRahuKalam: false, 
+    isGulikaKalam: false,
+    isYamaganda: false,
+    isAbhijit: !!p.abhijitMuhurta,
+  }, natal)
+
   const windows: string[] = []
-  const avoid:   string[] = []
+  if (p.abhijitMuhurta) windows.push(`Abhijit: ${fmtTime(p.abhijitMuhurta.start)} - ${fmtTime(p.abhijitMuhurta.end)}`)
+  
+  const avoid = [
+    `Rahu Kalam: ${fmtTime(p.rahuKalam.start)} - ${fmtTime(p.rahuKalam.end)}`,
+    `Gulika: ${fmtTime(p.gulikaKalam.start)} - ${fmtTime(p.gulikaKalam.end)}`
+  ]
 
-  // Yoga
-  if (p.yoga.quality === 'auspicious')    { score += 15; reasons.push(`✓ Auspicious yoga: ${p.yoga.name}`) }
-  if (p.yoga.quality === 'inauspicious')  { score -= 15; reasons.push(`✗ Inauspicious yoga: ${p.yoga.name}`) }
-
-  // Vara
-  if (rules.goodVara.includes(p.vara.number)) { score += 10; reasons.push(`✓ Favorable weekday: ${p.vara.name}`) }
-  else if (p.vara.number === 2 || p.vara.number === 6) { score -= 10; reasons.push(`✗ Avoid ${p.vara.name} for this purpose`) }
-
-  // Nakshatra
-  if (rules.goodNak.includes(p.nakshatra.name)) { score += 15; reasons.push(`✓ Favorable nakshatra: ${p.nakshatra.name}`) }
-
-  // Tithi
-  if (rules.goodTithi.includes(p.tithi.number)) { score += 10; reasons.push(`✓ Favorable tithi: ${p.tithi.name}`) }
-  if (rules.badTithi.includes(p.tithi.number))  { score -= 15; reasons.push(`✗ Avoid tithi ${p.tithi.number}: ${p.tithi.name}`) }
-
-  // Bhadra
-  if (p.karana.isBhadra) { score -= 10; reasons.push(`✗ Bhadra karaṇa — avoid auspicious acts`) }
-
-  // Abhijit window (always auspicious if available)
-  if (p.abhijitMuhurta) {
-    windows.push(`Abhijit Muhūrta: ${fmtTime(p.abhijitMuhurta.start)} – ${fmtTime(p.abhijitMuhurta.end)}`)
-    score += 5
+  return { 
+    date: p.date, 
+    score: result.score, 
+    grade: result.label === 'Excellent' ? 'A' : result.label === 'Good' ? 'B' : result.label === 'Neutral' ? 'C' : 'D',
+    windows, 
+    avoid, 
+    reasons: result.factors, 
+    panchang: p 
   }
-
-  // Rahu / Gulika to avoid
-  avoid.push(`Rāhu Kālam: ${fmtTime(p.rahuKalam.start)} – ${fmtTime(p.rahuKalam.end)}`)
-  avoid.push(`Gulikā: ${fmtTime(p.gulikaKalam.start)} – ${fmtTime(p.gulikaKalam.end)}`)
-
-  // Sunrise window (morning is generally auspicious)
-  windows.push(`Morning window: ${fmtTime(p.sunrise)} – ${addMinutes(p.sunrise, 96)}`)
-
-  // Personal Bala
-  let personal: MuhurtaResult['personal'] = undefined
-  if (natal) {
-    const tb = calcTaraBala(natal.moonNak, p.nakshatra.index)
-    const cb = calcChandraBala(natal.moonSign, Math.floor(p.moonLongitudeSidereal / 30) + 1)
-    
-    personal = {
-      taraBala: { name: tb.name, score: tb.score, desc: tb.desc },
-      chandraBala: { position: cb.position, score: cb.score, desc: cb.desc }
-    }
-
-    // Adjust score based on personal factors
-    score += (tb.score / 100) * 20
-    score += (cb.score / 100) * 15
-    reasons.push(`${tb.score >= 50 ? '✓' : '✗'} Tara Bala: ${tb.name} (${tb.desc})`)
-    reasons.push(`${cb.score >= 50 ? '✓' : '✗'} Chandra Bala: ${cb.position} from Moon (${cb.desc})`)
-  }
-
-  score = Math.max(0, Math.min(100, score))
-  const grade: 'A' | 'B' | 'C' | 'D' =
-    score >= 75 ? 'A' : score >= 55 ? 'B' : score >= 35 ? 'C' : 'D'
-
-  return { date: p.date, score, grade, windows, avoid, reasons, panchang: p, personal }
 }
 
 // ── Result card ───────────────────────────────────────────────
@@ -304,7 +225,7 @@ function ResultCard({ result }: { result: MuhurtaResult; key?: string }) {
 export default function MuhurtaPage() {
   const { chart } = useChart()
   const today = todayIST()
-  const [purpose,   setPurpose]   = useState('general')
+  const [purpose,   setPurpose]   = useState('GENERAL')
   const [fromDate,  setFromDate]  = useState(today)
   const [toDate,    setToDate]    = useState(addDays(today, 30))
   const [results,   setResults]   = useState<MuhurtaResult[]>([])
@@ -322,7 +243,8 @@ export default function MuhurtaPage() {
     setTimelineLoading(true)
     try {
       const natalNak = chart?.panchang?.nakshatra?.index ?? 0
-      const res = await fetch(`/api/muhurta/timeline?lat=${location.lat}&lng=${location.lng}&tz=${encodeURIComponent(location.tz)}&natalNak=${natalNak}`)
+      const natalSign = chart?.grahas.find(g => g.id === 'Mo')?.rashi ?? 1
+      const res = await fetch(`/api/muhurta/timeline?lat=${location.lat}&lng=${location.lng}&tz=${encodeURIComponent(location.tz)}&natalNak=${natalNak}&natalSign=${natalSign}`)
       const data = await res.json()
       if (Array.isArray(data)) setTimelineData(data)
     } catch (e) {
@@ -363,7 +285,7 @@ export default function MuhurtaPage() {
           const res  = await fetch(`/api/panchang?date=${date}&lat=${location.lat}&lng=${location.lng}&tz=${encodeURIComponent(location.tz)}`)
           const json = await res.json()
           if (json.success) {
-            const result = scorePanchang(json.data, purpose, natal)
+            const result = scorePanchang(json.data, purpose, natal || { moonNak: 0, moonSign: 1 })
             scored.push(result)
           }
         } catch { }
