@@ -135,12 +135,12 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
     const sw     = isLagna ? 1.5 : 0.6
 
     const [lx,ly] = rashiLabelPos(h, S)
-    const signTxt = `<text x="${lx}" y="${ly}" font-family="Arial" font-size="${S*0.038}" font-weight="900" fill="${isLagna?THEME.primary:THEME.accent}" text-anchor="middle" dominant-baseline="middle">${sign}</text>`
+    const signTxt = `<text x="${lx}" y="${ly}" font-family="Arial" font-size="${S*0.04}" font-weight="900" fill="${isLagna?THEME.primary:THEME.accent}" text-anchor="middle" dominant-baseline="middle">${sign}</text>`
 
     const [cx,cy] = centroidN(h, S)
     const ps = byHouse[h]
-    const pf = S * 0.04
-    const df = S * 0.024
+    const pf = S * 0.045
+    const df = S * 0.026
     const lh = pf + df + 2
     const startY = cy - ((ps.length - 1) * lh) / 2
     
@@ -148,8 +148,8 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
       const py = startY + i * lh
       const color = dignityColor(g.dignity)
       const label = g.id + (g.isRetro ? 'R' : '')
-      const deg = Math.floor((g.totalDegree || 0) % 30)
-      return `<text x="${cx}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${color}" text-anchor="middle" dominant-baseline="middle">${label}</text>`
+      const deg = Math.floor(g.degree ?? (g.totalDegree % 30))
+      return `<text x="${cx}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${color}" text-anchor="middle" dominant-baseline="middle">${label} ${deg}°</text>`
     }).join('\n')
 
     cells += `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
@@ -159,6 +159,71 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
   cells += `<text x="${S/2}" y="${S/2}" font-family="Arial" font-size="${S*0.06}" font-weight="900" fill="${THEME.primary}" text-anchor="middle" dominant-baseline="middle" opacity="0.05">${vargaKey}</text>`
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
+}
+
+function buildSouthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280): string {
+  const S = size
+  const cell = S / 4
+  const ascRashi = vargaKey === 'D1' ? chart.lagnas.ascRashi : (chart.vargaLagnas?.[vargaKey] || chart.lagnas.ascRashi)
+  const grahas = vargaKey === 'D1' ? chart.grahas : (chart.vargas?.[vargaKey] || [])
+  const filtered = grahas.filter(g => !['Ur','Ne','Pl'].includes(g.id))
+
+  const signCoords: Record<number, [number, number]> = {
+    12: [0, 0], 1: [0, 1], 2: [0, 2], 3: [0, 3],
+    11: [1, 0],                         4: [1, 3],
+    10: [2, 0],                         5: [2, 3],
+     9: [3, 0], 8: [3, 1], 7: [3, 2], 6: [3, 3],
+  }
+
+  const byRashi: Record<number, any[]> = {}
+  for (let r = 1; r <= 12; r++) byRashi[r] = []
+  filtered.forEach(g => { if (byRashi[g.rashi]) byRashi[g.rashi].push(g) })
+
+  let cells = `<rect width="${S}" height="${S}" fill="transparent" stroke="${THEME.border}" stroke-width="1"/>`
+  
+  // Outer cells
+  for (let r = 1; r <= 12; r++) {
+    const [row, col] = signCoords[r]
+    const x = col * cell, y = row * cell
+    const isAsc = r === ascRashi
+    const ps = byRashi[r]
+    
+    // Background & Border
+    cells += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" fill="${isAsc ? '#fef3c7' : 'transparent'}" stroke="${isAsc ? THEME.primary : THEME.border}" stroke-width="${isAsc ? 1.5 : 0.5}"/>`
+    
+    // Sign label
+    cells += `<text x="${x + 6}" y="${y + 14}" font-family="Arial" font-size="10" font-weight="900" fill="${isAsc ? THEME.primary : THEME.accent}">${r}</text>`
+    cells += `<text x="${x + cell - 6}" y="${y + 14}" font-family="Arial" font-size="8" fill="${THEME.muted}" text-anchor="end">${RASHI_SHORT[r as Rashi]}</text>`
+
+    // Planets
+    const pf = cell * 0.16
+    const df = cell * 0.1
+    const lh = pf + 2
+    const startY = y + cell * 0.35
+    
+    ps.forEach((g, i) => {
+      const py = startY + i * lh
+      const label = g.id + (g.isRetro ? 'R' : '')
+      const deg = Math.floor(g.degree ?? (g.totalDegree % 30))
+      cells += `<text x="${x + cell * 0.15}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${dignityColor(g.dignity)}">${label} ${deg}°</text>`
+    })
+  }
+
+  // Center cross lines
+  cells += `
+    <line x1="${cell}" y1="${cell}" x2="${3*cell}" y2="${cell}" stroke="${THEME.border}" stroke-width="0.5"/>
+    <line x1="${cell}" y1="${3*cell}" x2="${3*cell}" y2="${3*cell}" stroke="${THEME.border}" stroke-width="0.5"/>
+    <line x1="${cell}" y1="${cell}" x2="${cell}" y2="${3*cell}" stroke="${THEME.border}" stroke-width="0.5"/>
+    <line x1="${3*cell}" y1="${cell}" x2="${3*cell}" y2="${3*cell}" stroke="${THEME.border}" stroke-width="0.5"/>
+    <text x="${S/2}" y="${S/2}" font-family="Arial" font-size="${S*0.06}" font-weight="900" fill="${THEME.primary}" text-anchor="middle" dominant-baseline="middle" opacity="0.05">${vargaKey}</text>
+  `
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
+}
+
+function buildChartSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280): string {
+  const style = chart.meta.settings.chartStyle || 'north'
+  return style === 'south' ? buildSouthSVG(chart, vargaKey, size) : buildNorthSVG(chart, vargaKey, size)
 }
 
 // ── Components & UI Sections ───────────────────────────────────
@@ -193,7 +258,7 @@ function buildVargaGrid(chart: ChartOutput): string {
   const items = vargas.map(v => `
     <div class="varga-card">
       <div class="varga-title">${v} Chart</div>
-      ${buildNorthSVG(chart, v, 175)}
+      ${buildChartSVG(chart, v, 175)}
     </div>
   `).join('')
   return `<div class="varga-grid">${items}</div>`
@@ -281,10 +346,53 @@ function buildKPSection(chart: ChartOutput): string {
   `
 }
 
-function buildSBCSection(chart: ChartOutput): string {
+function buildBhavaBalaSection(chart: ChartOutput): string {
+  if (!chart.bhavaBala) return '<p>House strength calculation in progress...</p>'
+  const houses = Object.values(chart.bhavaBala.houses).sort((a,b) => a.house - b.house)
+  
+  const rows = houses.map(h => `
+    <tr>
+      <td style="font-weight:800; color:${THEME.primary}">House ${h.house}</td>
+      <td>${RASHI_NAMES[h.rashi]}</td>
+      <td>${h.adhipatiBala.toFixed(0)}</td>
+      <td>${h.digBala.toFixed(0)}</td>
+      <td>${h.drishtiBala.toFixed(0)}</td>
+      <td style="font-weight:900; background:${h.isStrong?THEME.accentLight:THEME.surface}">${h.totalShash.toFixed(0)}</td>
+      <td style="color:${h.isStrong?THEME.emerald:THEME.muted}; font-weight:800">${h.isStrong?'STRONG':'WEAK'}</td>
+    </tr>
+  `).join('')
+
   return `
-    <div style="padding: 2.5rem; border: 2px double ${THEME.accent}; background: ${THEME.bg}; position: relative">
-        <h4 style="margin-bottom: 1.5rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif">Sarvatobhadra Chakra - Nakshatra Vedha</h4>
+    <table class="data-table">
+      <thead><tr><th>House</th><th>Sign</th><th>Lord Power</th><th>Direction</th><th>Aspect</th><th>Total (Sh)</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top: 2rem; display: flex; align-items: flex-end; gap: 5px; height: 100px; padding: 10px; border-bottom: 2px solid ${THEME.primary}">
+      ${houses.map(h => {
+        const height = (h.totalShash / 600) * 100 // Scale to 100px
+        return `<div style="flex:1; background:${h.isStrong?THEME.accent:THEME.border}; height:${height}px; border-radius: 2px 2px 0 0; position:relative" title="H${h.house}">
+          <span style="position:absolute; bottom:-20px; left:0; right:0; text-align:center; font-size:8px; font-weight:800">${h.house}</span>
+        </div>`
+      }).join('')}
+    </div>
+  `
+}
+
+function buildSBCSection(chart: ChartOutput): string {
+  // A simplified visual grid for SBC (9x9)
+  let grid = ''
+  for (let i = 0; i < 81; i++) {
+    const isEdge = i < 9 || i > 71 || i % 9 === 0 || i % 9 === 8
+    const bg = isEdge ? THEME.surface : '#fff'
+    grid += `<div style="aspect-ratio:1; border:1px solid ${THEME.border}; background:${bg}; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700"></div>`
+  }
+
+  return `
+    <div style="display: grid; grid-template-columns: repeat(9, 1fr); width: 320px; margin: 2rem auto; border: 2px solid ${THEME.primary}; box-shadow: 0 10px 30px rgba(0,0,0,0.05)">
+      ${grid}
+    </div>
+    <div style="padding: 2.5rem; border: 2px double ${THEME.accent}; background: ${THEME.bg}; position: relative; margin-top: 2rem">
+        <h4 style="margin-bottom: 1.5rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif">Sarvatobhadra Chakra - Vedha Insights</h4>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">
             <div class="card" style="text-align: center">
                 <div class="card-title">Left Vedha</div>
@@ -298,9 +406,6 @@ function buildSBCSection(chart: ChartOutput): string {
                 <div class="card-title">Right Vedha</div>
                 <div style="font-size: 11px">Focus: Future Potential & Goals</div>
             </div>
-        </div>
-        <div style="margin-top: 2rem; font-size: 12px; font-style: italic; color: ${THEME.muted}; text-align: center">
-           "The SBC reveals the invisible web of stellar influences affecting the native's prosperity, health, and social standing."
         </div>
     </div>
   `
@@ -352,14 +457,14 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       .no-print { display: none !important; }
       .page { 
         page-break-after: always; 
-        padding: 1.5cm 2cm; 
+        padding: 1.2cm 1.5cm; 
         min-height: 29.7cm; 
         background: ${THEME.bg} !important; 
         box-shadow: none !important; 
         margin: 0 !important; 
         border:none !important; 
         position: relative; 
-        overflow: hidden; 
+        overflow: visible; /* Fix clipping for long sections */
       }
       .page::before { 
         content: 'ॐ'; 
@@ -367,28 +472,28 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         top: 50%; 
         left: 50%; 
         transform: translate(-50%, -50%); 
-        font-size: 40rem; 
+        font-size: 50rem; 
         color: ${THEME.border}; 
         z-index: -1; 
-        opacity: 0.15; 
+        opacity: 0.1; 
         pointer-events: none; 
       }
       .page::after {
         content: '';
         position: absolute;
-        inset: 1cm;
-        border: 1px solid ${THEME.border};
-        border-radius: 2px;
+        inset: 0.8cm;
+        border: 2px solid ${THEME.border};
+        border-radius: 4px;
         pointer-events: none;
         z-index: 10;
-        opacity: 0.5;
+        opacity: 0.4;
       }
       .page:last-child { page-break-after: avoid; }
     }
 
     @media screen {
-      .page { width: 21cm; min-height: 29.7cm; margin: 40px auto; padding: 2cm; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.1); border-radius: 4px; position: relative; overflow: hidden; }
-      .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
+      .page { width: 21cm; min-height: 29.7cm; margin: 40px auto; padding: 2cm; background: #fff; box-shadow: 0 20px 60px rgba(0,0,0,0.1); border-radius: 4px; position: relative; overflow: visible; border: 1px solid #eee; }
+      .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
     }
 
     /* Aesthetics */
@@ -480,19 +585,19 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div class="toc-item"><span>01. The Incarnation Snapshot (Natal Data)</span> <span>03</span></div>
     <div class="toc-item"><span>02. Planetary Positions & Dignities</span> <span>04</span></div>
     <div class="toc-item"><span>03. The Divine Matrix (Shodashvarga)</span> <span>05</span></div>
-    <div class="toc-item"><span>04. Personality & Appearance (House 1-3)</span> <span>06</span></div>
-    <div class="toc-item"><span>05. Foundations & Intelligence (House 4-6)</span> <span>07</span></div>
-    <div class="toc-item"><span>06. Relationships & Transformation (House 7-9)</span> <span>08</span></div>
-    <div class="toc-item"><span>07. Status & Liberation (House 10-12)</span> <span>09</span></div>
+    <div class="toc-item"><span>04. Planetary Psychology (Sun, Moon, Mars)</span> <span>06</span></div>
+    <div class="toc-item"><span>05. The Intellect & Flow (Merc, Jup, Ven)</span> <span>07</span></div>
+    <div class="toc-item"><span>06. Shadows & Structure (Sat, Rahu, Ketu)</span> <span>08</span></div>
+    <div class="toc-item"><span>07. House Potency (Bhava Bala Analysis)</span> <span>09</span></div>
     <div class="toc-item"><span>08. Nakshatra: The Secret Power of Luna</span> <span>10</span></div>
     <div class="toc-item"><span>09. Yoga: The Celestial Combinations</span> <span>11</span></div>
     <div class="toc-item"><span>10. Quantum Strength (Shadbala Analysis)</span> <span>12</span></div>
-    <div class="toc-item"><span>11. House Potency (Bhava Bala)</span> <span>13</span></div>
-    <div class="toc-item"><span>12. Ashtakavarga: The 8-Fold Net</span> <span>14</span></div>
-    <div class="toc-item"><span>13. Jaimini Karakas & Arudhas</span> <span>15</span></div>
-    <div class="toc-item"><span>14. KP System: The Minute Subdivision</span> <span>16</span></div>
-    <div class="toc-item"><span>15. Timeline of Fate (Vimshottari)</span> <span>17</span></div>
-    <div class="toc-item"><span>16. Current Sub-Period Analysis</span> <span>18</span></div>
+    <div class="toc-item"><span>11. Ashtakavarga: The 8-Fold Net</span> <span>13</span></div>
+    <div class="toc-item"><span>12. Jaimini Karakas & Arudhas</span> <span>14</span></div>
+    <div class="toc-item"><span>13. KP System: The Minute Subdivision</span> <span>15</span></div>
+    <div class="toc-item"><span>14. Sarvatobhadra Chakra (Vedha Grid)</span> <span>16</span></div>
+    <div class="toc-item"><span>15. Timeline of Fate (Vimshottari Overview)</span> <span>17</span></div>
+    <div class="toc-item"><span>16. Current Sub-Period Focus</span> <span>18</span></div>
     <div class="toc-item"><span>17. Astro-Vastu Architectural Alignment</span> <span>19</span></div>
     <div class="toc-item"><span>18. Global Resonance (Astrocartography)</span> <span>20</span></div>
     <div class="toc-item"><span>19. Remedial Architecture (Gems & Mantras)</span> <span>21</span></div>
@@ -514,11 +619,11 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   <div style="display:flex; gap: 1rem; margin-top: 3rem; width: 100%">
     <div style="flex:1; border: 1px solid ${THEME.border}; border-radius: 4px; padding: 15px; text-align: center; background: ${THEME.surface}">
         <div style="font-weight:900; font-size: 11px; color: ${THEME.accent}; text-transform: uppercase; margin-bottom: 15px">Natal Chart (D1)</div>
-        ${buildNorthSVG(chart, 'D1', 260)}
+        ${buildChartSVG(chart, 'D1', 260)}
     </div>
     <div style="flex:1; border: 1px solid ${THEME.border}; border-radius: 4px; padding: 15px; text-align: center; background: ${THEME.surface}">
         <div style="font-weight:900; font-size: 11px; color: ${THEME.accent}; text-transform: uppercase; margin-bottom: 15px">Navamsha (D9)</div>
-        ${buildNorthSVG(chart, 'D9', 260)}
+        ${buildChartSVG(chart, 'D9', 260)}
     </div>
   </div>
   
@@ -601,12 +706,19 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 <!-- PAGE 8: INTERPRETATIONS 3 -->
 <div class="page">
   ${SectionHeader('06', 'Shadows & Structure', 'Discipline & Innovation')}
-  <p style="margin-bottom: 2rem">Saturn, Rahu, and Ketu represent your karmic boundaries, worldly obsessions, and spiritual detachments.</p>
   ${buildPlanetInterpretations(chart, ['Sa', 'Ra', 'Ke'])}
   ${PageFooter(8, meta.name)}
 </div>
 
-<!-- PAGE 9: NAKSHATRA ANALYSIS -->
+<!-- PAGE 9: BHAVA BALA -->
+<div class="page">
+  ${SectionHeader('07', 'House Potency', 'Bhava Bala Analysis')}
+  <p style="margin-bottom: 2rem">Analysis of the 12 houses to determine which areas of life (career, wealth, health) are naturally supported by cosmic geometry.</p>
+  ${buildBhavaBalaSection(chart)}
+  ${PageFooter(9, meta.name)}
+</div>
+
+<!-- PAGE 10: NAKSHATRA ANALYSIS -->
 <div class="page">
   ${SectionHeader('08', 'Lunar Mansions', 'Nakshatra Characteristics')}
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
@@ -639,10 +751,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       </div>
     `).join('')}
   </div>
-  ${PageFooter(9, meta.name)}
+  ${PageFooter(10, meta.name)}
 </div>
 
-<!-- PAGE 10: YOGAS -->
+<!-- PAGE 11: YOGAS -->
 <div class="page">
   ${SectionHeader('09', 'Celestial Combinations', 'The Yoga Analysis')}
   <p style="margin-bottom: 2rem">Personalized detection of major and minor yogas that define wealth, status, and health.</p>
@@ -659,10 +771,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       `).join('') || '<tr><td colspan="4">No major yogas detect in this configuration.</td></tr>'}
     </tbody>
   </table>
-  ${PageFooter(10, meta.name)}
+  ${PageFooter(11, meta.name)}
 </div>
 
-<!-- PAGE 11: SHADBALA -->
+<!-- PAGE 12: SHADBALA -->
 <div class="page">
   ${SectionHeader('10', 'Quantum Strength', 'Shadbala Analysis')}
   <p style="margin-bottom: 2rem">Shadbala calculates 6 sources of strength to determine the precise power of each planet.</p>
@@ -695,12 +807,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       </div>`
     }).join('')}
   </div>
-  ${PageFooter(11, meta.name)}
+  ${PageFooter(12, meta.name)}
 </div>
 
-<!-- PAGE 12: ASHTAKAVARGA -->
+<!-- PAGE 13: ASHTAKAVARGA -->
 <div class="page">
-  ${SectionHeader('12', 'The 8-Fold Net', 'Ashtakavarga BAV/SAV')}
+  ${SectionHeader('11', 'The 8-Fold Net', 'Ashtakavarga BAV/SAV')}
   <p style="margin-bottom: 2rem">Ashtakavarga helps in predicting the results of transits and the general strength of the 12 signs for you.</p>
   ${buildAVMatrix(chart)}
   
@@ -714,12 +826,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 11px">Check individiual BAV tables for specific life areas (e.g., Jupiter for children/wealth, Saturn for obstacles).</p>
     </div>
   </div>
-  ${PageFooter(12, meta.name)}
+  ${PageFooter(13, meta.name)}
 </div>
 
-<!-- PAGE 13: JAIMINI ASTROLOGY -->
+<!-- PAGE 14: JAIMINI ASTROLOGY -->
 <div class="page">
-  ${SectionHeader('13', 'Secret of Karakas', 'Jaimini System Analysis')}
+  ${SectionHeader('12', 'Secret of Karakas', 'Jaimini System Analysis')}
   <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem">
     <div>
         <h3 class="section-badge">Chara Karakas</h3>
@@ -745,12 +857,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         </table>
     </div>
   </div>
-  ${PageFooter(13, meta.name)}
+  ${PageFooter(14, meta.name)}
 </div>
 
-<!-- PAGE 14: KP SYSTEM -->
+<!-- PAGE 15: KP SYSTEM -->
 <div class="page">
-  ${SectionHeader('14', 'The Exact Point', 'Krishnamurti Paddhati (KP)')}
+  ${SectionHeader('13', 'The Exact Point', 'Krishnamurti Paddhati (KP)')}
   <p style="margin-bottom: 2rem">KP System focuses on Sub-Lords to give precise "Yes/No" answers and timing for life events.</p>
   ${buildKPSection(chart)}
   
@@ -764,10 +876,29 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <div><strong>Moon Star Lord:</strong> ${chart.kp?.rulingPlanets.moonStarLord}</div>
     </div>
   </div>
-  ${PageFooter(14, meta.name)}
+  ${PageFooter(15, meta.name)}
 </div>
 
-<!-- PAGE 15: DASHA OVERVIEW -->
+<!-- PAGE 16: SARVATOBHADRA CHAKRA -->
+<div class="page">
+  ${SectionHeader('14', 'The Fortress of Light', 'Sarvatobhadra Chakra Analysis')}
+  <p style="margin-bottom: 2rem">The "Auspicious on All Sides" grid reveals transgenerational patterns and precise timing for global recognition.</p>
+  ${buildSBCSection(chart)}
+  
+  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+    <div class="card">
+        <div class="card-title">Akshara (Letter resonance)</div>
+        <p style="font-size: 12px">Your name letters resonate most with the <strong>${chart.panchang.nakshatra.name}</strong> sector of the sky, bringing fortune in academic pursuits.</p>
+    </div>
+    <div class="card">
+        <div class="card-title">Vara & Tithi Vedha</div>
+        <p style="font-size: 12px">Current dasha lord <strong>${GRAHA_NAMES[chart.dashas.vimshottari[0].lord as GrahaId]}</strong> forms a protective shield in your social network.</p>
+    </div>
+  </div>
+  ${PageFooter(16, meta.name)}
+</div>
+
+<!-- PAGE 17: DASHA OVERVIEW -->
 <div class="page">
   ${SectionHeader('15', 'Temporal Evolution', 'Vimshottari Dasha Overview')}
   <p style="margin-bottom: 2rem">Planetary periods show the unfolding of karma over time. Each period brings the themes of the planet into the forefront.</p>
@@ -785,10 +916,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       }).join('')}
     </tbody>
   </table>
-  ${PageFooter(15, meta.name)}
+  ${PageFooter(17, meta.name)}
 </div>
 
-<!-- PAGE 16: CURRENT DASHA -->
+<!-- PAGE 18: CURRENT DASHA -->
 <div class="page">
   ${SectionHeader('16', 'Present Influence', 'Active Sub-Period (Antar)')}
   ${buildCurrentDashaFocus(chart)}
@@ -811,31 +942,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       })()}
     </tbody>
   </table>
-  ${PageFooter(16, meta.name)}
+  ${PageFooter(18, meta.name)}
 </div>
 
-<!-- PAGE 17: SARVATOBHADRA CHAKRA -->
+<!-- PAGE 19: ASTRO VASTU -->
 <div class="page">
-  ${SectionHeader('17', 'The Fortress of Light', 'Sarvatobhadra Chakra Analysis')}
-  <p style="margin-bottom: 2rem">The "Auspicious on All Sides" grid reveals transgenerational patterns and precise timing for global recognition.</p>
-  ${buildSBCSection(chart)}
-  
-  <div style="margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
-    <div class="card">
-        <div class="card-title">Akshara (Letter resonance)</div>
-        <p style="font-size: 12px">Your name letters resonate most with the <strong>${chart.panchang.nakshatra.name}</strong> sector of the sky, bringing fortune in academic pursuits.</p>
-    </div>
-    <div class="card">
-        <div class="card-title">Vara & Tithi Vedha</div>
-        <p style="font-size: 12px">Current dasha lord <strong>${GRAHA_NAMES[chart.dashas.vimshottari[0].lord as GrahaId]}</strong> forms a protective shield in your social network.</p>
-    </div>
-  </div>
-  ${PageFooter(17, meta.name)}
-</div>
-
-<!-- PAGE 18: ASTRO VASTU -->
-<div class="page">
-  ${SectionHeader('18', 'Sacred Space', 'Astro-Vastu Alignment')}
+  ${SectionHeader('17', 'Sacred Space', 'Astro-Vastu Alignment')}
   <div style="background:${THEME.surface}; border-radius: 4px; overflow: hidden; border: 1px solid ${THEME.border}; margin-top: 2rem">
     <div style="padding: 30px">
         <h4 style="margin-bottom: 20px; font-family: 'Playfair Display', serif">Directional Planetary Potency</h4>
@@ -871,12 +983,12 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         <p style="font-size: 12px">Minimize water elements in the <strong>SOUTH-EAST</strong> to prevent emotional drains on finance.</p>
     </div>
   </div>
-  ${PageFooter(18, meta.name)}
+  ${PageFooter(19, meta.name)}
 </div>
 
-<!-- PAGE 19: ASTROCARTOGRAPHY -->
+<!-- PAGE 20: ASTROCARTOGRAPHY -->
 <div class="page">
-  ${SectionHeader('19', 'Global Resonance', 'Astrocartography Resonance')}
+  ${SectionHeader('18', 'Global Resonance', 'Astrocartography Resonance')}
   <p style="margin-bottom: 2rem">Mapping your planetary power spots reveals where Earth's geographical energy amplifies your destiny.</p>
   <div style="padding: 30px; border: 1px solid ${THEME.border}; border-radius: 4px; background: #fff">
     <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif">Global Power Points</h3>
@@ -895,51 +1007,107 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
       <h4 style="margin-bottom: 10px">The Relocation Secret</h4>
       <p style="font-size: 13px">Moving to a location where your strong planets (ex: Exalted Sun) hit the MC line can instantly reset your status trajectory.</p>
   </div>
-  ${PageFooter(19, meta.name)}
-</div>
-
-<!-- PAGE 20: REMEDIES -->
-<div class="page">
-  ${SectionHeader('20', 'Remedial Architecture', 'Planetary Balance')}
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem">
-    <div class="card">
-        <div class="card-title">Ratna (Gemstone) Advice</div>
-        <ul style="padding-left: 20px; font-size: 11px">
-            <li><strong>Primary:</strong> ${chart.shadbala.strongest === 'Ju' ? 'Yellow Sapphire' : chart.shadbala.strongest === 'Su' ? 'Ruby' : 'White Sapphire'}</li>
-            <li><strong>Yoga:</strong> Emerald (Panna) for logic/business.</li>
-            <li><strong>Avoid:</strong> Blue Sapphire without guidance.</li>
-        </ul>
-    </div>
-    <div style="background:${THEME.primary}; color: #fff; padding: 25px; border-radius: 4px; border: 1px solid ${THEME.accent}">
-        <h4 style="margin-bottom: 15px; color:${THEME.accentLight}; font-family: 'Playfair Display', serif">Mantra Sadhana</h4>
-        <p style="font-size: 11px; margin-bottom: 15px">Chant these sounds to harmonize your environment with your cosmic signature.</p>
-        <div style="font-family:serif; font-style:italic">"Om Shrim Klim Lakshmi-Narayana Namaha"</div>
-    </div>
-  </div>
-  
-  <div style="margin-top: 3rem; padding: 20px; border: 1px solid ${THEME.border}; border-radius: 4px; background: ${THEME.surface}">
-    <h4 style="margin-bottom: 10px; color:${THEME.accent}; font-family: 'Playfair Display', serif">Dana (Charity) Recommendations</h4>
-    <p style="font-size: 12px">Donating ${chart.shadbala.weakest === 'Sa' ? 'Black Seeds' : 'Green Dal'} on Saturdays can help mitigate the pressure of Saturn.</p>
-  </div>
   ${PageFooter(20, meta.name)}
 </div>
 
-<!-- PAGE 21: SUMMARY & NEXT STEPS -->
+<!-- PAGE 21: REMEDIES -->
 <div class="page">
-  ${SectionHeader('21', 'The Life Synthesis', 'Report Summary')}
-  <div style="padding: 30px; background: ${THEME.surface}; border-radius: 4px; border: 1px solid ${THEME.border}">
-    <h3 style="margin-bottom: 20px; font-family: 'Playfair Display', serif">Soul Path Interpretation</h3>
-    <div style="font-size: 15px; line-height: 1.8; color: ${THEME.primary}">
-      ${escapeHtml(chart.interpretation.headline)}
+  ${SectionHeader('19', 'Remedial Architecture', 'Planetary Balance')}
+  <p style="margin-bottom: 2rem; color: ${THEME.muted}">Vedic remedies (Upayas) are designed to harmonize planetary vibrations and strengthen your bio-magnetic field.</p>
+  
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-top: 1rem">
+    <div style="border: 2px solid ${THEME.surface}; border-radius: 15px; padding: 25px; background: ${THEME.surface}">
+        <h4 style="color: ${THEME.primary}; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif">Ratna (Gemstone) Advice</h4>
+        <div style="font-size: 13px; line-height: 1.8">
+            <div style="margin-bottom: 1rem"><strong>Propitious Stone:</strong> ${chart.shadbala.strongest === 'Ju' ? 'Yellow Sapphire' : chart.shadbala.strongest === 'Su' ? 'Ruby' : chart.shadbala.strongest === 'Ve' ? 'Diamond' : 'White Sapphire'}</div>
+            <div style="margin-bottom: 1rem"><strong>Metal:</strong> ${['Su','Ma','Ju'].includes(chart.shadbala.strongest) ? 'Gold' : 'Silver/Platinum'}</div>
+            <div style="margin-bottom: 1rem"><strong>Finger:</strong> Index or Ring finger of the dominant hand.</div>
+            <p style="font-size: 11px; color: ${THEME.muted}; font-style: italic">Note: Ensure natural, untreated stones. Minimum 3+ carats suggested for results.</p>
+        </div>
+    </div>
+    
+    <div style="background:${THEME.primary}; color: #fff; padding: 25px; border-radius: 15px; border: 1px solid ${THEME.accent}">
+        <h4 style="margin-bottom: 15px; color:${THEME.accentLight}; font-family: 'Playfair Display', serif">Sacred Mantras</h4>
+        <p style="font-size: 11px; margin-bottom: 15px">Chant these sounds to harmonize your environment with your cosmic signature.</p>
+        <div style="font-family:serif; font-style:italic; font-size: 1.1rem; text-align:center; margin: 15px 0">"Om ${chart.shadbala.weakest === 'Sa' ? 'Namah Shivaya' : 'Shrim Klim Lakshmi-Narayana Namaha'}"</div>
+        <p style="font-size: 10px; opacity: 0.8">Repetitions: 108 times daily. Best performed during Brahma Muhurta (dawn).</p>
     </div>
   </div>
+
+  <div style="margin-top: 3rem; padding: 30px; border: 2px double ${THEME.border}; border-radius: 20px; background: #fff">
+    <h4 style="text-align: center; color: ${THEME.primary}; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif">Dana (Charity) & Ritual Alignment</h4>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: center; font-size: 11px">
+        <div>
+            <div style="font-size: 24px; margin-bottom: 10px">🐄</div>
+            <div style="font-weight: 800; color: ${THEME.primary}">Jiva Karuna</div>
+            <div style="margin-top: 5px">Feed stray cows or birds on ${chart.shadbala.weakest === 'Sa' ? 'Saturdays' : 'Thursdays'}.</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; margin-bottom: 10px">🍚</div>
+            <div style="font-weight: 800; color: ${THEME.primary}">Anna Dana</div>
+            <div style="margin-top: 5px">Donate raw grains to community kitchens on Full Moon days.</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; margin-bottom: 10px">🕯️</div>
+            <div style="font-weight: 800; color: ${THEME.primary}">Deepa Danam</div>
+            <div style="margin-top: 5px">Light a sesame oil lamp near a Peepal tree at sunset.</div>
+        </div>
+    </div>
+  </div>
+  ${PageFooter(21, meta.name)}
+</div>
+
+<!-- PAGE 22: SYNTHESIS -->
+<div class="page">
+  ${SectionHeader('20', 'The Life Synthesis', 'Report Summary')}
+  <p style="margin-bottom: 3rem; font-size: 1.15rem; line-height: 1.8; font-style: italic; border-bottom: 1px solid ${THEME.accentLight}; padding-bottom: 20px">
+    "${escapeHtml(chart.interpretation.headline)}"
+  </p>
   
-  <div style="margin-top: 3rem; text-align: center; color: ${THEME.muted}">
-    <div style="font-size: 40px; margin-bottom: 10px">💠</div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem">
+    <div>
+        <h3 class="section-badge" style="background:${THEME.emerald}11; color:${THEME.emerald}">Core Strengths</h3>
+        <div style="margin-top: 1rem">
+            ${chart.interpretation.strengths.slice(0, 3).map(i => `
+                <div style="margin-bottom: 1.5rem">
+                    <div style="font-weight: 800; color: ${THEME.primary}">${i.title}</div>
+                    <div style="font-size: 12px; margin-top: 4px">${i.message}</div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+    <div>
+        <h3 class="section-badge" style="background:${THEME.rose}11; color:${THEME.rose}">Karmic Cautions</h3>
+        <div style="margin-top: 1rem">
+            ${chart.interpretation.cautions.slice(0, 3).map(i => `
+                <div style="margin-bottom: 1.5rem">
+                    <div style="font-weight: 800; color: ${THEME.primary}">${i.title}</div>
+                    <div style="font-size: 12px; margin-top: 4px">${i.message}</div>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 4rem; background: ${THEME.surface}; padding: 35px; border-radius: 20px; border: 1px solid ${THEME.accentLight}; position: relative; overflow: hidden">
+    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.05; transform: rotate(-15deg)">${ICONS.om}</div>
+    <h3 style="margin-bottom: 1.5rem; color: ${THEME.secondary}; font-family: 'Playfair Display', serif">Strategic Next Steps</h3>
+    <ul style="list-style: none; padding: 0">
+        ${chart.interpretation.topInsights.flatMap(i => i.actions || []).slice(0, 5).map(action => `
+            <li style="margin-bottom: 1rem; display: flex; gap: 15px; font-size: 13px">
+                <span style="color:${THEME.accent}; font-weight: 900">✦</span>
+                <span>${action}</span>
+            </li>
+        `).join('')}
+    </ul>
+  </div>
+
+  <div style="margin-top: 5rem; text-align: center; color: ${THEME.muted}">
+    <div style="font-size: 40px; margin-bottom: 10px">${ICONS.swastik}</div>
     <div style="font-weight: 900; letter-spacing: 2px">OM TAT SAT</div>
     <div style="font-size: 10px; margin-top: 10px">Vedaansh Jyotish Master Dossier • Professional Edition</div>
   </div>
-  ${PageFooter(21, meta.name)}
+  ${PageFooter(22, meta.name)}
 </div>
 
 </body>
