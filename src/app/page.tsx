@@ -303,6 +303,7 @@ function HomeContent() {
   const [defaultChart, setDefaultChart] = useState<any>(null)
   const [fetchingDefault, setFetchingDefault] = useState(false)
   const [todayPanchang,   setTodayPanchang]   = useState<import('@/types/astrology').PanchangData | null>(null)
+  const [autoLoaded,      setAutoLoaded]      = useState(false)
 
   const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedAcgPlanets(prev => {
@@ -359,6 +360,7 @@ function HomeContent() {
               setUserPrefs(prev => ({
                 ...prev,
                 ...(prefs.defaultAyanamsha    ? { ayanamsha:    prefs.defaultAyanamsha    } : {}),
+                ...(prefs.defaultChartStyle   ? { chartStyle:   prefs.defaultChartStyle   } : {}),
                 ...(prefs.defaultHouseSystem  ? { houseSystem:  prefs.defaultHouseSystem  } : {}),
                 ...(prefs.defaultNodeMode     ? { nodeMode:     prefs.defaultNodeMode     } : {}),
                 ...(prefs.karakaScheme        ? { karakaScheme: prefs.karakaScheme        } : {}),
@@ -372,6 +374,30 @@ function HomeContent() {
         .finally(() => setFetchingDefault(false))
     }
   }, [status])
+
+  // 1c. Auto-load default chart if enabled and no chart is active
+  useEffect(() => {
+    if (status === 'authenticated' && defaultChart && !chart && !autoLoaded && !searchParams.has('name') && !searchParams.has('new')) {
+      setAutoLoaded(true)
+      setLoading(true)
+      fetch('/api/chart/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...defaultChart,
+          settings: { ...userPrefs, ...defaultChart.settings }
+        })
+      })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setChart(json.data)
+        }
+      })
+      .catch(err => console.error('Auto-load failed', err))
+      .finally(() => setLoading(false))
+    }
+  }, [status, defaultChart, chart, autoLoaded, searchParams, userPrefs, setChart])
   
   // 1b. Fetch today's panchang for dashboard insights
   useEffect(() => {

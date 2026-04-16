@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export function AdminSidebar({ user }: { user: any }) {
+export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => void }) {
   const pathname = usePathname()
 
   const links = [
@@ -16,7 +16,8 @@ export function AdminSidebar({ user }: { user: any }) {
 
   return (
     <aside style={{
-        width: 260,
+        width: '100%',
+        height: '100%',
         background: 'var(--surface-2)',
         borderRight: '1px solid var(--border)',
         display: 'flex',
@@ -24,7 +25,7 @@ export function AdminSidebar({ user }: { user: any }) {
         zIndex: 100
       }}>
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-soft)' }}>
-          <Link href="/admin" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link href="/admin" onClick={onClose} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <span style={{ fontSize: '1.5rem' }}>🛡️</span>
             <div>
               <div style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Admin</div>
@@ -40,6 +41,7 @@ export function AdminSidebar({ user }: { user: any }) {
               <Link 
                 key={link.href}
                 href={link.href} 
+                onClick={onClose}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -63,6 +65,7 @@ export function AdminSidebar({ user }: { user: any }) {
           <div style={{ height: 1, background: 'var(--border-soft)', margin: '1rem 0' }} />
           <Link 
             href="/" 
+            onClick={onClose}
             style={{
               display: 'flex',
               alignItems: 'center',

@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { ChartOutput, GrahaId, Rashi, RASHI_NAMES, RASHI_SHORT, GRAHA_NAMES, DashaNode, RASHI_SANSKRIT } from '@/types/astrology'
 import { KARAKA_NAMES_8, KARAKA_DESCRIPTIONS } from '@/lib/engine/karakas'
 import { DashaTree } from '@/components/dasha/DashaTree'
@@ -58,7 +58,7 @@ export function JaiminiAspectChart({
   })
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', padding: '0.5rem' }}>
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
         <defs>
           <radialGradient id="cosmic-glow" cx="50%" cy="50%" r="50%">
@@ -201,7 +201,7 @@ export function JaiminiAspectChartNorth({
   const getRashiInHouse = (h: number) => ((ascRashi + h - 2) % 12) + 1
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.5rem' }}>
       <svg viewBox={`0 0 ${S} ${S}`} width={S} height={S} style={{ maxWidth: '100%', height: 'auto', overflow: 'visible' }}>
         {Array.from({ length: 12 }, (_, i) => {
           const h = i + 1
@@ -310,6 +310,14 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
   const [activeKaraka, setActiveKaraka] = useState<string | null>(null)
   const [selectedAspectSign, setSelectedAspectSign] = useState<Rashi | null>(null)
   const [chartStyle, setChartStyle] = useState<'south' | 'north'>('south')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 900)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // ── Helpers ────────────────────────────────────────────────
   
@@ -403,8 +411,8 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
 
   return (
     <div className="fade-up" style={{ 
-      display: 'flex', flexDirection: 'column', gap: '2.5rem', 
-      padding: '2rem', 
+      display: 'flex', flexDirection: 'column', gap: isMobile ? '1.5rem' : '2.5rem', 
+      padding: isMobile ? '1rem' : '2rem', 
       background: 'var(--surface-deep)',
       borderRadius: 'var(--r-xl)',
       color: 'var(--text-primary)'
@@ -416,19 +424,19 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
           position: 'absolute', top: -40, left: -40, width: 200, height: 200, 
           background: 'var(--gold-faint)', filter: 'blur(80px)', zIndex: 0, opacity: 0.3 
         }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: '1.25rem', marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>
           <div style={{ 
-             width: 64, height: 64, borderRadius: '20px', 
+             width: isMobile ? 48 : 64, height: isMobile ? 48 : 64, borderRadius: isMobile ? '14px' : '20px', 
              background: 'linear-gradient(135deg, var(--gold) 0%, #B45309 100%)',
              display: 'flex', alignItems: 'center', justifyContent: 'center',
              boxShadow: '0 0 25px rgba(201,168,76,0.4)',
-             fontSize: '2rem'
+             fontSize: isMobile ? '1.5rem' : '2rem'
           }}>💠</div>
           <div>
-            <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-gold)' }}>
+            <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.6rem' : '2.2rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--text-gold)', lineHeight: 1.1 }}>
               Jaimini Intelligence
             </h1>
-            <p style={{ margin: '0.25rem 0 0', fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+            <p style={{ margin: '0.25rem 0 0', fontSize: isMobile ? '0.85rem' : '1rem', color: 'var(--text-muted)', fontWeight: 500 }}>
               The most advanced sutra-based predictive engine for the modern Jyotishi.
             </p>
           </div>
@@ -436,7 +444,7 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
       </section>
 
       {/* ── Karakamsha & Lagnamsha Insights ── */}
-      <section className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+      <section className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
          <div className="card-glass" style={{ 
            padding: '1.5rem', border: '1px solid var(--gold-soft)', 
            background: 'rgba(255,255,255,0.03)', 
@@ -494,7 +502,7 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
           transition={{ duration: 0.6 }}
         >
           <h3 className="label-caps" style={{ marginBottom: '1.25rem', color: 'var(--gold)', borderLeft: '4px solid var(--gold)', paddingLeft: '0.75rem' }}>Active Jaimini Rājayogas</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
             {jaiminiYogas.map((yoga, k) => (
               <motion.div 
                 key={k} 
@@ -539,7 +547,7 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
               }
             }
           }}
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' }}
+          style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: isMobile ? '0.75rem' : '1rem' }}
         >
           {karakaEntries.map(([key, gid]) => {
             if (!gid) return null
@@ -571,15 +579,15 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
                 whileHover={{ y: -5, boxShadow: '0 10px 30px rgba(0,0,0,0.3), 0 0 20px rgba(201,168,76,0.1)' }}
               >
                 {isAK && <div className="glow-edge" style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'var(--gold)' }} />}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 900, color: isAK ? 'var(--gold)' : 'var(--text-muted)' }}>{key}</span>
-                  <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>{GRAHA_NAMES[gid]}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <span style={{ fontSize: '0.6rem', fontWeight: 900, color: isAK ? 'var(--gold)' : 'var(--text-muted)' }}>{key}</span>
+                  <span style={{ fontSize: isMobile ? '0.75rem' : '0.96rem', fontWeight: 700, color: 'var(--text-primary)' }}>{GRAHA_NAMES[gid]}</span>
                 </div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.25rem' }}>{name}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.75rem', height: '2.5rem', overflow: 'hidden' }}>{info}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-soft)' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>D9: {RASHI_SHORT[d9Rashi]}</div>
-                  <div style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-gold)' }}>{grahaData?.degree.toFixed(1)}°</div>
+                <div style={{ fontSize: isMobile ? '0.8rem' : '1rem', fontWeight: 700, marginBottom: '0.2rem' }}>{name}</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.5rem', height: isMobile ? 'auto' : '2.5rem', overflow: 'hidden', lineHeight: 1.3 }}>{info}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-soft)' }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>D9: {RASHI_SHORT[d9Rashi]}</div>
+                  <div style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-gold)' }}>{grahaData?.degree.toFixed(1)}°</div>
                 </div>
               </motion.div>
             )
@@ -599,30 +607,30 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
               const signName = i === 0 ? 'Lagna' : i === 1 ? 'Arudha Lagna' : 'Atmakaraka'
               const argalaData = getArgalaData(sign as Rashi)
               return (
-                <div key={i} className="card-glass" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border-soft)' }}>
+                <div key={i} className="card-glass" style={{ padding: isMobile ? '1rem' : '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border-soft)' }}>
                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-gold)', marginBottom: '1.25rem', textAlign: 'center' }}>
                       Ref: {signName} ({RASHI_SHORT[sign as Rashi]})
                    </div>
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                       {argalaData.map((d, j) => (
-                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
-                           <div style={{ width: 40, textAlign: 'center', fontWeight: 800, fontSize: '0.7rem', opacity: 0.6 }}>{d.id}</div>
+                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.5rem' : '0.75rem', padding: '0.65rem', background: 'var(--surface-1)', borderRadius: 'var(--r-md)' }}>
+                           <div style={{ width: 35, textAlign: 'center', fontWeight: 800, fontSize: '0.65rem', opacity: 0.6 }}>{d.id}</div>
                            <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{d.label}</div>
-                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[d.pos]}</div>
+                              <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{d.label}</div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{RASHI_NAMES[d.pos]}</div>
                            </div>
-                           <div style={{ display: 'flex', gap: '4px' }}>
+                           <div style={{ display: 'flex', gap: '3px' }}>
                               {d.occupants.map(gid => (
-                                <span key={gid} style={{ padding: '2px 4px', background: 'var(--teal-faint)', color: 'var(--teal)', fontSize: '0.65rem', fontWeight: 900, borderRadius: 3 }}>{gid}</span>
+                                <span key={gid} style={{ padding: '1px 3px', background: 'var(--teal-faint)', color: 'var(--teal)', fontSize: '0.6rem', fontWeight: 900, borderRadius: 2 }}>{gid}</span>
                               ))}
-                              {d.occupants.length === 0 && <span style={{ opacity: 0.2 }}>—</span>}
+                              {d.occupants.length === 0 && <span style={{ opacity: 0.2, fontSize: '0.7rem' }}>—</span>}
                            </div>
                            <div style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
-                           <div style={{ display: 'flex', gap: '4px' }}>
+                           <div style={{ display: 'flex', gap: '3px' }}>
                               {d.blockers.map(gid => (
-                                <span key={gid} style={{ padding: '2px 4px', background: 'var(--rose-faint)', color: 'var(--rose)', fontSize: '0.65rem', fontWeight: 900, borderRadius: 3 }}>{gid}</span>
+                                <span key={gid} style={{ padding: '1px 3px', background: 'var(--rose-faint)', color: 'var(--rose)', fontSize: '0.6rem', fontWeight: 900, borderRadius: 2 }}>{gid}</span>
                               ))}
-                              {d.blockers.length === 0 && <span style={{ opacity: 0.2 }}>—</span>}
+                              {d.blockers.length === 0 && <span style={{ opacity: 0.2, fontSize: '0.7rem' }}>—</span>}
                            </div>
                         </div>
                       ))}
@@ -638,8 +646,8 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
         <h3 className="label-caps" style={{ marginBottom: '1.5rem', borderLeft: '4px solid var(--teal)', paddingLeft: '0.75rem' }}>Bhāva Āruḍha Landscape</h3>
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-          gap: '0.85rem' 
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', 
+          gap: isMobile ? '0.65rem' : '0.85rem' 
         }}>
           {Object.entries(ARUDHA_LABELS).map(([key, info]) => {
             const rashi = arudhas[key as keyof typeof arudhas] as Rashi
@@ -647,20 +655,20 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
             const isAL = key === 'AL' || key === 'A12'
             return (
               <div key={key} style={{ 
-                padding: '1.25rem', 
+                padding: isMobile ? '0.75rem' : '1.25rem', 
                 background: 'var(--surface-1)',
                 border: `1px solid ${isAL ? 'var(--teal-soft)' : 'var(--border-soft)'}`,
                 borderRadius: 'var(--r-lg)',
-                display: 'flex', flexDirection: 'column', gap: '0.5rem',
+                display: 'flex', flexDirection: 'column', gap: '0.35rem',
                 transition: 'all 0.2s',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <span style={{ fontSize: '1.2rem' }}>{info.icon}</span>
-                   <span style={{ fontSize: '0.7rem', fontWeight: 900, color: 'var(--teal)' }}>{key}</span>
+                   <span style={{ fontSize: isMobile ? '1rem' : '1.2rem' }}>{info.icon}</span>
+                   <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--teal)' }}>{key}</span>
                 </div>
                 <div>
-                   <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{info.label}</div>
-                   <div style={{ fontSize: '1.1rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                   <div style={{ fontSize: isMobile ? '0.75rem' : '0.9rem', fontWeight: 700 }}>{info.label}</div>
+                   <div style={{ fontSize: isMobile ? '0.9rem' : '1.1rem', color: 'var(--text-primary)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
                       {RASHI_NAMES[rashi]}
                    </div>
                 </div>
@@ -676,16 +684,16 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
-          gap: '2rem',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(400px, 1fr))', 
+          gap: isMobile ? '1.5rem' : '2.0rem',
           alignItems: 'start'
         }}>
           {/* Left: Interactive Chart */}
-          <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-soft)', background: 'var(--surface-1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="card" style={{ padding: isMobile ? '1rem' : '1.5rem', border: '1px solid var(--border-soft)', background: 'var(--surface-1)' }}>
+            <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: '1rem', marginBottom: '1.5rem' }}>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-gold)' }}>Interactive Aspect Exploration</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Click a sign to visualize its Jaimini Rashi Drishti</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Click a sign to visualize Jaimini Rāśi Dṛṣṭi</div>
               </div>
               <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--surface-3)', padding: '2px', borderRadius: '8px' }}>
                 <button 
@@ -807,10 +815,11 @@ export function JaiminiPanel({ chart }: JaiminiPanelProps) {
         </h3>
         {chart.dashas.chara && chart.dashas.chara.length > 0 ? (
           <div style={{ 
-            padding: '2rem', 
+            padding: isMobile ? '1rem' : '2rem', 
             background: 'linear-gradient(135deg, rgba(201,168,76,0.05) 0%, rgba(0,0,0,0) 100%)', 
             borderRadius: 'var(--r-xl)',
-            border: '1px solid var(--gold-soft)' 
+            border: '1px solid var(--gold-soft)',
+            overflowX: 'auto'
           }}>
             <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} />
           </div>

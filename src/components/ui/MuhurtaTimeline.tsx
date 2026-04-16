@@ -37,6 +37,14 @@ const activities = [
 export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
   const loading = props.loading || false;
   const [selectedActivity, setSelectedActivity] = useState('BUSINESS');
+  const [isMobile, setIsMobile] = useState(false);
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 900);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const activeData = useMemo(() => {
     const data = props.data || [];
@@ -67,27 +75,21 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
   }, [selectedActivity]);
 
   return (
-    <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '1.5rem', boxShadow: 'var(--shadow-card)', position: 'relative' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 'var(--r-sm)', background: 'var(--gold-faint)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold)' }}>
-            <Zap className="w-5 h-5" />
-          </div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
-            Muhurta Intelligence
-          </h2>
+    <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: isMobile ? '0.85rem' : '1.5rem', boxShadow: 'var(--shadow-card)', position: 'relative' }}>
+      {!isMobile && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '1.25rem' }}>
+          <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+            Auspicious windows for the next 24 hours
+          </p>
         </div>
-        <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-          Auspicious windows for the next 24 hours
-        </p>
-      </div>
+      )}
 
-      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: isMobile ? '1rem' : '1.5rem', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
         {activities.map(act => {
           const isActive = selectedActivity === act.id;
           const Icon = act.icon;
           return (
-            <button key={act.id} onClick={() => setSelectedActivity(act.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid', borderColor: isActive ? 'var(--gold)' : 'var(--border)', background: isActive ? 'var(--gold-faint)' : 'var(--surface-2)', color: isActive ? 'var(--gold-light)' : 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)', fontSize: '0.85rem' }}>
+            <button key={act.id} onClick={() => setSelectedActivity(act.id)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: isMobile ? '0.5rem 0.8rem' : '0.6rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid', borderColor: isActive ? 'var(--gold)' : 'var(--border)', background: isActive ? 'var(--gold-faint)' : 'var(--surface-2)', color: isActive ? 'var(--gold-light)' : 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)', fontSize: isMobile ? '0.75rem' : '0.85rem' }}>
               <Icon className="w-4 h-4" />
               {act.label}
             </button>
@@ -95,15 +97,15 @@ export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
         })}
       </div>
 
-      <div style={{ position: 'relative', height: '160px', marginBottom: '1.5rem', background: 'var(--surface-0)', borderRadius: 'var(--r-md)', padding: '1.25rem' }}>
+      <div style={{ position: 'relative', height: isMobile ? '120px' : '160px', marginBottom: '1.5rem', background: 'var(--surface-0)', borderRadius: 'var(--r-md)', padding: isMobile ? '1rem 0.75rem' : '1.25rem' }}>
         {loading ? (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Syncing with planetary grid...</div>
+          <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.8rem' }}>Syncing with planetary grid...</div>
         ) : (
-          <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', gap: '4px' }}>
+          <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', gap: isMobile ? '2px' : '4px' }}>
             {activeData.map((d, i) => (
-              <motion.div key={i} initial={{ height: 0 }} animate={{ height: d.info.score + '%' }} style={{ flex: 1, minWidth: '4px', borderRadius: '2px 2px 0 0', background: d.info.score > 75 ? 'var(--teal)' : d.info.score > 50 ? 'var(--amber)' : 'var(--border-bright)', opacity: d.info.score < 35 ? 0.3 : 0.8, position: 'relative' }}>
-                {i % 8 === 0 && (
-                  <div style={{ position: 'absolute', bottom: '-20px', left: '50%', transform: 'translateX(-50%)', fontSize: '9px', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{new Date(d.time).getHours()}:00</div>
+              <motion.div key={i} initial={{ height: 0 }} animate={{ height: d.info.score + '%' }} style={{ flex: 1, minWidth: isMobile ? '2px' : '4px', borderRadius: '2px 2px 0 0', background: d.info.score > 75 ? 'var(--teal)' : d.info.score > 50 ? 'var(--amber)' : 'var(--border-bright)', opacity: d.info.score < 35 ? 0.3 : 0.8, position: 'relative' }}>
+                {i % (isMobile ? 12 : 8) === 0 && (
+                  <div style={{ position: 'absolute', bottom: '-20px', left: '50%', transform: 'translateX(-50%)', fontSize: '8px', color: 'var(--text-muted)', whiteSpace: 'nowrap', opacity: 0.6 }}>{new Date(d.time).getHours()}:00</div>
                 )}
               </motion.div>
             ))}

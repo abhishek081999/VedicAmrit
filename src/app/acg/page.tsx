@@ -13,6 +13,14 @@ export default function ACGPage() {
   const [selectedPlanets, setSelectedPlanets] = useState<Set<any>>(new Set(['Su', 'Mo', 'Ju', 'Ve']))
   const [activeParans, setActiveParans] = useState<any[]>([])
   const [natalData, setNatalData] = useState<any[]>([])
+  const [isMobile, setIsMobile] = useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handlePlanetsChange = useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedPlanets(planets)
@@ -22,14 +30,19 @@ export default function ACGPage() {
 
   if (!chart) {
     return (
-      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: '4rem 2rem' }}>
-        <div className="card" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '3rem' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1.5rem' }}>🌍</div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', color: 'var(--text-gold)', marginBottom: '1rem' }}>Birth Data Required</h2>
-          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem', lineHeight: 1.6 }}>
-            Astrocartography requires your exact birth coordinates to map your personal power lines across the globe.
+      <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center', padding: isMobile ? '2rem 1rem' : '4rem 2rem', minHeight: '80vh' }}>
+        <div className="card glass-glow" style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: isMobile ? '2rem' : '3.5rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ 
+            position: 'absolute', top: '-10%', left: '-10%', width: '120%', height: '120%', 
+            background: 'radial-gradient(circle at center, var(--gold-faint) 0%, transparent 70%)',
+            zIndex: -1, opacity: 0.5
+          }} />
+          <div style={{ fontSize: isMobile ? '3.5rem' : '4.5rem', marginBottom: '1.5rem', filter: 'drop-shadow(0 0 20px var(--gold-glow))' }}>🌍</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.8rem' : '2.2rem', color: 'var(--text-gold)', marginBottom: '1rem', fontWeight: 700 }}>Birth Data Required</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', lineHeight: 1.6, fontSize: '1rem' }}>
+            Astrocartography uses your precise birth moment to map planetary power lines across the globe. Enter your details to begin your relocation journey.
           </p>
-          <Link href="/?new=true" className="btn btn-primary" style={{ padding: '0.75rem 2rem', textDecoration: 'none' }}>
+          <Link href="/?new=true" className="btn btn-primary" style={{ padding: '0.85rem 2.5rem', textDecoration: 'none', fontSize: '1rem' }}>
             Enter Birth Details
           </Link>
         </div>
@@ -38,43 +51,126 @@ export default function ACGPage() {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
-      <header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-          <span className="badge-accent">Premium Module</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Relocation Intelligence</span>
+    <div className="fade-up" style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: isMobile ? '1rem' : '2rem', 
+      padding: isMobile ? '1rem' : '2.5rem',
+      position: 'relative'
+    }}>
+      {/* Background Decor */}
+      <div style={{ 
+        position: 'absolute', top: 0, right: 0, width: '40%', height: '400px', 
+        background: 'radial-gradient(ellipse at top right, var(--gold-faint) 0%, transparent 70%)',
+        zIndex: -1, pointerEvents: 'none', opacity: 0.6
+      }} />
+
+      <header style={{ marginBottom: isMobile ? '0.5rem' : '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+          <span className="badge-accent" style={{ padding: '0.25rem 0.75rem', fontSize: '0.65rem' }}>Phase 8 — Advanced Core</span>
+          <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, var(--border-bright), transparent)' }} />
+          <span className="label-caps" style={{ color: 'var(--gold)', letterSpacing: '0.2em' }}>Precision Mapping</span>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, margin: 0 }}>
-          Global Horizon Mapping
-        </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: '800px', fontSize: '1.1rem' }}>
-          Explore how the planetary positions at your moment of birth resonate with different locations worldwide. 
-          Discover your zones of success, love, and spiritual growth.
-        </p>
+        
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem' }}>
+          <div>
+            <h1 style={{ 
+              fontFamily: 'var(--font-display)', 
+              fontSize: isMobile ? '2rem' : '3.2rem', 
+              fontWeight: 800, 
+              margin: 0,
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              background: 'linear-gradient(to bottom, var(--text-primary), var(--text-secondary))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              Global Horizon Mapping
+            </h1>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', maxWidth: '700px', fontSize: isMobile ? '0.95rem' : '1.15rem', lineHeight: 1.5 }}>
+              Decrypt the celestial blueprint across terrestrial space. Discover locations where your planetary potential reaches its zenith.
+            </p>
+          </div>
+          
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', borderRight: '2px solid var(--gold-faint)' }}>
+                <StatItem label="Active Lines" value={selectedPlanets.size} />
+                <StatItem label="Power Crossings" value={activeParans.length} />
+            </div>
+          )}
+        </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem', alignItems: 'start' }}>
-        <div className="card" style={{ padding: '0.5rem', overflow: 'hidden', height: '750px', border: '1px solid var(--gold-faint)' }}>
+      <main style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr' : '1fr 380px', 
+        gap: isMobile ? '1.5rem' : '2.5rem', 
+        alignItems: 'start' 
+      }}>
+        <div className="card glass" style={{ 
+          padding: '0.35rem', 
+          overflow: 'hidden', 
+          height: isMobile ? '600px' : '820px', 
+          border: '1px solid var(--border-bright)',
+          boxShadow: 'var(--shadow-lift)',
+          position: 'relative'
+        }}>
           <AstroCartographyMap 
             jd={chart.meta.julianDay} 
             birthCoords={[chart.meta.latitude, chart.meta.longitude]} 
             onVisiblePlanetsChange={handlePlanetsChange}
           />
         </div>
-        <aside style={{ position: 'sticky', top: '2rem' }}>
+        <aside 
+          className="acg-side-scroll"
+          style={{ 
+            position: isMobile ? 'static' : 'sticky', 
+            top: '2.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            maxHeight: isMobile ? 'none' : 'calc(100vh - 5rem)',
+            overflowY: isMobile ? 'visible' : 'auto',
+            paddingRight: isMobile ? 0 : '0.5rem'
+          }}
+        >
+          <style dangerouslySetInnerHTML={{ __html: `
+            .acg-side-scroll::-webkit-scrollbar { width: 4px; }
+            .acg-side-scroll::-webkit-scrollbar-track { background: transparent; }
+            .acg-side-scroll::-webkit-scrollbar-thumb { background: var(--gold-faint); border-radius: 10px; }
+          ` }} />
           <AstroCartographyAnalysis 
             visiblePlanets={selectedPlanets} 
             parans={activeParans}
             natalData={natalData}
           />
+          
+          <div className="card-gold" style={{ padding: '1.25rem', textAlign: 'center' }}>
+            <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 600, fontSize: '0.85rem' }}>
+              💡 Relocation Intelligence
+            </p>
+            <p style={{ margin: '0.5rem 0 0', color: 'var(--text-on-gold)', opacity: 0.8, fontSize: '0.75rem', lineHeight: 1.4 }}>
+              Click any city on the map to see how your personal energy shifts in that specific region.
+            </p>
+          </div>
         </aside>
-      </div>
+      </main>
 
-      <footer className="card-primary" style={{ padding: '1.5rem', textAlign: 'center', background: 'var(--gold-faint)' }}>
-        <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 500 }}>
-          💡 <strong>Pro Tip:</strong> Click any city on the map to see how your Rising Sign (Lagna) shifts in that specific region.
-        </p>
-      </footer>
+      {isMobile && (
+        <footer style={{ marginTop: '1rem', padding: '1rem', textAlign: 'center', opacity: 0.6 }}>
+           <p className="label-caps" style={{ fontSize: '0.6rem' }}>© Vedaansh Relocation Suite</p>
+        </footer>
+      )}
     </div>
   )
 }
+
+function StatItem({ label, value }: { label: string, value: number | string }) {
+    return (
+        <div style={{ textAlign: 'right' }}>
+            <div className="label-caps" style={{ fontSize: '0.6rem', marginBottom: '0.2rem' }}>{label}</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--gold)', fontFamily: 'var(--font-display)' }}>{value}</div>
+        </div>
+    )
+}
+

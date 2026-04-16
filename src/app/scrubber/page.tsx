@@ -11,6 +11,14 @@ const TransitScrubber = dynamic(() => import('@/components/dashboard/TransitScru
 export default function ScrubberPage() {
   const { chart } = useChart()
   const [transitGrahas, setTransitGrahas] = useState<GrahaData[] | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  React.useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1000)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   if (!chart) {
     return (
@@ -30,21 +38,21 @@ export default function ScrubberPage() {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2.5rem', padding: isMobile ? '1rem' : '2rem', maxWidth: 1200, margin: '0 auto' }}>
       <header>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
           <span className="badge-accent">Interactive Engine</span>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>4D Transit Analysis</span>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, margin: 0 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.6rem' : '2.5rem', fontWeight: 800, margin: 0, lineHeight: 1.1 }}>
           Planetary Time Scrubber
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: '800px', fontSize: '1.1rem' }}>
-          Scrub through years and months to visualize precisely how transiting planets interact with your natal placements in real-time.
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.6rem', maxWidth: '800px', fontSize: isMobile ? '0.9rem' : '1.1rem' }}>
+          Shift through time to visualize precisely how transiting planets interact with your natal placements.
         </p>
       </header>
 
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: isMobile ? '1rem' : '2.5rem' }}>
         <TransitScrubber natalChart={chart} onTransitChange={setTransitGrahas} />
       </div>
 

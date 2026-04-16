@@ -62,6 +62,7 @@ export interface IUser extends Document {
 
   createdAt: Date
   updatedAt: Date
+  defaultChartId: Types.ObjectId | null
 }
 
 // ── Schema ────────────────────────────────────────────────────
@@ -110,6 +111,8 @@ const UserSchema = new Schema<IUser>({
   // White-labeling (Platinum)
   brandName: { type: String, default: null },
   brandLogo: { type: String, default: null },
+  
+  defaultChartId: { type: Schema.Types.ObjectId, ref: 'Chart', default: null },
 }, {
   timestamps: true,
 })

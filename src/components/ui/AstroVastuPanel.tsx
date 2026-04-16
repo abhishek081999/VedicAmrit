@@ -104,6 +104,14 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   const [mode, setMode] = useState<'8' | '16'>('16')
   const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [selectedDeity, setSelectedDeity] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const activeZones = mode === '16' ? ZONES_16 : ZONES_8
   const sectorAngle = mode === '16' ? 22.5 : 45
@@ -140,22 +148,38 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
   const bestEntrance = useMemo(() => {
     // Entrance logic (32 Dwara) - Simplified for 16 zones
     // Usually, N3, N4, E3, E4, S3, S4, W3, W4 are best
-    const topZones = analysis
+    const topZones = [...analysis]
       .filter(z => ['N', 'E', 'W', 'S'].includes(z.id))
-      .sort((a, b) => b.score - a.score)
-    return topZones[0] || analysis[0]
-  }, [analysis])
+      .sort((a, b) => b.score - a.score);
+    return topZones[0] || analysis[0];
+  }, [analysis]);
 
   return (
     <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', color: 'var(--text-primary)' }}>
       {/* Premium Header */}
-      <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border)', paddingBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 0 10px var(--gold))' }}>☸</span>
-            <h1 style={{ margin: 0, fontSize: '2.8rem', fontWeight: 300, fontFamily: 'var(--font-display)' }}>Advanced Astro-Vāstu</h1>
+      <section style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        borderBottom: '1px solid var(--border)', 
+        paddingBottom: '1.5rem', 
+        flexWrap: 'wrap', 
+        gap: '1.5rem' 
+      }}>
+        <div style={{ flex: '1 1 300px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', filter: 'drop-shadow(0 0 10px var(--gold))' }}>☸</span>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: 'clamp(1.8rem, 5vw, 2.8rem)', 
+              fontWeight: 300, 
+              fontFamily: 'var(--font-display)',
+              lineHeight: 1.1
+            }}>
+              Advanced Astro-Vāstu
+            </h1>
           </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', maxWidth: '700px', marginBottom: '1.5rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 'clamp(0.9rem, 1.5vw, 1.1rem)', maxWidth: '700px', marginBottom: '1.5rem' }}>
             A high-precision analysis integrating Mahavastu principles with your specific planetary strengths.
           </p>
           
@@ -163,29 +187,45 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
           <div style={{ display: 'flex', background: 'var(--surface-3)', padding: '4px', borderRadius: '12px', width: 'fit-content', border: '1px solid var(--border-soft)' }}>
             <button 
               onClick={() => { setMode('8'); setSelectedZone(null); }}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', border: 'none', background: mode === '8' ? 'var(--gold)' : 'transparent', color: mode === '8' ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.85rem' }}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: mode === '8' ? 'var(--gold)' : 'transparent', color: mode === '8' ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.8rem' }}
             >
               8 Directions
             </button>
             <button 
               onClick={() => { setMode('16'); setSelectedZone(null); }}
-              style={{ padding: '0.6rem 1.2rem', borderRadius: '8px', border: 'none', background: mode === '16' ? 'var(--gold)' : 'transparent', color: mode === '16' ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.85rem' }}
+              style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: mode === '16' ? 'var(--gold)' : 'transparent', color: mode === '16' ? 'var(--text-on-gold)' : 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.2s', fontWeight: 600, fontSize: '0.8rem' }}
             >
               16 Directions
             </button>
           </div>
         </div>
         
-        <div className="card-gold hide-mobile" style={{ padding: '1.5rem', textAlign: 'center', minWidth: '180px' }}>
-          <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)' }}>Analysis Grid</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>{mode}-Kona</div>
+        <div style={{ padding: '1rem 1.5rem', textAlign: 'center', minWidth: '140px', background: 'var(--gold-faint)', border: '1px solid var(--border-bright)', borderRadius: 'var(--r-md)' }}>
+          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-gold)', marginBottom: '0.25rem' }}>Analysis Grid</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>{mode}-Kona</div>
         </div>
       </section>
 
       {/* 16 Zone Circular Visualization */}
-      <section style={{ display: 'flex', gap: '3rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 450px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
-          <div className="vastu-compass-container" style={{ position: 'relative', width: '450px', height: '450px' }}>
+      <section style={{ 
+        display: 'flex', 
+        gap: isMobile ? '2rem' : '3rem', 
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'center' : 'flex-start' 
+      }}>
+        <div style={{ 
+          width: '100%',
+          maxWidth: '450px',
+          position: 'relative', 
+          display: 'flex', 
+          justifyContent: 'center' 
+        }}>
+          <div className="vastu-compass-container" style={{ 
+            position: 'relative', 
+            width: '100%',
+            aspectRatio: '1',
+            maxWidth: '450px'
+          }}>
              <svg viewBox="0 0 200 200" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
                {/* Segment Pieces */}
                {analysis.map((zone, i) => {
@@ -237,10 +277,15 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
              </svg>
              {/* Precise Collision-Avoidance for Planets (Iterative Sorting) */}
              {(() => {
+               // Calculate relative scaling for planets based on container width
+               // The radius for planets needs to be relative to the 200px (internal SVG scale)
+               // But they are positioned absolute over the 450px container.
+               
                // 1. Calculate base positions
                let positioned = grahas.map(p => {
                  const baseAngle = ((p.rashi - 1) * 30 + (p.degree)) - 90
-                 return { ...p, angle: baseAngle, r: 110 }
+                 // radius in pixels relative to a 450px container
+                 return { ...p, angle: baseAngle, r: 105 } 
                })
 
                // 2. Sort by angle to handle sequential collisions
@@ -251,19 +296,19 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                  let stackCount = 0
                  for (let j = 0; j < i; j++) {
                     const angleDiff = Math.abs(positioned[i].angle - positioned[j].angle)
-                    if (angleDiff < 6 || angleDiff > 354) {
+                    if (angleDiff < 8 || angleDiff > 352) {
                        stackCount++
                     }
                  }
-                 positioned[i].r += (stackCount * 24) // Compact stacking to fit in 225px radius
+                 positioned[i].r += (stackCount * 22)
                }
 
                return positioned.map(p => (
                  <div key={p.id} style={{
                    position: 'absolute', top: '50%', left: '50%',
-                   transform: `rotate(${p.angle}deg) translateX(${p.r}px)`,
-                   background: 'var(--surface-4)', borderRadius: '50%', width: '30px', height: '30px',
-                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem',
+                   transform: `rotate(${p.angle}deg) translateX(${isMobile ? (p.r * 0.8) : p.r}px)`,
+                   background: 'var(--surface-4)', borderRadius: '50%', width: isMobile ? '24px' : '30px', height: isMobile ? '24px' : '30px',
+                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '0.6rem' : '0.7rem',
                    border: `2px solid ${p.isRetro ? 'var(--rose)' : 'var(--gold)'}`, 
                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 10 + (p.r / 10),
                    transition: 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
@@ -277,40 +322,47 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Info Panel for Selected Zone */}
-        <div style={{ flex: '1 1 350px' }}>
+        <div style={{ 
+          flex: isMobile ? '1 1 100%' : '1 1 350px', 
+          width: '100%' 
+        }}>
           {selectedZone ? (
-            <div className="card fade-in" style={{ padding: '2rem', height: '100%', border: '1px solid var(--gold)' }}>
+            <div className="card fade-in" style={{ 
+              padding: isMobile ? '1.25rem' : '2rem', 
+              height: '100%', 
+              border: '1px solid var(--gold)' 
+            }}>
               {(() => {
                 const z = analysis.find(z => z.id === selectedZone)!
                 return (
                   <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h2 style={{ margin: 0, color: 'var(--text-gold)' }}>{z.name} ({z.id})</h2>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <h2 style={{ margin: 0, color: 'var(--text-gold)', fontSize: isMobile ? '1.4rem' : '1.8rem' }}>{z.name} ({z.id})</h2>
                       <span className="badge badge-gold" style={{ padding: '0.4rem 1rem' }}>Score: {z.score}</span>
                     </div>
                     <div style={{ margin: '1rem 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                       <strong>Attribute:</strong> {z.quality}
                     </div>
-                    <div className="divider" />
+                    <div className="divider" style={{ margin: '1rem 0' }} />
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Zonal Lord</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Zonal Lord</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <span style={{ fontSize: '1.2rem' }}>{z.rulingPlanet?.dignity === 'exalted' ? '💎' : '🪐'}</span>
                           <span style={{ fontWeight: 600 }}>{GRAHA_NAMES[z.ruling as GrahaId]}</span>
-                          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({z.rulingPlanet?.dignity || 'Neutral'})</span>
+                          <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>({z.rulingPlanet?.dignity || 'Neutral'})</span>
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Chart Occupants</div>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Chart Occupants</div>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                           {z.occupants.map(o => <span key={o.id} className="badge badge-accent">{o.id}</span>)}
                           {z.occupants.length === 0 && <span style={{ opacity: 0.4, fontSize: '0.8rem' }}>No planets in this segment</span>}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.4rem' }}>Remedy</div>
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Remedy</div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.4, margin: 0 }}>
                           {z.score < 50 ? `Balance with ${z.element} elemental markers. Perform ${GRAHA_NAMES[z.ruling as GrahaId]} Shanti.` : `Ideal spot for ${z.id.includes('N') ? 'financial' : 'creative'} activity.`}
                         </p>
                       </div>
@@ -320,21 +372,21 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               })()}
             </div>
           ) : (
-            <div className="card" style={{ padding: '2rem', textAlign: 'center', opacity: 0.6, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+            <div className="card" style={{ padding: '2rem', textAlign: 'center', opacity: 0.6, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', minHeight: '200px' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🧭</div>
-              <h3>Select a Zone on the Compass</h3>
-              <p>Click any segment to view detailed astral-spatial correlations and remedial measures.</p>
+              <h3 style={{ fontSize: '1.2rem' }}>Select a Zone on the Compass</h3>
+              <p style={{ fontSize: '0.9rem' }}>Click any segment to view detailed astral-spatial correlations and remedial measures.</p>
             </div>
           )}
         </div>
       </section>
 
       {/* Detailed Insights Tabs */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* Room Usage Guide */}
-        <div className="card" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
             🏠 Global Room Usage Guide
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -360,11 +412,11 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Color Therapy & Interior Design */}
-        <div className="card" style={{ padding: '2rem' }}>
-          <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+          <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
             🎨 Zonal Color Therapy
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(4, 1fr)', gap: '1rem' }}>
             {[
               { zone: 'N', color: '#3182ce', name: 'Blue' },
               { zone: 'E', color: '#38a169', name: 'Green' },
@@ -389,7 +441,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Advanced Logic Sections */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* Dig Bala (Directional Strength) Analysis */}
         <div className="card" style={{ padding: '1.5rem' }}>
@@ -474,11 +526,11 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
       
       {/* Even More Advanced Insights */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* House Facing Compatibility */}
-        <div className="card" style={{ padding: '2rem', border: '1px solid var(--accent)' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', border: '1px solid var(--accent)' }}>
+           <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--accent)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>🧭</span> Personalized House Facing
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -502,8 +554,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Anatomical Vastu Purusha */}
-        <div className="card" style={{ padding: '2rem' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+           <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>🧘</span> Anatomical Vāstu
            </h3>
            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '1rem' }}>
@@ -525,8 +577,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Zonal Object Remedies Library */}
-        <div className="card" style={{ padding: '2rem' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+           <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>🐚</span> Vāstu Objects & Remedies
            </h3>
            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -548,7 +600,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Heatmap and Strategic Matrix */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* Zonal Potency Heatmap */}
         <div className="card" style={{ padding: '2rem' }}>
@@ -601,8 +653,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Opposite Hit Analysis (Veedhi Shoola Logic) */}
-      <section className="card" style={{ padding: '2rem', borderLeft: '5px solid var(--rose)' }}>
-         <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--rose)' }}>
+      <section className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', borderLeft: '5px solid var(--rose)' }}>
+         <h3 style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--rose)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
            <span>⚔</span> Opposite Axis Conflict (Hit Analysis)
          </h3>
          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -627,14 +679,14 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* 45 Deities Analysis & Remedy Priorities */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* 45 Deities (Devatas) Grid Analysis */}
-        <div className="card" style={{ padding: '2rem', gridColumn: '1 / -1' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', gridColumn: '1 / -1' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', marginBottom: '2rem', flexDirection: isMobile ? 'column' : 'row', gap: '1rem' }}>
               <div>
-                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
-                  <span>💠</span> 45 Deities (Vāstu Puruṣa Mandala)
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
+                  <span>💠</span> 45 Deities (Vastu Mandala)
                 </h3>
                 <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   Interactive 81-pada grid (Ekashitipada) showing internal energy fields and planetary hits.
@@ -649,9 +701,20 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               </div>
            </div>
            
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '3rem', alignItems: 'start' }}>
+           <div style={{ 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row', 
+              gap: isMobile ? '1.5rem' : '3rem', 
+              alignItems: 'start' 
+           }}>
               {/* Mandala SVG Grid */}
-              <div style={{ position: 'relative', width: '100%', maxWidth: '550px', margin: '0 auto', aspectRatio: '1' }}>
+              <div style={{ 
+                position: 'relative', 
+                width: '100%', 
+                maxWidth: isMobile ? '400px' : '550px', 
+                margin: '0 auto', 
+                aspectRatio: '1' 
+              }}>
                  <svg viewBox="0 0 90 90" style={{ width: '100%', height: '100%', filter: 'drop-shadow(0 10px 25px rgba(0,0,0,0.3))' }}>
                     {(() => {
                       return (
@@ -730,7 +793,13 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               </div>
 
               {/* Deity Detail Panel */}
-              <div className="card fade-in" style={{ padding: '1.5rem', background: 'var(--surface-2)', border: '1px solid var(--border)', height: '100%', minHeight: '350px' }}>
+              <div className="card fade-in" style={{ 
+                padding: isMobile ? '1.25rem' : '1.5rem', 
+                background: 'var(--surface-2)', 
+                border: '1px solid var(--border)', 
+                width: '100%',
+                minHeight: isMobile ? 'auto' : '350px' 
+              }}>
                 {selectedDeity ? (
                   (() => {
                     const DEITY_DESC: Record<string, string> = {
@@ -856,12 +925,12 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Priority Remedy Checklist */}
-        <div className="card" style={{ padding: '2rem' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--text-gold)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>⚡</span> Remedial Priority List
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {analysis.filter(a => a.score < 45).sort((a,b) => a.score - b.score).slice(0, 5).map((z, idx) => (
+              {[...analysis].filter(a => a.score < 45).sort((a,b) => a.score - b.score).slice(0, 5).map((z, idx) => (
                 <div key={z.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '1rem', background: 'var(--surface-3)', borderRadius: '12px' }}>
                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--rose)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{idx+1}</div>
                    <div style={{ flex: 1 }}>
@@ -882,11 +951,11 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Wealth & Health Focus Zones */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* Wealth & Cash Flow Optimizer */}
-        <div className="card-gold" style={{ padding: '2rem' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div className="card-gold" style={{ padding: isMobile ? '1.25rem' : '2rem' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>💰</span> Financial Vāstu Focus
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -914,8 +983,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
         </div>
 
         {/* Health & Vitality Monitor */}
-        <div className="card" style={{ padding: '2rem', border: '1px solid var(--teal)' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--teal)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', border: '1px solid var(--teal)' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--teal)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>🏥</span> Health & Vitality Vāstu
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -968,11 +1037,11 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Relationship, Skills & Guardians */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
         
         {/* Relationship & Skill Mastery */}
-        <div className="card" style={{ padding: '2rem', border: '1px solid var(--rose)' }}>
-           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--rose)' }}>
+        <div className="card" style={{ padding: isMobile ? '1.25rem' : '2rem', border: '1px solid var(--rose)' }}>
+           <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--rose)', fontSize: isMobile ? '1.1rem' : '1.3rem' }}>
              <span>💞</span> Relationships & Skills
            </h3>
            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -1025,33 +1094,40 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
       </section>
 
       {/* Property Executive Summary Report */}
-      <section className="card-gold" style={{ padding: '2.5rem', borderRadius: 'var(--r-lg)' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2rem' }}>Property Potential Analysis</h2>
-            <div className="badge badge-gold" style={{ padding: '10px 20px', fontSize: '1rem' }}>Overall Grade: {analysis.reduce((acc,z) => acc+z.score, 0) / analysis.length > 70 ? 'A+' : 'B'}</div>
+      <section className="card-gold" style={{ padding: isMobile ? '1.5rem' : '2.5rem', borderRadius: 'var(--r-lg)' }}>
+         <div style={{ 
+           display: 'flex', 
+           justifyContent: 'space-between', 
+           alignItems: isMobile ? 'flex-start' : 'center', 
+           marginBottom: '2rem',
+           flexDirection: isMobile ? 'column' : 'row',
+           gap: '1rem' 
+         }}>
+            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '2rem' }}>Property Potential Analysis</h2>
+            <div className="badge badge-gold" style={{ padding: isMobile ? '6px 12px' : '10px 20px', fontSize: isMobile ? '0.85rem' : '1rem' }}>Overall Grade: {analysis.length > 0 ? (analysis.reduce((acc,z) => acc + (z?.score || 0), 0) / analysis.length > 70 ? 'A+' : 'B') : 'N/A'}</div>
          </div>
-         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '3rem' }}>
-            <div style={{ borderRight: '1px solid rgba(201,168,76,0.2)' }}>
-               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--text-gold)' }}>Primary Strength</h4>
-               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
-                 The <strong>{analysis.sort((a,b)=>b.score-a.score)[0].name}</strong> zone is your strongest asset. This creates a natural resonance for success in {analysis.sort((a,b)=>b.score-a.score)[0].quality}.
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: isMobile ? '2rem' : '3rem' }}>
+            <div style={{ borderRight: isMobile ? 'none' : '1px solid rgba(201,168,76,0.2)', paddingBottom: isMobile ? '1.5rem' : 0, borderBottom: isMobile ? '1px solid rgba(201,168,76,0.1)' : 'none' }}>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.75rem', color: 'var(--text-gold)' }}>Primary Strength</h4>
+               <p style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+                 The <strong>{[...analysis].sort((a,b)=>b.score-a.score)[0]?.name}</strong> zone is your strongest asset. This creates a natural resonance for success in {[...analysis].sort((a,b)=>b.score-a.score)[0]?.quality}.
                </p>
             </div>
-            <div>
-               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--rose)' }}>Primary Weakness</h4>
-               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
-                  The <strong>{analysis.sort((a,b)=>a.score-b.score)[0].name}</strong> area shows significant depletion. This may manifest as issues in {analysis.sort((a,b)=>a.score-b.score)[0].quality}.
+            <div style={{ paddingBottom: isMobile ? '1.5rem' : 0, borderBottom: isMobile ? '1px solid rgba(201,168,76,0.1)' : 'none' }}>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.75rem', color: 'var(--rose)' }}>Primary Weakness</h4>
+               <p style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+                  The <strong>{[...analysis].sort((a,b)=>a.score-b.score)[0]?.name}</strong> area shows significant depletion. This may manifest as issues in {[...analysis].sort((a,b)=>a.score-b.score)[0]?.quality}.
                </p>
             </div>
-            <div style={{ borderLeft: '1px solid rgba(201,168,76,0.2)' }}>
-               <h4 style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: '1rem', color: 'var(--teal)' }}>Key Recommendation</h4>
-               <p style={{ fontSize: '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
+            <div style={{ borderLeft: isMobile ? 'none' : '1px solid rgba(201,168,76,0.2)' }}>
+               <h4 style={{ textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.1em', marginBottom: '0.75rem', color: 'var(--teal)' }}>Key Recommendation</h4>
+               <p style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 300, lineHeight: 1.5 }}>
                  Focus on activating the <strong>{bestEntrance.name}</strong> corridor and balancing the <strong>{analysis.find(z=>z.id === 'NE')?.element}</strong> element in the North-East.
                </p>
             </div>
          </div>
          <div className="divider" style={{ margin: '2rem 0', opacity: 0.2 }} />
-         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+         <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
            © {new Array(1).fill(new Date().getFullYear())} Advanced Astro-Vāstu Engine. Generated based on Natal planetary longitudes and Zonal Dignity mapping.
          </p>
       </section>

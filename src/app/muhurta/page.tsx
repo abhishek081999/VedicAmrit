@@ -238,6 +238,15 @@ export default function MuhurtaPage() {
   const [timelineData, setTimelineData] = useState<any[]>([])
   const [timelineLoading, setTimelineLoading] = useState(false)
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1100)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   // Fetch 24h timeline
   const fetchTimeline = useCallback(async () => {
     setTimelineLoading(true)
@@ -306,37 +315,19 @@ export default function MuhurtaPage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
-      <header style={{
-        padding: '0 2rem', height: '3.75rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        backdropFilter: 'blur(16px)', position: 'sticky', top: 0, zIndex: 50,
-        background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.2rem' }}>🪐</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
-          </Link>
-          <span style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.9rem', color: 'var(--text-gold)', fontWeight: 600 }}>
-            Muhūrta Finder
-          </span>
-        </div>
-        <nav style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link href="/panchang" style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: 'var(--text-secondary)', textDecoration: 'none' }}>Daily Pañcāṅga</Link>
-          <ThemeToggle />
-        </nav>
-      </header>
 
-      <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: isMobile ? '1.5rem 1rem' : '1rem clamp(1rem,3vw,2rem) 3rem', display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--text-gold)', margin: 0 }}>Muhūrta Intelligence</h1>
+        </div>
         
         {/* Advanced Personal Timeline */}
         <section>
           <MuhurtaTimeline data={timelineData} loading={timelineLoading} />
         </section>
 
-        <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+        <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: isMobile ? '1.25rem' : '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
             Find Auspicious Times
           </h1>
           <div>
@@ -357,7 +348,7 @@ export default function MuhurtaPage() {
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
             <div style={{ flex: 1, minWidth: 140 }}>
               <label style={{ fontSize: '0.72rem' }}>From</label>
               <input type="date" className="input" value={fromDate} min={today}
@@ -378,7 +369,7 @@ export default function MuhurtaPage() {
               </select>
             </div>
           </div>
-          <div style={{ maxWidth: 320 }}>
+          <div style={{ maxWidth: isMobile ? '100%' : 400 }}>
             <LocationPicker value={location} onChange={setLocation} label="📍 Location" />
           </div>
           <button onClick={findMuhurta} disabled={loading} className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}>

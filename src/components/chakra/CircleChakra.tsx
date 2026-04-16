@@ -109,6 +109,30 @@ export function CircleChakra({
     }, 200)
   }
 
+  const handlePlanetTouchStart = (e: React.TouchEvent, g: any) => {
+    const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(g.id as string)
+    if (!isMainPlanet) return
+
+    if (hoveredPlanet && hoveredPlanet.id === g.id) {
+      setHoveredPlanet(null)
+    } else {
+      setMousePos({ x: e.touches[0].clientX, y: e.touches[0].clientY })
+      setHoveredPlanet({
+        id: g.id,
+        name: g.name || g.id,
+        totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
+        isRetro: g.isRetro,
+        dignity: g.dignity,
+        nakshatraIndex: g.nakshatraIndex,
+        nakshatraName: g.nakshatraName,
+        pada: g.pada,
+        charaKaraka: g.charaKaraka,
+        avastha: g.avastha,
+        house: ((g.rashi - ascRashi + 12) % 12) + 1
+      })
+    }
+  }
+
 
   const handlePlanetMouseLeave = () => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current)
@@ -263,6 +287,7 @@ export function CircleChakra({
                   onMouseEnter={(e) => handlePlanetMouseEnter(e, g)}
                   onMouseLeave={handlePlanetMouseLeave}
                   onMouseMove={handlePlanetMouseMove}
+                  onTouchStart={(e) => handlePlanetTouchStart(e, g)}
                   style={{ cursor: 'help' }}
                 >
 
@@ -350,7 +375,14 @@ export function CircleChakra({
         )
       })}
 
-      {/* ── Tooltip Portal Removed ── */}
+      {/* ── Tooltip Portal ── */}
+      {isMounted && hoveredPlanet && (
+        <PlanetTooltipCard 
+          planet={hoveredPlanet} 
+          x={mousePos.x} y={mousePos.y} 
+          onClose={() => setHoveredPlanet(null)} 
+        />
+      )}
     </svg>
 
 

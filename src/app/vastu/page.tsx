@@ -29,25 +29,45 @@ export default function VastuPage() {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', padding: '2rem' }}>
-      <header>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+    <div className="fade-up" style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      gap: '1.5rem', 
+      padding: 'var(--spacing-md, 1rem)',
+      maxWidth: '1400px',
+      margin: '0 auto',
+      width: '100%'
+    }}>
+      <header style={{ padding: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
           <span className="badge-accent">Advance Module</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Space & Time Alignment</span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-gold)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Space & Time Alignment</span>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 700, margin: 0 }}>
+        <h1 style={{ 
+          fontFamily: 'var(--font-display)', 
+          fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', 
+          fontWeight: 700, 
+          margin: 0,
+          lineHeight: 1.2
+        }}>
           Astro-Vastu Intelligence
         </h1>
-        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', maxWidth: '800px', fontSize: '1.1rem' }}>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.75rem', maxWidth: '800px', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', lineHeight: 1.6 }}>
           Analyze the 45 Deities of the Vastu Purusha Mandala and the 16 Zonal Strengths specifically mapped to your unique planetary signature.
         </p>
       </header>
 
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: 'clamp(1rem, 3vw, 2rem)', overflow: 'hidden' }}>
         <AstroVastuPanel chart={chart} />
       </div>
 
-      <footer style={{ marginTop: '2rem', padding: '2rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
+      <footer style={{ 
+        marginTop: '1rem', 
+        padding: 'clamp(1.25rem, 4vw, 2rem)', 
+        background: 'var(--surface-2)', 
+        borderRadius: 'var(--r-md)', 
+        border: '1px solid var(--border-soft)' 
+      }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-gold)', marginBottom: '1rem' }}>Vedic Directional Wisdom</h3>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: 1.6, margin: 0 }}>
           Astro-Vastu is the bridge between the micro-cosmos (your horoscope) and the macro-cosmos (your environment). 
