@@ -475,7 +475,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 
 <!-- PAGE 2: TABLE OF CONTENTS -->
 <div class="page">
-  \${SectionHeader('00', 'Catalogue of Wisdom', 'Intelligence Index')}
+  ${SectionHeader('00', 'Catalogue of Wisdom', 'Intelligence Index')}
   <div style="margin-top: 3rem">
     <div class="toc-item"><span>01. The Incarnation Snapshot (Natal Data)</span> <span>03</span></div>
     <div class="toc-item"><span>02. Planetary Positions & Dignities</span> <span>04</span></div>
@@ -498,7 +498,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div class="toc-item"><span>19. Remedial Architecture (Gems & Mantras)</span> <span>21</span></div>
     <div class="toc-item"><span>20. Synthesis & Next Steps</span> <span>22</span></div>
   </div>
-  \${PageFooter(2, meta.name)}
+  ${PageFooter(2, meta.name)}
 </div>
 
 <!-- PAGE 3: BIRTH DATA -->
