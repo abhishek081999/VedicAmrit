@@ -316,12 +316,22 @@ export async function calculateChart(
     if (vname === 'D1') continue
     const fn = VARGA_FUNCTIONS[vname] // eslint-disable-line
     if (!vname) continue
-    vargas[vname] = grahas.map((g) => {
+    const vargaBodies = grahas.map((g) => {
       const pos = getVargaPosition(g.lonSidereal, vname as VargaName)
       const vRashi = pos.rashi as Rashi
       const vNak = getNakshatra(pos.totalDegree)
       const vDignity = getDignity(g.id, vRashi, pos.degree)
       
+      let vBaladi = ''
+      const isOdd = vRashi % 2 !== 0
+      const vDeg = pos.degree
+      if (isOdd) {
+        if (vDeg < 6) vBaladi = 'Bāla'; else if (vDeg < 12) vBaladi = 'Kumāra'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Vṛddha'; else vBaladi = 'Mṛta'
+      } else {
+        if (vDeg < 6) vBaladi = 'Mṛta'; else if (vDeg < 12) vBaladi = 'Vṛddha'; else if (vDeg < 18) vBaladi = 'Yuva'; else if (vDeg < 24) vBaladi = 'Kumāra'; else vBaladi = 'Bāla'
+      }
+      const vJagradadi = (vDignity === 'exalted' || vDignity === 'own') ? 'Jāgrat' : (vDignity === 'neutral' || vDignity === 'friend') ? 'Swapna' : 'Suṣupti'
+
       return { 
         ...g, 
         rashi: vRashi, 
@@ -331,9 +341,22 @@ export async function calculateChart(
         nakshatraIndex: vNak.index,
         nakshatraName: vNak.name,
         pada: vNak.pada,
-        dignity: vDignity
+        dignity: vDignity,
+        avastha: { baladi: vBaladi, jagradadi: vJagradadi }
       }
     })
+
+    const mercuryLon = vargaBodies.find(v => v.id === 'Me')?.totalDegree ?? 0
+    const venusLon = vargaBodies.find(v => v.id === 'Ve')?.totalDegree ?? 0
+
+    vargas[vname] = vargaBodies.map((v) => ({
+      ...v,
+      gandanta: checkGandanta(v.totalDegree),
+      pushkara: checkPushkara(v.totalDegree),
+      mrityuBhaga: checkMrityuBhaga(v.totalDegree),
+      yuddha: getYuddhaForPlanet(v.id as any, mercuryLon, venusLon),
+      vargaCalculated: true,
+    }))
     // Ascendant's varga lagna
     const ascPos = getVargaPosition(houses.ascendantSidereal, vname as VargaName)
     vargaLagnas[vname] = ascPos.rashi as Rashi

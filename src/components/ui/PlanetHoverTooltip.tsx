@@ -74,6 +74,9 @@ export interface PlanetTooltipData {
   charaKaraka?: string
   shadbala?: { total: number; isStrong: boolean }
   house?: number
+  gandanta?: any
+  pushkara?: any
+  mrityuBhaga?: any
 }
 
 
@@ -166,6 +169,30 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
           </button>
         )}
       </div>
+
+      {/* ── Special Conditions ── */}
+      {(planet.gandanta?.isGandanta || planet.pushkara?.isPushkara || planet.mrityuBhaga?.isMrityuBhaga) && (
+        <div style={{ padding: '0.6rem 1rem 0.4rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {planet.gandanta?.isGandanta && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(244,63,94,0.1)', color: '#fb7185', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(244,63,94,0.3)', fontWeight: 700 }}>⚠ GANDANTA</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.gandanta.type?.replace('-', ' ')}</span>
+            </div>
+          )}
+          {planet.pushkara?.isPushkara && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>✦ PUSHKARA</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.pushkara.type?.replace('_', ' ')}</span>
+            </div>
+          )}
+          {planet.mrityuBhaga?.isMrityuBhaga && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(251,146,60,0.1)', color: '#fb923c', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(251,146,60,0.3)', fontWeight: 700 }}>🔱 MRITYU BHAGA</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.mrityuBhaga.severity} severity</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Nakshatra Band ── */}
       <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

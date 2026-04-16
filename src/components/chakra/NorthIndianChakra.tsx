@@ -96,6 +96,7 @@ interface NorthIndianProps {
   arudhaScale?: number
   infoScale?: number
   highlightHouses?: number[]
+  showTooltip?: boolean
 }
 
 // ── Component ─────────────────────────────────────────────────
@@ -118,6 +119,7 @@ export function NorthIndianChakra({
   arudhaScale    = 1.0,
   infoScale      = 1.0,
   highlightHouses = [],
+  showTooltip    = false,
 }: NorthIndianProps) {
   const S = size
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
@@ -627,7 +629,7 @@ export function NorthIndianChakra({
       })}
 
       {/* ── Tooltip Portal ── */}
-      {isMounted && hoveredPlanet && (
+      {isMounted && showTooltip && hoveredPlanet && (
         <PlanetTooltipCard 
           planet={hoveredPlanet} 
           x={mousePos.x} y={mousePos.y} 

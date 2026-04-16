@@ -431,6 +431,7 @@ export default function PublicChartPage() {
                     vargaLagnas={chart.vargaLagnas}
                     lagnas={chart.lagnas}
                     activeVarga={activeVarga}
+                    onVargaChange={setActiveVarga}
                   />
                 </div>
               )}

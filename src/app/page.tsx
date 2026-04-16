@@ -649,6 +649,7 @@ function HomeContent() {
                         lagnas={chart.lagnas} 
                         upagrahas={chart.upagrahas} 
                         activeVarga={activeVarga} 
+                        onVargaChange={setActiveVarga}
                         limited={true} 
                       />
                     </div>

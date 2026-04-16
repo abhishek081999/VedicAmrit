@@ -78,6 +78,7 @@ export function ChakraSelector({
   const [showVara,      setShowVara]      = useState(true)
   const [onlyNine,      setOnlyNine]      = useState(true)
   const [showNatal,     setShowNatal]     = useState(true)
+  const [showTooltip,   setShowTooltip]   = useState(false)
 
   // Typography scaling
   const [fontScale,     setFontScale]     = useState(1.10)
@@ -236,6 +237,7 @@ export function ChakraSelector({
               {transitGrahas.length > 0 && (
                 <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
               )}
+              <Toggle label="Tooltip" value={showTooltip} onChange={setShowTooltip} />
             </>
           )}
           {isSBC && (
@@ -388,6 +390,7 @@ export function ChakraSelector({
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
             highlightHouses={highlightHouses}
+            showTooltip={showTooltip}
           />
         )}
         {style === 'north' && (
@@ -407,6 +410,7 @@ export function ChakraSelector({
             arudhaScale={arudhaScale}
             lagnas={displayLagnas}
             highlightHouses={highlightHouses}
+            showTooltip={showTooltip}
           />
         )}
         {style === 'sarvatobhadra' && (
@@ -432,6 +436,7 @@ export function ChakraSelector({
             comparisonGrahas={displayComparison}
             fontScale={fontScale} planetScale={planetScale}
             lagnas={displayLagnas}
+            showTooltip={showTooltip}
           />
         )}
 

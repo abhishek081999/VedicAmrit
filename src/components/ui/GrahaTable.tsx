@@ -105,6 +105,7 @@ interface BodyInfo {
   color?:   string
   avastha?: { baladi: string; jagradadi: string }
   dignity?: string
+  conditions?: any
 }
 
 
@@ -117,13 +118,14 @@ interface GrahaTableProps {
   vargas?:      Record<string, GrahaData[]>
   vargaLagnas?: Record<string, Rashi>
   activeVarga?: string
+  onVargaChange?: (v: string) => void
 }
 
 
 
 // ── Component ────────────────────────────────────────────
 
-export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga }: GrahaTableProps) {
+export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas, vargaLagnas, activeVarga, onVargaChange }: GrahaTableProps) {
   const { language } = useAppLayout()
   const isSa = language === 'sa'
   const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
@@ -134,12 +136,14 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
   useEffect(() => { setIsMounted(true) }, [])
 
-  // Sync with prop if it changes externally
-  React.useEffect(() => {
-    if (activeVarga && activeVarga !== selectedVarga) {
-      setSelectedVarga(activeVarga)
+  // Sync with prop ONLY if it changes from its previous value
+  const lastActiveVarga = useRef(activeVarga)
+  useEffect(() => {
+    if (activeVarga !== lastActiveVarga.current) {
+      if (activeVarga) setSelectedVarga(activeVarga)
+      lastActiveVarga.current = activeVarga
     }
-  }, [activeVarga, selectedVarga])
+  }, [activeVarga])
 
   // 1. Identify which Graha set to use for coordinates
   // Use the selected varga's grahas if available, otherwise fallback to root grahas (D1)
@@ -163,6 +167,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
           color:    g.isRetro ? 'var(--rose)' : 'inherit',
           avastha:  g.avastha,
           dignity:  g.dignity,
+          conditions: g,
         })
       })
 
@@ -214,8 +219,10 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       return numA - numB || a.localeCompare(b)
     }) : ['D1']
 
-  // Normalized natal Lagna for house calculations
-  const natalLagnaRashi = lagnas?.ascRashi || 1
+  // Normalized Lagna for house calculations
+  const currentLagnaRashi = (selectedVarga === 'D1')
+    ? (lagnas?.ascRashi || 1)
+    : ((vargaLagnas && vargaLagnas[selectedVarga]) || (lagnas?.ascRashi || 1))
 
   return (
     <div style={{ width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
@@ -241,7 +248,11 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Switch Varga:</span>
             <select 
               value={selectedVarga}
-              onChange={(e) => setSelectedVarga(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                setSelectedVarga(val)
+                if (onVargaChange) onVargaChange(val)
+              }}
               style={{
                 background: 'var(--primary-brand)',
                 color: '#fff',
@@ -309,7 +320,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                           if (hoverTimer.current) clearTimeout(hoverTimer.current)
                           hoverTimer.current = setTimeout(() => {
                             const nak = getNak(b.totalDeg)
-                            const house = ((rashiIdx - natalLagnaRashi + 12) % 12) + 1
+                            const house = ((rashiIdx - currentLagnaRashi + 12) % 12) + 1
                             setHoveredPlanet({
                               id: String(b.id), name: b.name, totalDeg: b.totalDeg,
                               isRetro: b.isRetro, dignity: b.dignity, avastha: b.avastha,
@@ -317,6 +328,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                               nakshatraIndex: Math.floor(b.totalDeg / (360/27)) % 27,
                               charaKaraka: b.karaka ?? undefined,
                               isCombust: natalGraha.isCombust,
+                              gandanta: b.conditions?.gandanta,
+                              pushkara: b.conditions?.pushkara,
+                              mrityuBhaga: b.conditions?.mrityuBhaga,
                             })
                           }, 200)
                         }}
@@ -329,7 +343,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                       </span>
                       {b.karaka && <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 3px', background: 'var(--surface-3)', borderRadius: 3 }}>{b.karaka}</span>}
                     </div>
-                    {natalGraha && <div style={{ marginTop: '0.15rem' }}><ConditionBadges graha={natalGraha} /></div>}
+                    {b.conditions && <div style={{ marginTop: '0.15rem' }}><ConditionBadges graha={b.conditions} /></div>}
                   </td>
                   <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.76rem' }}>
                     <span style={{ fontWeight: 600 }}>{deg}°</span> {String(min).padStart(2, '0')}′ {String(sec).padStart(2, '0')}″
@@ -369,6 +383,26 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         />
       )}
 
+      {/* ── Legend ── */}
+      <div style={{ padding: '0.5rem 0.9rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span style={{ fontSize: '0.6rem', background: 'rgba(244,63,94,0.1)', color: '#fb7185', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(244,63,94,0.3)', fontWeight: 700 }}>G</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Gandanta</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>P</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Pushkara</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span style={{ fontSize: '0.6rem', background: 'rgba(251,146,60,0.1)', color: '#fb923c', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(251,146,60,0.3)', fontWeight: 700 }}>M</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Mrityu Bhaga</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.1)', color: '#818cf8', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(129,140,248,0.3)', fontWeight: 700 }}>Y</span>
+          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Yuddha (War)</span>
+        </div>
+      </div>
+      
     </div>
   )
 }

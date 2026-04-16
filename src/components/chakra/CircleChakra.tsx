@@ -69,6 +69,7 @@ interface Props {
   comparisonGrahas?: GrahaData[]
   fontScale?:  number
   planetScale?: number
+  showTooltip?: boolean
 }
 
 export function CircleChakra({
@@ -77,6 +78,7 @@ export function CircleChakra({
   showKaraka = false, showArudha = false,
   arudhas, lagnas, transitGrahas = [], comparisonGrahas = [],
   fontScale = 1.0, planetScale = 1.0,
+  showTooltip = false,
 }: Props) {
   const cx = size / 2, cy = size / 2
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
@@ -376,7 +378,7 @@ export function CircleChakra({
       })}
 
       {/* ── Tooltip Portal ── */}
-      {isMounted && hoveredPlanet && (
+      {isMounted && showTooltip && hoveredPlanet && (
         <PlanetTooltipCard 
           planet={hoveredPlanet} 
           x={mousePos.x} y={mousePos.y} 
