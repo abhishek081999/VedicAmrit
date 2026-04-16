@@ -146,13 +146,16 @@ export function CircleChakra({
   grahas.forEach(g => byHouse[grahaHouse(g.rashi)].push(g))
   transitGrahas.forEach(g => tByHouse[grahaHouse(g.rashi)].push(g))
 
-  // Inject AS into House 1
+  // Inject AS into correct house
   if (lagnas) {
+    const natalLagnaHouse = ((lagnas.ascRashi - ascRashi + 12) % 12) + 1
     const ascNak = getNakshatra(lagnas.ascDegree)
-    byHouse[1].unshift({
+    if (!byHouse[natalLagnaHouse]) byHouse[natalLagnaHouse] = []
+    
+    byHouse[natalLagnaHouse].unshift({
       id: 'AS',
       degree: lagnas.ascDegreeInRashi,
-      rashi: ascRashi,
+      rashi: lagnas.ascRashi,
       dignity: 'neutral',
       isRetro: false,
       nakshatraIndex: ascNak.index,

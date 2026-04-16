@@ -33,6 +33,7 @@ const ProgressionWidget = dynamic(() => import('@/components/dashboard/Progressi
 const ExportPdfButton = dynamic(() => import('@/components/ui/ExportPdfButton').then(m => m.ExportPdfButton), { ssr: false })
 const EmailChartButton = dynamic(() => import('@/components/ui/EmailChartButton').then(m => m.EmailChartButton), { ssr: false })
 const KPStellarPanel = dynamic(() => import('@/components/ui/KPStellarPanel').then(m => m.KPStellarPanel), { ssr: false })
+const JaiminiPanel = dynamic(() => import('@/components/ui/JaiminiPanel'), { ssr: false })
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
@@ -559,8 +560,8 @@ function HomeContent() {
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
-            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '0' : '1.25rem', width: '100%' }}>
+            {(activeTab.startsWith('nakshatra-') || activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar' || activeTab === 'jaimini') && (
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar' || activeTab === 'jaimini') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar' || activeTab === 'jaimini') ? '0' : '1.25rem', width: '100%' }}>
                 {activeTab.startsWith('nakshatra-') ? (
                   <NakshatraPanel 
                     chart={chart} 
@@ -574,6 +575,8 @@ function HomeContent() {
                   <InterpretationPanel interpretation={chart.interpretation} />
                 ) : activeTab === 'kp-stellar' ? (
                   <KPStellarPanel chart={chart} />
+                ) : activeTab === 'jaimini' ? (
+                  <JaiminiPanel chart={chart} />
                 ) : (
                   <VarshaphalPanel natalChart={chart} />
                 )}

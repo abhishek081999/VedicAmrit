@@ -9,9 +9,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
-import { NorthIndianChakra } from '@/components/chakra/NorthIndianChakra'
-import { SouthIndianChakra } from '@/components/chakra/SouthIndianChakra'
 import type { ChartOutput, ChartStyle, GrahaData, GrahaId } from '@/types/astrology'
+import { ChakraSelector } from '@/components/chakra/ChakraSelector'
 import { getKPSeedDegree } from '@/lib/engine/kpSeeds'
 import { getKPSubLord } from '@/lib/engine/nakshatraAdvanced'
 
@@ -296,63 +295,29 @@ export default function PrashnaPage() {
                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
                   <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                       <h3 style={{ margin: 0 }}>Horary Chart (D1)</h3>
-                       <button onClick={() => setShowOptions(!showOptions)} className="btn btn-ghost btn-sm" style={{ fontSize: '0.7rem' }}>
-                          {showOptions ? 'Hide Config' : '⚙️ Config'}
-                       </button>
+                       <h3 style={{ margin: 0 }}>Horary Chart</h3>
                     </div>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                       <button onClick={() => setVarga('D1')} className={`btn btn-sm ${varga === 'D1' ? 'btn-primary' : 'btn-ghost'}`}>D1</button>
-                       <button onClick={() => setVarga('D9')} className={`btn btn-sm ${varga === 'D9' ? 'btn-primary' : 'btn-ghost'}`}>D9</button>
-                       <span style={{ borderLeft: '1px solid var(--border)', margin: '0 4px' }} />
-                       <button onClick={() => setStyle('north')} className={`btn btn-sm ${style === 'north' ? 'btn-primary' : 'btn-ghost'}`}>North</button>
-                       <button onClick={() => setStyle('south')} className={`btn btn-sm ${style === 'south' ? 'btn-primary' : 'btn-ghost'}`}>South</button>
+                       <button onClick={() => setVarga('D1')} className={`btn btn-sm ${varga === 'D1' ? 'btn-primary' : 'btn-ghost'}`}>D1 (Rashi)</button>
+                       <button onClick={() => setVarga('D9')} className={`btn btn-sm ${varga === 'D9' ? 'btn-primary' : 'btn-ghost'}`}>D9 (Navamsha)</button>
                     </div>
                   </div>
 
-                  {showOptions && (
-                    <div style={{ 
-                      width: '100%', display: 'flex', flexWrap: 'wrap', gap: '1.5rem', 
-                      padding: '1rem', background: 'var(--surface-2)', borderRadius: 'var(--r-md)',
-                      fontSize: '0.8rem', border: '1px solid var(--border-soft)'
-                    }}>
-                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={showNakshatra} onChange={e => setShowNakshatra(e.target.checked)} />
-                          <span>Show Nakshatras</span>
-                       </label>
-                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={showArudhas} onChange={e => setShowArudhas(e.target.checked)} />
-                          <span>Show Arudhas</span>
-                       </label>
-                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span>Chart Size</span>
-                          <input type="range" min="300" max="700" step="20" value={chartSize} onChange={e => setChartSize(Number(e.target.value))} />
-                          <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{chartSize}px</span>
-                       </div>
-                    </div>
-                  )}
-                  
                   {chart ? (
-                    <div style={{ background: 'var(--bg-page)', padding: '1.5rem', borderRadius: 'var(--r-lg)', border: '1px solid var(--border-soft)' }}>
-                      {style === 'north' ? (
-                        <NorthIndianChakra 
-                          ascRashi={varga === 'D1' ? chart.lagnas.ascRashi : chart.vargaLagnas['D9']} 
-                          grahas={varga === 'D1' ? chart.grahas : chart.vargas['D9']} 
-                          arudhas={varga === 'D1' && showArudhas ? chart.arudhas : undefined}
-                          lagnas={varga === 'D1' ? chart.lagnas : undefined}
-                          showNakshatra={showNakshatra}
-                          size={chartSize} 
-                        />
-                      ) : (
-                        <SouthIndianChakra 
-                          ascRashi={varga === 'D1' ? chart.lagnas.ascRashi : chart.vargaLagnas['D9']} 
-                          grahas={varga === 'D1' ? chart.grahas : chart.vargas['D9']} 
-                          arudhas={varga === 'D1' && showArudhas ? chart.arudhas : undefined}
-                          lagnas={varga === 'D1' ? chart.lagnas : undefined}
-                          showNakshatra={showNakshatra}
-                          size={chartSize} 
-                        />
-                      )}
+                    <div style={{ width: '100%' }}>
+                      <ChakraSelector 
+                        ascRashi={varga === 'D1' ? chart.lagnas.ascRashi : chart.vargaLagnas['D9']}
+                        grahas={varga === 'D1' ? chart.grahas : chart.vargas['D9']}
+                        arudhas={chart.arudhas}
+                        lagnas={chart.lagnas}
+                        vargaName={varga}
+                        defaultStyle={style}
+                        size={chartSize}
+                        moonNakIndex={chart.panchang.nakshatra.index}
+                        tithiNumber={chart.panchang.tithi.number}
+                        varaNumber={chart.panchang.vara.number}
+                        userPlan="platinum"
+                      />
                     </div>
                   ) : <div className="spin-loader" />}
 

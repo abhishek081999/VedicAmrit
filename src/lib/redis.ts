@@ -35,6 +35,10 @@ export const redis = {
       if (!client) return null
       return await client.get<T>(key)
     } catch (err) {
+      if (typeof err === 'object' && err !== null && 'message' in err && (err.message as string).includes('quota exceeded')) {
+         // Silently fail if DB is full to avoid log spam
+         return null
+      }
       console.warn('[redis.get] error:', err)
       return null
     }
@@ -42,18 +46,36 @@ export const redis = {
 
   /**
    * Set a value with optional TTL (seconds). No-op if Redis unavailable.
+   * Default TTL is 30 days to prevent permanent DB growth on free tiers.
    */
-  async set(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
+  async set(key: string, value: unknown, ttlSeconds: number = 2_592_000): Promise<void> {
     try {
       const client = getRedis()
       if (!client) return
-      if (ttlSeconds) {
-        await client.setex(key, ttlSeconds, JSON.stringify(value))
-      } else {
-        await client.set(key, JSON.stringify(value))
-      }
+      
+      // Enforce JSON serialization
+      const serializedValue = typeof value === 'string' ? value : JSON.stringify(value)
+      
+      await client.set(key, serializedValue, { ex: ttlSeconds })
     } catch (err) {
+      if (typeof err === 'object' && err !== null && 'message' in err && (err.message as string).includes('quota exceeded')) {
+         // Silently fail if DB is full to avoid log spam
+         return
+      }
       console.warn('[redis.set] error:', err)
+    }
+  },
+
+  /**
+   * Flush the entire database. Use with caution.
+   */
+  async flush(): Promise<void> {
+    try {
+      const client = getRedis()
+      if (!client) return
+      await client.flushall()
+    } catch (err) {
+      console.warn('[redis.flush] error:', err)
     }
   },
 
@@ -72,15 +94,22 @@ export const redis = {
 
   /**
    * Delete multiple keys by prefix pattern.
-   * Scans up to 200 keys with the given prefix.
+   * Scans up to 1000 keys with the given prefix.
    */
   async delByPrefix(prefix: string): Promise<void> {
     try {
       const client = getRedis()
       if (!client) return
+      
+      // Use iterators or keys pattern if safe
       const keys = await client.keys(`${prefix}*`)
       if (keys.length > 0) {
-        await client.del(...keys)
+        // Chunk to avoid "Too many arguments" errors in Redis protocol
+        const chunkSize = 100
+        for (let i = 0; i < keys.length; i += chunkSize) {
+          const chunk = keys.slice(i, i + chunkSize)
+          await client.del(...chunk)
+        }
       }
     } catch (err) {
       console.warn('[redis.delByPrefix] error:', err)
@@ -88,7 +117,7 @@ export const redis = {
   },
 
   /**
-   * Check if Redis is available (for health checks)
+   * Check if Redis is available
    */
   async ping(): Promise<boolean> {
     try {

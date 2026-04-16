@@ -178,14 +178,16 @@ export function NorthIndianChakra({
     }
   }
 
-  // Inject AS (Ascendant) into 1st house
+  // Inject AS (Ascendant) into correct house
   if (lagnas) {
-    if (!byHouse[1]) byHouse[1] = []
+    const natalLagnaHouse = ((lagnas.ascRashi - ascRashi + 12) % 12) + 1
+    if (!byHouse[natalLagnaHouse]) byHouse[natalLagnaHouse] = []
+    
     const ascNak = getNakshatra(lagnas.ascDegree)
-    byHouse[1].unshift({
+    byHouse[natalLagnaHouse].unshift({
       id: 'AS',
       degree: lagnas.ascDegreeInRashi,
-      rashi: ascRashi,
+      rashi: lagnas.ascRashi,
       dignity: 'neutral',
       isRetro: false,
       nakshatraIndex: ascNak.index,

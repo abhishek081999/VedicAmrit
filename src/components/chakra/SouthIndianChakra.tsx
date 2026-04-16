@@ -276,8 +276,8 @@ export function SouthIndianChakra({
               {SIGN_ABBR[sign]}
             </text>
 
-            {/* Lagna marker */}
-            {isAsc && (
+            {/* Lagna marker (Natal) */}
+            {(lagnas ? lagnas.ascRashi === sign : isAsc) && (
               <g stroke="var(--chart-label-muted)" strokeWidth="1" strokeLinecap="round">
                 <line x1={x + 4} y1={y + 4} x2={x + cell * 0.22} y2={y + 4} />
                 <line x1={x + 4} y1={y + 4} x2={x + 4} y2={y + cell * 0.22} />

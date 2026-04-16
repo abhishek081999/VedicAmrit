@@ -85,6 +85,8 @@ export function ChakraSelector({
   const [arudhaScale,   setArudhaScale]   = useState(1.20)
   const [infoScale,     setInfoScale]     = useState(0.80)
   const [chartScale,    setChartScale]    = useState(1.10)
+
+  const [lagnaSource,   setLagnaSource]   = useState('natal')
   
   const [showSettings,  setShowSettings]  = useState(false)
 
@@ -146,12 +148,33 @@ export function ChakraSelector({
   // ── Project Comparison Grahas to correct Varga ──────────────────
   const displayComparison = React.useMemo(() => {
     if (!comparisonGrahas.length || vargaName === 'D1') return comparisonGrahas
-    // We assume incoming comparisonGrahas are D1 grahas, so we project them
-    // but looking at how vargas work, we might already have projected them in parent.
-    // However, ChakraSelector usually handles this for the main 'grahas' prop.
-    // If vargaName is not D1, we might need to project comparison grahas.
     return comparisonGrahas
   }, [comparisonGrahas, vargaName])
+
+  // ── Calculate Effective Ascendant Rashi ────────────────────────
+  const effectiveAscRashi = React.useMemo(() => {
+    if (lagnaSource === 'natal') return ascRashi
+    if (lagnaSource === 'chandra') {
+      const mo = grahas.find(g => g.id === 'Mo')
+      return (mo?.rashi || ascRashi) as Rashi
+    }
+    if (lagnaSource === 'surya') {
+      const su = grahas.find(g => g.id === 'Su')
+      return (su?.rashi || ascRashi) as Rashi
+    }
+    if (lagnaSource === 'arudha') {
+      return (arudhas?.AL || ascRashi) as Rashi
+    }
+    if (lagnaSource.startsWith('h')) {
+      const hNum = parseInt(lagnaSource.substring(1))
+      if (isNaN(hNum)) return ascRashi
+      // hNum is 1-12. h1 is Natal Lagna.
+      return (((ascRashi - 1 + hNum - 1) % 12) + 1) as Rashi
+    }
+    return ascRashi
+  }, [ascRashi, lagnaSource, grahas, arudhas])
+
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
@@ -240,27 +263,116 @@ export function ChakraSelector({
         </div>
       </div>
 
-        {/* ── Advanced Settings Panel ───────────────────────── */}
-        {showSettings && (
-          <div style={{
-            padding: '0.75rem 1rem', background: 'var(--surface-2)', 
-            borderRadius: '6px', border: '1px solid var(--border-soft)',
-            display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
-            marginBottom: '0.5rem'
+      {/* ── Lagna Source Selector ──────────────────────────── */}
+      {!isSBC && (
+        <div style={{
+          display: 'flex', gap: '0.85rem', alignItems: 'center',
+          padding: '0.5rem 0.85rem',
+          background: 'var(--surface-2)',
+          borderRadius: '8px',
+          border: '1px solid var(--border-soft)',
+          fontSize: '0.8rem',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ 
+            display: 'flex', alignItems: 'center', gap: '0.4rem', 
+            marginRight: '0.4rem', color: 'var(--gold)', 
+            fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.72rem', opacity: 0.9 
           }}>
-            <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
-            <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
-            <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
-            <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
-            <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+             <span style={{ width: 6, height: 6, background: 'var(--gold)', borderRadius: '50%' }} />
+             LAGNA SOURCE
           </div>
-        )}
+
+          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+            {[
+              { id: 'natal',   label: 'Natal' },
+              { id: 'chandra', label: 'Moon' },
+              { id: 'surya',   label: 'Sun' },
+              { id: 'arudha',  label: 'AL' },
+            ].map(ls => {
+              const active = lagnaSource === ls.id
+              return (
+                <button
+                  key={ls.id}
+                  onClick={() => setLagnaSource(ls.id)}
+                  style={{
+                    padding: '0.25rem 0.65rem',
+                    fontSize: '0.75rem',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    fontFamily: 'var(--font-chart-planets)',
+                    background: active ? 'var(--gold-faint)' : 'transparent',
+                    borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
+                    color: active ? 'var(--gold)' : 'var(--text-muted)',
+                  }}
+                >
+                  {ls.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ width: '1px', height: '1.25rem', background: 'var(--border-soft)', margin: '0 0.25rem' }} />
+
+          {/* House Numbers 1-12 */}
+          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginRight: '0.2rem', fontStyle: 'italic' }}>House:</span>
+            {Array.from({length: 12}).map((_, i) => {
+              const id = `h${i+1}`
+              const active = lagnaSource === id
+              return (
+                <button
+                  key={id}
+                  onClick={() => setLagnaSource(id)}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.72rem',
+                    borderRadius: '4px',
+                    border: '1px solid',
+                    cursor: 'pointer',
+                    transition: 'all 0.1s',
+                    fontFamily: 'var(--font-mono)',
+                    background: active ? 'var(--gold-faint)' : 'transparent',
+                    borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
+                    color: active ? 'var(--gold)' : 'var(--text-muted)',
+                    fontWeight: active ? 700 : 400
+                  }}
+                >
+                  {i+1}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Advanced Settings Panel ───────────────────────── */}
+      {showSettings && (
+        <div style={{
+          padding: '0.75rem 1rem', background: 'var(--surface-2)', 
+          borderRadius: '6px', border: '1px solid var(--border-soft)',
+          display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
+          marginBottom: '0.5rem'
+        }}>
+          <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
+          <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
+          <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
+          <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
+          <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+        </div>
+      )}
 
       {/* ── Chart ─────────────────────────────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%', overflow: 'hidden' }}>
         {style === 'south' && (
           <SouthIndianChakra
-            ascRashi={ascRashi}
+            ascRashi={effectiveAscRashi}
             grahas={showNatal ? displayGrahas : []}
             arudhas={arudhas}
             transitGrahas={transitGrahas}
@@ -280,7 +392,7 @@ export function ChakraSelector({
         )}
         {style === 'north' && (
           <NorthIndianChakra
-            ascRashi={ascRashi}
+            ascRashi={effectiveAscRashi}
             grahas={showNatal ? displayGrahas : []}
             arudhas={showArudha ? arudhas : undefined}
             transitGrahas={transitGrahas}
@@ -312,7 +424,7 @@ export function ChakraSelector({
 
         {style === 'circle' && (
           <CircleChakra
-            ascRashi={ascRashi} grahas={showNatal ? displayGrahas : []}
+            ascRashi={effectiveAscRashi} grahas={showNatal ? displayGrahas : []}
             size={Math.round(size * chartScale)}
             showDegrees={showDegrees} showNakshatra={showNakshatra}
             showKaraka={showKaraka} showArudha={showArudha}

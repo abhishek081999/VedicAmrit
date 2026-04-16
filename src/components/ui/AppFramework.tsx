@@ -77,6 +77,7 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 ]
 
 const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
+  { id: 'jaimini', label: 'Jaimini Astrology', icon: '💠', path: '/' },
   { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/vastu' },
   { id: 'astro-carto', label: 'AstroCartography', icon: '🌍', path: '/acg' },
   { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: '⬛', path: '/sbc' },
