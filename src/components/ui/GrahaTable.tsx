@@ -139,7 +139,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     if (activeVarga && activeVarga !== selectedVarga) {
       setSelectedVarga(activeVarga)
     }
-  }, [activeVarga])
+  }, [activeVarga, selectedVarga])
 
   // 1. Identify which Graha set to use for coordinates
   // Use the selected varga's grahas if available, otherwise fallback to root grahas (D1)

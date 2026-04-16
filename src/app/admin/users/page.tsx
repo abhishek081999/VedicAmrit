@@ -1,4 +1,3 @@
-
 'use client'
 import React, { useEffect, useState } from 'react'
 
@@ -211,7 +210,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <td colSpan={5} style={{ padding: '5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔦</div>
-                    <div style={{ fontWeight: 600 }}>No users found matching "{search}"</div>
+                    <div style={{ fontWeight: 600 }}>No users found matching &quot;{search}&quot;</div>
                     <div style={{ fontSize: '0.8rem' }}>Try adjusting your search criteria</div>
                   </td>
                 </tr>

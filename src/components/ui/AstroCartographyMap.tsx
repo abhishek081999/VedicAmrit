@@ -115,9 +115,10 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
     async function fetchAll() {
       setLoading(true)
       try {
-        const nRes = await fetch(`/api/chart/astrocartography?jd=${natalJd}${birthCoords ? `&lat=${lat}&lng=${lng}` : ''}`)
+        const hasCoords = lat !== undefined && lng !== undefined
+        const nRes = await fetch(`/api/chart/astrocartography?jd=${natalJd}${hasCoords ? `&lat=${lat}&lng=${lng}` : ''}`)
         const nJson = await nRes.json(); if (nJson.success) { setNatalData(nJson.lines); setNatalParans(nJson.parans); }
-        const tJson = await (await fetch(`/api/chart/astrocartography?jd=${(Date.now()/86400000)+2440587.5}${birthCoords ? `&lat=${lat}&lng=${lng}` : ''}`)).json()
+        const tJson = await (await fetch(`/api/chart/astrocartography?jd=${(Date.now()/86400000)+2440587.5}${hasCoords ? `&lat=${lat}&lng=${lng}` : ''}`)).json()
         if (tJson.success) setTransitData(tJson.lines)
         lastFetch.current = currentKey
       } catch (e) {} finally { setLoading(false) }
