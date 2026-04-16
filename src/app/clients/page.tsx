@@ -62,6 +62,15 @@ function ClientCard({
   onEdit: (c: Client) => void
   onDelete: (id: string) => void
 }) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1000)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   const [showNotes, setShowNotes] = useState(false)
   const [activeTab, setActiveTab] = useState<'notes' | 'remedies'>('notes')
   const [newNote, setNewNote] = useState('')
@@ -180,10 +189,10 @@ function ClientCard({
       e.currentTarget.style.transform = 'translateY(0)'
     }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'flex-start', justifyContent: 'space-between', gap: isMobile ? '0.75rem' : '0' }}>
         <div style={{ flex: 1 }}>
           <h3 style={{ 
-            fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 600,
+            fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.1rem' : '1.15rem', fontWeight: 600,
             color: 'var(--text-primary)', marginBottom: '0.15rem'
           }}>
             {client.name}
@@ -219,23 +228,32 @@ function ClientCard({
         </div>
         
         {/* Follow-up / Dasha Track */}
-        <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.3rem', width: 90 }}>
+        <div style={{ 
+          textAlign: isMobile ? 'left' : 'right', 
+          display: 'flex', 
+          flexDirection: isMobile ? 'row' : 'column', 
+          gap: isMobile ? '1.5rem' : '0.3rem', 
+          width: isMobile ? '100%' : 90,
+          alignItems: isMobile ? 'center' : 'flex-end'
+        }}>
           {client.followUpAt && (
-             <div style={{ marginBottom: '0.2rem' }}>
+             <div style={{ marginBottom: isMobile ? '0' : '0.2rem' }}>
                 <div style={{ fontSize: '0.55rem', color: 'var(--rose)', textTransform: 'uppercase', fontWeight: 800 }}>Follow-up</div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                   {new Date(client.followUpAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                 </div>
              </div>
           )}
-          <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dasha</div>
-          <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: 'flex-end', fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--gold)' }}>
-            <span style={{ fontWeight: 800 }}>{dashaParts[0]}</span>
-            <span style={{ opacity: 0.4 }}>/</span>
-            <span style={{ fontWeight: 400 }}>{dashaParts[1]}</span>
-          </div>
-          <div style={{ height: '3px', width: '100%', background: 'var(--border-soft)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${dashaPct}%`, background: 'var(--gold)', boxShadow: '0 0 4px var(--gold-soft)', transition: 'width 1s ease' }} />
+          <div style={{ flex: isMobile ? 1 : 'none', display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: '0.1rem' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>Dasha</div>
+            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'flex-end', fontFamily: 'var(--font-mono)', fontSize: '0.92rem', color: 'var(--gold)' }}>
+              <span style={{ fontWeight: 800 }}>{dashaParts[0]}</span>
+              <span style={{ opacity: 0.4 }}>/</span>
+              <span style={{ fontWeight: 400 }}>{dashaParts[1]}</span>
+            </div>
+            <div style={{ height: '3px', width: '100%', minWidth: 60, background: 'var(--border-soft)', borderRadius: '2px', overflow: 'hidden', marginTop: '0.2rem' }}>
+              <div style={{ height: '100%', width: `${dashaPct}%`, background: 'var(--gold)', boxShadow: '0 0 4px var(--gold-soft)', transition: 'width 1s ease' }} />
+            </div>
           </div>
         </div>
       </div>
@@ -264,7 +282,7 @@ function ClientCard({
       }} />
 
       <div style={{ 
-        display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '0.75rem',
+        display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? '1rem' : '0.75rem',
         fontSize: '0.75rem', color: 'var(--text-secondary)'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -272,16 +290,17 @@ function ClientCard({
           <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             📍 {client.birthPlace}
           </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', marginTop: '0.4rem' }}>Birth Info</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', marginTop: isMobile ? '0.25rem' : '0.4rem' }}>Birth Info</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem' }}>
-            📅 {new Date(client.birthDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })} <br/>
-            ⏰ {client.birthTime.slice(0, 5)}
+            📅 {new Date(client.birthDate).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })} {isMobile ? '' : <br/>} | ⏰ {client.birthTime.slice(0, 5)}
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', textAlign: 'right', justifyContent: 'flex-start' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Last Session</span>
-          <span style={{ fontWeight: 500 }}>{client.lastSessionAt ? new Date(client.lastSessionAt).toLocaleDateString() : 'Never'}</span>
-        </div>
+        {!isMobile && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', textAlign: 'right', justifyContent: 'flex-start' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Last Session</span>
+            <span style={{ fontWeight: 500 }}>{client.lastSessionAt ? new Date(client.lastSessionAt).toLocaleDateString() : 'Never'}</span>
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
@@ -439,6 +458,14 @@ export default function ClientsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [adding, setAdding] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 1100)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const fetchClients = useCallback(async () => {
     setLoading(true)
@@ -596,35 +623,35 @@ export default function ClientsPage() {
   }
 
   return (
-    <main style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: '2.5rem 1.5rem' }}>
+    <main style={{ maxWidth: 1200, width: '100%', margin: '0 auto', padding: isMobile ? '1.5rem 1rem' : '2.5rem 1.5rem' }}>
       
       {/* Header */}
       <div style={{ 
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', 
-        marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' 
+        display: 'flex', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', 
+        marginBottom: isMobile ? '1.5rem' : '2rem', flexWrap: 'wrap', gap: '1rem' 
       }}>
-        <div>
+        <div style={{ flex: isMobile ? '1 1 100%' : 'none' }}>
           <h1 style={{ 
-            fontFamily: 'var(--font-display)', fontSize: '2.5rem', fontWeight: 600,
-            color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '0.2rem'
+            fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.8rem' : '2.5rem', fontWeight: 800,
+            color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '0.2rem', lineHeight: 1.1
           }}>
             Consultant <span style={{ color: 'var(--gold)' }}>CRM</span>
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Platinum Workspace: Client history search, follow-ups, and transition monitoring.
+          <p style={{ color: 'var(--text-muted)', fontSize: isMobile ? '0.85rem' : '0.95rem' }}>
+            Client history search and transition monitoring.
           </p>
 
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
-          <button onClick={() => setShowAddModal(true)} className="btn btn-primary">+ Add Client</button>
-          <Link href="/" className="btn btn-secondary">Open Calculator</Link>
+        <div style={{ display: 'flex', gap: '0.75rem', width: isMobile ? '100%' : 'auto' }}>
+          <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ flex: isMobile ? 1 : 'none' }}>+ Add Client</button>
+          {!isMobile && <Link href="/" className="btn btn-secondary">Open Calculator</Link>}
         </div>
       </div>
 
       {/* Stats Summary */}
       <div style={{ 
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-        gap: '1rem', marginBottom: '2rem' 
+        display: 'grid', gridTemplateColumns: isMobile ? 'repeat(auto-fit, minmax(140px, 1fr))' : 'repeat(auto-fit, minmax(200px, 1fr))', 
+        gap: isMobile ? '0.75rem' : '1rem', marginBottom: isMobile ? '1.5rem' : '2.5rem' 
       }}>
         {[
           { label: 'Total Clients', value: stats.total, color: 'var(--gold)' },
@@ -632,16 +659,16 @@ export default function ClientsPage() {
           { label: 'Prospective', value: stats.prospects, color: 'var(--accent)' }
         ].map((s, i) => (
           <div key={i} style={{ 
-            background: 'var(--surface-2)', padding: '1.5rem', borderRadius: 'var(--r-xl)',
-            border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.25rem'
+            background: 'var(--surface-2)', padding: isMobile ? '1rem' : '1.5rem', borderRadius: 'var(--r-xl)',
+            border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.15rem'
           }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>{s.label}</span>
-            <span style={{ fontSize: '2rem', fontWeight: 800, color: s.color }}>{s.value}</span>
+            <span style={{ fontSize: isMobile ? '0.7rem' : '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>{s.label}</span>
+            <span style={{ fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: s.color }}>{s.value}</span>
           </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '2rem', alignItems: 'start' }}>
         
         {/* Main List */}
         <section>
@@ -667,7 +694,7 @@ export default function ClientsPage() {
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
               {filteredClients.map(c => (
                 <ClientCard 
                   key={c._id} 

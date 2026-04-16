@@ -21,13 +21,17 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const [user, personalChartRaw] = await Promise.all([
-      User.findById(session.user.id).select('-passwordHash').lean(),
-      Chart.findOne({ userId: session.user.id, isPersonal: true }).lean(),
-    ])
-
+    const user = await User.findById(session.user.id).select('-passwordHash').lean()
+    
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+    }
+
+    let personalChartRaw = null
+    if ((user as any).defaultChartId) {
+      personalChartRaw = await Chart.findById((user as any).defaultChartId).lean()
+    } else {
+      personalChartRaw = await Chart.findOne({ userId: session.user.id, isPersonal: true }).lean()
     }
 
     const personalChart = personalChartRaw as any

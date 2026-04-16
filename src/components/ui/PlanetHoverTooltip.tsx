@@ -78,13 +78,14 @@ export interface PlanetTooltipData {
 
 
 
-export function PlanetTooltipCard({ planet, x, y }: { planet: PlanetTooltipData; x: number; y: number }) {
+export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetTooltipData; x: number; y: number; onClose?: () => void }) {
   const id = planet.id as string
   const col = PLANET_COLORS[id] || PLANET_COLORS.Su
   const totalDeg = planet.totalDeg || 0
-  const rashiNum = (Math.floor(totalDeg / 30) % 12 + 1) as Rashi
-  const nakIdx = planet.nakshatraIndex ?? Math.floor(totalDeg / (360 / 27)) % 27
+  const rashiBase = Math.floor(totalDeg / 30)
+  const rashiNum = (rashiBase % 12 + 1) as Rashi
   const degInSign = totalDeg % 30
+  const nakIdx = planet.nakshatraIndex ?? Math.floor(totalDeg / (360 / 27)) % 27
 
   const signInterp = SIGN_INTERPRETATIONS[id]?.[rashiNum]
   const nakInterp = NAKSHATRA_INTERPRETATIONS[nakIdx]
@@ -92,23 +93,56 @@ export function PlanetTooltipCard({ planet, x, y }: { planet: PlanetTooltipData;
   const dignityColor = DIGNITY_COLORS[planet.dignity || 'neutral'] || '#94a3b8'
   const keywords = KEYWORD_MAP[id] || []
 
-  const TOOLTIP_W = 310
-  const left = x + 14 + TOOLTIP_W > window.innerWidth - 8 ? x - TOOLTIP_W - 14 : x + 14
-  const top = Math.min(y - 20, window.innerHeight - 480)
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const TOOLTIP_W = isMobile ? Math.min(window.innerWidth - 32, 340) : 310
+  
+  // Positioning logic
+  let left = x + 14
+  let top = y - 20
+
+  if (isMobile) {
+    // On mobile, center at the bottom or top depending on tap Y
+    left = (window.innerWidth - TOOLTIP_W) / 2
+    top = y > window.innerHeight / 2 ? y - 420 : y + 40
+    // Clamp
+    top = Math.max(10, Math.min(top, window.innerHeight - 450))
+  } else {
+    if (left + TOOLTIP_W > window.innerWidth - 12) {
+      left = x - TOOLTIP_W - 14
+    }
+    top = Math.max(10, Math.min(top, window.innerHeight - 480))
+  }
 
   return createPortal(
-    <div style={{
-      position: 'fixed', left, top, zIndex: 99999, pointerEvents: 'none', width: TOOLTIP_W,
-      background: 'linear-gradient(160deg, var(--surface-2, #1e1e35) 0%, var(--surface-1, #16162a) 100%)',
-      border: `1px solid ${col.primary}44`, borderRadius: 14, overflow: 'hidden',
-      boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${col.glow}`,
-      fontFamily: 'var(--font-body, Inter, sans-serif)', fontSize: '0.78rem',
-      animation: 'gtTip 0.18s cubic-bezier(0.16,1,0.3,1)',
-    }}>
-      <style>{`@keyframes gtTip{from{opacity:0;transform:translateY(6px) scale(0.97)}to{opacity:1;transform:none}}`}</style>
+    <div 
+      onClick={(e) => isMobile && e.stopPropagation()}
+      style={{
+        position: 'fixed', left, top, zIndex: 100000, 
+        pointerEvents: isMobile ? 'auto' : 'none', 
+        width: TOOLTIP_W,
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        background: 'linear-gradient(160deg, var(--surface-2, #1e1e35) 0%, var(--surface-1, #16162a) 100%)',
+        border: `1px solid ${col.primary}44`, borderRadius: 14,
+        boxShadow: `0 20px 60px rgba(0,0,0,0.6), 0 0 40px ${col.glow}`,
+        fontFamily: 'var(--font-body, Inter, sans-serif)', fontSize: '0.78rem',
+        animation: 'gtTip 0.2s cubic-bezier(0.16,1,0.3,1)',
+        scrollbarWidth: 'none',
+      }}>
+      <style>{`
+        @keyframes gtTip{from{opacity:0;transform:translateY(10px) scale(0.96)}to{opacity:1;transform:none}}
+        div::-webkit-scrollbar { display: none; }
+      `}</style>
 
       {/* ── Header ── */}
-      <div style={{ padding: '0.9rem 1rem 0.8rem', background: col.bg, borderBottom: `1px solid ${col.primary}22`, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ padding: '0.9rem 1rem 0.8rem', background: col.bg, borderBottom: `1px solid ${col.primary}22`, display: 'flex', alignItems: 'center', gap: '0.75rem', position: 'relative' }}>
         <div style={{ width: 40, height: 40, borderRadius: '50%', background: `radial-gradient(circle at 30% 30%, ${col.primary}33, ${col.primary}11)`, border: `2px solid ${col.primary}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', color: col.primary, boxShadow: `0 0 14px ${col.glow}`, flexShrink: 0 }}>
           {PLANET_SYMBOLS[id] || '✦'}
         </div>
@@ -123,6 +157,14 @@ export function PlanetTooltipCard({ planet, x, y }: { planet: PlanetTooltipData;
             {planet.isRetro && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(248,113,113,0.3)' }}>℞ Retro</span>}
           </div>
         </div>
+        {isMobile && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onClose?.(); }}
+            style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* ── Nakshatra Band ── */}
@@ -196,13 +238,14 @@ export function PlanetTooltipCard({ planet, x, y }: { planet: PlanetTooltipData;
       </div>
 
       <div style={{ padding: '0.3rem 1rem 0.5rem', textAlign: 'center' }}>
-        <span style={{ fontSize: '0.58rem', color: 'var(--text-muted, #7a7498)' }}>Hover for analytical details</span>
+        <span style={{ fontSize: '0.58rem', color: 'var(--text-muted, #7a7498)' }}>
+          {isMobile ? 'Tap close to dismiss' : 'Hover for analytical details'}
+        </span>
       </div>
     </div>,
     document.body
   )
 }
-
 
 // ── Main exported wrapper ─────────────────────────────────────
 
@@ -221,31 +264,17 @@ export function PlanetHoverTooltip({ planet, children, disabled = false }: Plane
 
   useEffect(() => { setMounted(true) }, [])
 
-  const TOOLTIP_W = 320
-  const TOOLTIP_OFFSET = 12
-
-  const show = useCallback((e: React.MouseEvent) => {
+  const show = useCallback((clientX: number, clientY: number) => {
     if (disabled) return
     if (timerRef.current) clearTimeout(timerRef.current)
+    
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0
+    const delay = isTouch ? 0 : 220
+
     timerRef.current = setTimeout(() => {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-      let x = rect.right + TOOLTIP_OFFSET
-      let y = rect.top
-
-      // Flip left if overflows
-      if (x + TOOLTIP_W > window.innerWidth - 12) {
-        x = rect.left - TOOLTIP_W - TOOLTIP_OFFSET
-      }
-      // Clamp vertically
-      const estimatedH = 480
-      if (y + estimatedH > window.innerHeight - 12) {
-        y = window.innerHeight - estimatedH - 12
-      }
-      if (y < 8) y = 8
-
-      setPos({ x, y })
+      setPos({ x: clientX, y: clientY })
       setVisible(true)
-    }, 220)
+    }, delay)
   }, [disabled])
 
   const hide = useCallback(() => {
@@ -253,23 +282,53 @@ export function PlanetHoverTooltip({ planet, children, disabled = false }: Plane
     setVisible(false)
   }, [])
 
+  const handleMouseEnter = (e: React.MouseEvent) => show(e.clientX, e.clientY)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (visible) {
+      hide()
+    } else {
+      show(e.touches[0].clientX, e.touches[0].clientY)
+    }
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+        hide()
+      }
+    }
+    if (visible) {
+      window.addEventListener('mousedown', handleClickOutside)
+      window.addEventListener('touchstart', handleClickOutside)
+    }
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside)
+      window.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [visible, hide])
+
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current) }, [])
 
   return (
     <>
       <div
         ref={triggerRef}
-        onMouseEnter={show}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={hide}
+        onTouchStart={handleTouchStart}
         style={{ display: 'contents' }}
       >
         {children}
       </div>
 
       {mounted && visible && (
-        <PlanetTooltipCard planet={planet as PlanetTooltipData} x={pos.x} y={pos.y} />
+        <PlanetTooltipCard 
+          planet={planet as PlanetTooltipData} 
+          x={pos.x} y={pos.y} 
+          onClose={hide}
+        />
       )}
-
     </>
   )
 }
+

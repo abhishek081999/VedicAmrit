@@ -55,6 +55,19 @@ export default function PrashnaPage() {
   const [showArudhas, setShowArudhas] = useState(true)
   const [chartSize, setChartSize] = useState(480)
 
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 1100
+      setIsMobile(mobile)
+      setChartSize(mobile ? Math.min(window.innerWidth - 40, 420) : 480)
+    }
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
   // Live clock
   useEffect(() => {
     setMounted(true)
@@ -137,29 +150,11 @@ export default function PrashnaPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column' }}>
-      <header style={{
-        padding: '0 2rem', height: '3.75rem',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--header-bg)', borderBottom: '1px solid var(--border-soft)',
-        position: 'sticky', top: 0, zIndex: 100, backdropFilter: 'blur(12px)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-             <span style={{ fontSize: '1.2rem' }}>🎯</span>
-             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh Prashna</span>
-          </Link>
-          <span style={{ color: 'var(--border)' }}>|</span>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-             Live Horary Control
-          </span>
-        </div>
-        <ThemeToggle />
-      </header>
 
-      <main style={{ flex: 1, maxWidth: 1280, width: '100%', margin: '0 auto', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <main style={{ flex: 1, maxWidth: 1280, width: '100%', margin: '0 auto', padding: isMobile ? '1rem' : '1.5rem 2rem 4rem', display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '2rem' }}>
         
         {/* Control Center */}
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr 280px', gap: '1.5rem', alignItems: 'end' }}>
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.5rem', alignItems: isMobile ? 'stretch' : 'end' }}>
           <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
              <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button onClick={() => setPrashnaType('vedic')} className={`btn btn-sm ${prashnaType === 'vedic' ? 'btn-primary' : 'btn-ghost'}`} style={{ flex: 1 }}>Vedic</button>
@@ -229,10 +224,10 @@ export default function PrashnaPage() {
                    {prashnaType === 'kerala' ? 'Kerala Ashtamangala Prashna' : prashnaType === 'kp' ? 'KP Stellar Horary' : 'Classical Vedic Prashna'}
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.2rem' }}>
-                   {location.name} · {mounted ? now.toLocaleTimeString() : '--:--:--'}
+                    {location.name} · {mounted ? now.toLocaleTimeString() : '--:--:--'}
                 </p>
              </div>
-             <div style={{ display: 'flex', gap: '1rem' }}>
+             <div style={{ display: 'flex', gap: '0.75rem', flexDirection: isMobile ? 'column' : 'row' }}>
                 <select 
                   className="input" 
                   style={{ width: 140 }}
@@ -252,13 +247,20 @@ export default function PrashnaPage() {
                   className={`btn ${frozen ? 'btn-secondary' : 'btn-primary'}`}
                   style={{ minWidth: 140 }}
                 >
-                  {frozen ? '↺ Reset' : '⚡ Analyze Now'}
+                   {frozen ? '↺ Reset' : '⚡ Analyze Now'}
                 </button>
              </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-             <LocationPicker value={location} onChange={setLocation} label="Query Location" />
-          </div>
+          {!isMobile && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+               <LocationPicker value={location} onChange={setLocation} label="Query Location" />
+            </div>
+          )}
+          {isMobile && (
+             <div className="card" style={{ padding: '1rem' }}>
+                <LocationPicker value={location} onChange={setLocation} label="Query Location" />
+             </div>
+          )}
         </div>
 
         {(!frozen && !loading) ? (
@@ -288,10 +290,10 @@ export default function PrashnaPage() {
              </div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 400px', gap: '2rem' }}>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '1.5rem' : '2rem' }}>
             
             {/* Left: Charts & Detailed Data */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: isMobile ? '1.5rem' : '2rem' }}>
                <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
                   <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -321,20 +323,20 @@ export default function PrashnaPage() {
                     </div>
                   ) : <div className="spin-loader" />}
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', width: '100%' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem', width: '100%' }}>
                      {chart?.panchang && (
                        <>
-                         <div className="stat-chip">
+                         <div className="stat-chip" style={{ padding: '0.5rem 1rem' }}>
                             <span className="stat-label">Tithi</span>
-                            <span className="stat-value">{chart.panchang.tithi.name}</span>
+                            <span className="stat-value" style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{chart.panchang.tithi.name}</span>
                          </div>
-                         <div className="stat-chip">
+                         <div className="stat-chip" style={{ padding: '0.5rem 1rem' }}>
                             <span className="stat-label">Nakshatra</span>
-                            <span className="stat-value">{chart.panchang.nakshatra.name}</span>
+                            <span className="stat-value" style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{chart.panchang.nakshatra.name}</span>
                          </div>
-                         <div className="stat-chip">
+                         <div className="stat-chip" style={{ padding: '0.5rem 1rem' }}>
                             <span className="stat-label">Yoga</span>
-                            <span className="stat-value">{chart.panchang.yoga.name}</span>
+                            <span className="stat-value" style={{ fontSize: isMobile ? '0.85rem' : '1rem' }}>{chart.panchang.yoga.name}</span>
                          </div>
                        </>
                      )}
@@ -417,7 +419,7 @@ export default function PrashnaPage() {
             </div>
 
             {/* Right: Analysis Dashboard */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ width: isMobile ? '100%' : '400px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
               {/* Outcome Gauge */}
               <div className="card" style={{ 
@@ -541,8 +543,8 @@ export default function PrashnaPage() {
                        <span className="label-caps" style={{ fontSize: '0.65rem' }}>Oracle&apos;s Compass</span>
                        <span style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem' }}>{analysis?.direction}</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-                       <div style={{ width: 80, height: 80, position: 'relative' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '1.25rem', alignItems: 'center' }}>
+                       <div style={{ width: 80, height: 80, position: 'relative', flexShrink: 0 }}>
                           <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
                              {/* Compass Ring */}
                              <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border)" strokeWidth="1" strokeDasharray="2 2" />
@@ -568,7 +570,7 @@ export default function PrashnaPage() {
                              </defs>
                           </svg>
                        </div>
-                       <p style={{ fontSize: '0.75rem', opacity: 0.8, margin: 0, lineHeight: 1.5 }}>
+                       <p style={{ fontSize: '0.75rem', opacity: 0.8, margin: 0, lineHeight: 1.5, textAlign: isMobile ? 'center' : 'left' }}>
                           The solution or growth sector lies in the <strong>{analysis?.direction}</strong> direction. Align movements and vastu corrections to this quad.
                        </p>
                     </div>

@@ -29,7 +29,7 @@ interface ACGLineData {
 }
 interface ACGParan { p1: GrahaId; p2: GrahaId; lat: number; lon: number; type: string; }
 
-function CitySearch({ onSelect, isDark }: { onSelect: (lat: number, lng: number) => void, isDark: boolean }) {
+function CitySearch({ onSelect, isDark, isMobile }: { onSelect: (lat: number, lng: number) => void, isDark: boolean, isMobile: boolean }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [open, setOpen] = useState(false)
@@ -44,28 +44,36 @@ function CitySearch({ onSelect, isDark }: { onSelect: (lat: number, lng: number)
   }
 
   return (
-    <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 1000, width: 280 }}>
+    <div style={{ 
+      position: 'absolute', 
+      top: isMobile ? 15 : 20, 
+      left: isMobile ? 15 : 20, 
+      zIndex: 1000, 
+      width: isMobile ? 'calc(100% - 100px)' : 280 
+    }}>
       <input 
         value={q} 
         onChange={e => search(e.target.value)} 
         onFocus={() => setOpen(true)}
-        placeholder="Type a city (e.g. Dubai, NYC)..." 
+        placeholder={isMobile ? "City..." : "Type a city (e.g. Dubai)..."} 
         style={{ 
-          width: '100%', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--gold)', 
-          background: isDark ? 'rgba(10,10,20,0.95)' : '#fff', color: isDark ? '#fff' : '#000',
-          fontSize: '0.85rem', fontWeight: 600, outline: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+          width: '100%', padding: isMobile ? '10px 14px' : '12px 18px', borderRadius: '12px', border: '1px solid var(--gold)', 
+          background: isDark ? 'rgba(10,10,25,0.96)' : '#fff', color: isDark ? '#fff' : '#000',
+          fontSize: '0.85rem', fontWeight: 600, outline: 'none', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(10px)'
         }} 
       />
       {open && results.length > 0 && (
         <div style={{ 
           marginTop: 8, background: isDark ? 'rgba(10,10,20,0.98)' : '#fff', borderRadius: 12, border: '1px solid var(--border-soft)', 
-          maxHeight: 300, overflowY: 'auto' 
+          maxHeight: isMobile ? 200 : 300, overflowY: 'auto',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.6)'
         }}>
           {results.map((r, i) => (
             <div 
               key={i} 
               onClick={() => { map.flyTo([r.latitude, r.longitude], 8); onSelect(r.latitude, r.longitude); setOpen(false); setQ(r.name) }} 
-              style={{ padding: '10px 15px', borderBottom: '1px solid var(--border-soft)', cursor: 'pointer', fontSize: '0.8rem', color: isDark ? '#ccc' : '#444' }}
+              style={{ padding: '12px 15px', borderBottom: '1px solid var(--border-soft)', cursor: 'pointer', fontSize: '0.8rem', color: isDark ? '#ccc' : '#444' }}
             >
               <strong>{r.name}</strong>, {r.country}
             </div>
@@ -141,9 +149,18 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const [showAspects, setShowAspects] = useState(false)
   const [showLocalSpace, setShowLocalSpace] = useState(false)
   const [mapTheme, setMapTheme] = useState<'dark' | 'light'>('dark')
+  const [showPlanetControls, setShowPlanetControls] = useState(false)
   
   const [relocatedPoint, setRelocatedPoint] = useState<[number, number] | null>(null)
   const [relocationStats, setRelocationStats] = useState<any>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const birthLat = birthCoords?.[0]
   const birthLng = birthCoords?.[1]
@@ -201,23 +218,36 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
     } catch (e) {}
   }, [viewMode, natalJd, natalData])
 
-  if (loading) return <div style={{ height: 600, background: '#0b0b14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loader" /></div>
+  if (loading) return <div style={{ height: isMobile ? 500 : 600, background: '#0b0b14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loader" /></div>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       
       {/* ── Theme Presets Panel ── */}
-      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', padding: '0.5rem', background: 'var(--surface-1)', borderRadius: 12, border: '1px solid var(--border)' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.5rem', 
+        overflowX: 'auto', 
+        padding: '0.6rem', 
+        background: 'var(--surface-1)', 
+        borderRadius: 12, 
+        border: '1px solid var(--border)',
+        WebkitOverflowScrolling: 'touch',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none'
+      }}>
         {THEMES.map(t => (
           <button 
             key={t.id} 
             onClick={() => setPlanetaryTheme(t.id)} 
             style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.5rem', 
-              padding: '8px 14px', borderRadius: 8, border: activeTheme === t.id ? '2px solid var(--gold)' : '1px solid var(--border-soft)',
-              background: activeTheme === t.id ? 'var(--gold-faint)' : 'none',
-              cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700,
-              color: activeTheme === t.id ? 'var(--gold)' : 'var(--text-muted)'
+              display: 'flex', alignItems: 'center', gap: '0.4rem', 
+              padding: isMobile ? '6px 10px' : '8px 14px', borderRadius: 8, 
+              border: activeTheme === t.id ? '2px solid var(--gold)' : '1px solid var(--border-soft)',
+              background: activeTheme === t.id ? 'var(--gold-faint)' : 'rgba(255,255,255,0.03)',
+              cursor: 'pointer', fontSize: '0.7rem', fontWeight: 700,
+              color: activeTheme === t.id ? 'var(--gold)' : 'var(--text-muted)',
+              whiteSpace: 'nowrap'
             }}
           >
             <span>{t.icon}</span> {t.label}
@@ -225,31 +255,62 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', padding: '0.6rem', background: 'var(--surface-2)', borderRadius: 14, border: '1px solid var(--border)' }}>
+      <div style={{ 
+        display: 'flex', 
+        gap: '0.75rem', 
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'stretch' : 'center', 
+        padding: '0.75rem', 
+        background: 'var(--surface-2)', 
+        borderRadius: 14, 
+        border: '1px solid var(--border)' 
+      }}>
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: 4, borderRadius: 10 }}>
-             <button onClick={() => setViewMode('natal')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'natal' ? 'var(--gold)' : 'none', color: viewMode === 'natal' ? '#000' : '#888', fontSize: '0.75rem', fontWeight: 800 }}>NATAL</button>
-             <button onClick={() => setViewMode('transit')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'transit' ? '#00FF7F' : 'none', color: viewMode === 'transit' ? '#000' : '#888', fontSize: '0.75rem', fontWeight: 800 }}>TRANSIT</button>
-             <button onClick={() => setViewMode('both')} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'both' ? '#3B82F6' : 'none', color: viewMode === 'both' ? '#fff' : '#888', fontSize: '0.75rem', fontWeight: 800 }}>⭐ BOTH</button>
+             <button onClick={() => setViewMode('natal')} style={{ flex: 1, padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'natal' ? 'var(--gold)' : 'none', color: viewMode === 'natal' ? '#000' : '#888', fontSize: '0.7rem', fontWeight: 800 }}>NATAL</button>
+             <button onClick={() => setViewMode('transit')} style={{ flex: 1, padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'transit' ? '#00FF7F' : 'none', color: viewMode === 'transit' ? '#000' : '#888', fontSize: '0.7rem', fontWeight: 800 }}>TRANSIT</button>
+             <button onClick={() => setViewMode('both')} style={{ flex: 1, padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', background: viewMode === 'both' ? '#3B82F6' : 'none', color: viewMode === 'both' ? '#fff' : '#888', fontSize: '0.7rem', fontWeight: 800 }}>BOTH</button>
           </div>
-          <div style={{ flex: 1 }} />
+          <div style={{ flex: 1, display: isMobile ? 'none' : 'block' }} />
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => setShowAspects(!showAspects)} style={{ background: showAspects ? 'var(--gold)' : 'none', border: '1px solid var(--gold)', borderRadius: 6, padding: '6px 12px', fontSize: '0.65rem', color: showAspects ? '#000' : 'var(--gold)', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>{showAspects ? 'Aspects: ON' : 'Show Aspects'}</button>
-            <button onClick={() => setShowLocalSpace(!showLocalSpace)} style={{ background: showLocalSpace ? '#3B82F6' : 'none', border: '1px solid #3B82F6', borderRadius: 6, padding: '6px 12px', fontSize: '0.65rem', color: showLocalSpace ? '#fff' : '#3B82F6', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' }}>{showLocalSpace ? 'Local Space: ON' : 'Show Local Space'}</button>
+            <button onClick={() => setShowAspects(!showAspects)} style={{ flex: 1, background: showAspects ? 'var(--gold)' : 'none', border: '1px solid var(--gold)', borderRadius: 8, padding: '8px 12px', fontSize: '0.65rem', color: showAspects ? '#000' : 'var(--gold)', fontWeight: 700, cursor: 'pointer' }}>{showAspects ? 'Aspects: ON' : 'Aspects'}</button>
+            <button onClick={() => setShowLocalSpace(!showLocalSpace)} style={{ flex: 1, background: showLocalSpace ? '#3B82F6' : 'none', border: '1px solid #3B82F6', borderRadius: 8, padding: '8px 12px', fontSize: '0.65rem', color: showLocalSpace ? '#fff' : '#3B82F6', fontWeight: 700, cursor: 'pointer' }}>{showLocalSpace ? 'Local Space: ON' : 'Local Space'}</button>
           </div>
       </div>
 
-      <div style={{ position: 'relative', width: '100%', height: 750, borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+      <div style={{ position: 'relative', width: '100%', height: isMobile ? 550 : 750, borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
         
+        {/* Mobile Toggle Button for Planet Controls */}
+        {isMobile && (
+          <button 
+            onClick={() => setShowPlanetControls(!showPlanetControls)}
+            style={{
+              position: 'absolute', top: 15, right: 15, zIndex: 1100,
+              background: 'var(--gold)', border: 'none', borderRadius: '12px',
+              padding: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+              cursor: 'pointer', fontSize: '1.2rem'
+            }}
+          >
+            {showPlanetControls ? '✕' : '🪐'}
+          </button>
+        )}
+
+        {/* ── Planet Control Panel (Right Sidebar) ── */}
         <div style={{
-          position: 'absolute', top: 20, right: 20, zIndex: 1000,
-          background: mapTheme === 'dark' ? 'rgba(12,12,25,0.95)' : 'rgba(255,255,255,0.95)', 
-          backdropFilter: 'blur(16px)', padding: '1.25rem', borderRadius: '18px', 
-          border: '1px solid var(--border-soft)', width: 175, color: mapTheme === 'dark' ? '#fff' : '#000'
+          position: 'absolute', 
+          top: isMobile ? 15 : 20, 
+          right: isMobile ? (showPlanetControls ? 15 : -200) : 20, 
+          zIndex: 1000,
+          background: mapTheme === 'dark' ? 'rgba(12,12,25,0.96)' : 'rgba(255,255,255,0.96)', 
+          backdropFilter: 'blur(20px)', padding: '1.25rem', borderRadius: '18px', 
+          border: '1px solid var(--border-soft)', width: 175, 
+          color: mapTheme === 'dark' ? '#fff' : '#000',
+          transition: 'all 0.4s cubic-bezier(0.19, 1, 0.22, 1)',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
         }}>
           {THEMES[0].planets.map(gid => {
             const id = gid as GrahaId
             return (
-              <button key={id} onClick={() => setVisiblePlanets(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; })} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '5px 0', width: '100%', color: visiblePlanets.has(id) ? (mapTheme === 'dark' ? '#fff' : '#000') : '#555' }}>
+              <button key={id} onClick={() => setVisiblePlanets(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; })} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '6px 0', width: '100%', color: visiblePlanets.has(id) ? (mapTheme === 'dark' ? '#fff' : '#000') : '#555' }}>
                 <span style={{ fontSize: '1.2rem', color: COLORS[id] }}>{GLYPHS[id]}</span>
                 <span style={{ fontWeight: visiblePlanets.has(id) ? 700 : 400 }}>{NAMES[id]}</span>
               </button>
@@ -257,34 +318,53 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           })}
           <div style={{ height: 1, background: 'var(--border-soft)', margin: '15px 0' }} />
           <button onClick={() => setMapTheme(mapTheme === 'dark' ? 'light' : 'dark')} style={{ margin: '0 auto', display: 'block', background: 'none', border: 'none', color: '#888', fontSize: '0.6rem', cursor: 'pointer' }}>🌗 Theme: {mapTheme.toUpperCase()}</button>
-          {currentDashaLord && (
+          
+          {currentDashaLord && !isMobile && (
             <div style={{ marginTop: 15, textAlign: 'center' }}>
-              <div style={{ fontSize: '0.55rem', color: COLORS[currentDashaLord], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Dasha Lord</div>
+              <div style={{ fontSize: '0.55rem', color: COLORS[currentDashaLord], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Dasha Lord</div>
               <div style={{ fontSize: '0.9rem', color: COLORS[currentDashaLord], fontWeight: 900 }}>{NAMES[currentDashaLord]} Highlighted</div>
             </div>
           )}
         </div>
 
         {relocatedPoint && relocationStats && (
-            <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, zIndex: 1000, background: mapTheme === 'dark' ? 'rgba(10,10,20,0.98)' : '#fff', padding: '1.25rem', borderRadius: '16px', border: '1px solid var(--gold)', display: 'flex', gap: '2rem', alignItems: 'center', boxShadow: '0 20px 80px rgba(0,0,0,0.8)' }}>
-                <div>
-                   <div style={{ fontSize: '0.6rem', color: 'var(--gold)', fontWeight: 800 }}>CITY ANALYSIS</div>
-                   <div style={{ color: mapTheme === 'dark' ? '#fff' : '#000', fontSize: '1.1rem', fontWeight: 800 }}>{RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} ASC</div>
+            <div style={{ 
+              position: 'absolute', 
+              bottom: isMobile ? 15 : 20, 
+              left: isMobile ? 15 : 20, 
+              right: isMobile ? 15 : 20, 
+              zIndex: 1000, 
+              background: mapTheme === 'dark' ? 'rgba(10,10,24,0.98)' : '#fff', 
+              padding: isMobile ? '1rem' : '1.5rem', 
+              borderRadius: '20px', 
+              border: `2px solid ${relocationStats.nearest ? COLORS[relocationStats.nearest.planet] : 'var(--gold)'}`, 
+              display: 'flex', 
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '0.75rem' : '2rem', 
+              alignItems: isMobile ? 'flex-start' : 'center', 
+              boxShadow: '0 25px 90px rgba(0,0,0,0.8)' 
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: isMobile ? '100%' : 'auto' }}>
+                   <div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--gold)', fontWeight: 800, textTransform: 'uppercase' }}>City Analysis</div>
+                      <div style={{ color: mapTheme === 'dark' ? '#fff' : '#000', fontSize: isMobile ? '1rem' : '1.2rem', fontWeight: 800 }}>{RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} ASC</div>
+                   </div>
+                   {isMobile && <button onClick={() => setRelocatedPoint(null)} style={{ background: 'none', border: 'none', color: '#888', fontSize: '1.2rem' }}>✕</button>}
                 </div>
-                <div style={{ flex: 1, fontSize: '0.8rem', color: mapTheme === 'dark' ? '#ccc' : '#444' }}>
-                   Analyzing this region against your {activeTheme} goals. The {RASHI_NAMES[(Math.floor((relocationStats.relocatedAsc || 0) / 30) + 1) as Rashi]} rising sign creates a different life foundation.
-                   {relocationStats.nearest && relocationStats.nearest.dist < 5 && (
-                       <div style={{ marginTop: 5, color: COLORS[relocationStats.nearest.planet], fontWeight: 800 }}>
-                           🎯 {relocationStats.nearest.dist.toFixed(1)}° from {NAMES[relocationStats.nearest.planet]} {relocationStats.nearest.lineType} Line
+                <div style={{ flex: 1, fontSize: '0.8rem', color: mapTheme === 'dark' ? '#ccc' : '#444', lineHeight: 1.5 }}>
+                   Analyzing this region against your <strong>{activeTheme}</strong> goals. The relocation Ascendant creates a different energetic foundation for your life.
+                   {relocationStats.nearest && (
+                       <div style={{ marginTop: 8, color: COLORS[relocationStats.nearest.planet], fontWeight: 800, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                           <span style={{ fontSize: '1.1rem' }}>🎯</span> {relocationStats.nearest.dist.toFixed(1)}° from {NAMES[relocationStats.nearest.planet]} {relocationStats.nearest.lineType} Line
                        </div>
                    )}
                 </div>
-                <button onClick={() => setRelocatedPoint(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>✕</button>
+                {!isMobile && <button onClick={() => setRelocatedPoint(null)} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer', padding: '10px' }}>✕</button>}
             </div>
         )}
 
         <MapContainer center={birthCoords || [20,0]} zoom={2} zoomControl={false} style={{ height: '100%', width: '100%' }}>
-          <CitySearch onSelect={handleMapClick} isDark={mapTheme === 'dark'} />
+          <CitySearch onSelect={handleMapClick} isDark={mapTheme === 'dark'} isMobile={isMobile} />
           <ClickHandler onClick={handleMapClick} /><ZoomControl position="bottomright" />
           <TileLayer url={mapTheme === 'dark' ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"} />
 

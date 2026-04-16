@@ -24,6 +24,14 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
   const [events, setEvents] = useState<TransitEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'major'>('major')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 900)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     async function fetchTransits() {
@@ -66,11 +74,11 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderBottom: '1px solid var(--border-soft)', paddingBottom: '1.5rem' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-end', gap: isMobile ? '1rem' : '1.5rem', borderBottom: '1px solid var(--border-soft)', paddingBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text-gold)' }}>12-Month Cosmic Roadmap</h2>
-          <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>Upcoming planetary shifts relative to your natal Ascendant.</p>
+          <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.4rem' : '2rem', color: 'var(--text-gold)', fontWeight: 800 }}>Cosmic Roadmap</h2>
+          <p style={{ margin: '0.4rem 0 0', color: 'var(--text-muted)', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>Planetary shifts relative to your natal Ascendant.</p>
         </div>
         <div style={{ display: 'flex', background: 'var(--surface-3)', padding: '3px', borderRadius: '8px', border: '1px solid var(--border-soft)' }}>
           <button 
@@ -94,11 +102,11 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
         </div>
       </div>
 
-      <div style={{ position: 'relative', paddingLeft: '3rem' }}>
+      <div style={{ position: 'relative', paddingLeft: isMobile ? '1.5rem' : '3rem' }}>
         {/* Central Line */}
-        <div style={{ position: 'absolute', left: '1rem', top: 0, bottom: 0, width: '2px', background: 'linear-gradient(to bottom, var(--gold) 0%, var(--border-soft) 100%)', opacity: 0.3 }} />
+        <div style={{ position: 'absolute', left: isMobile ? '0.2rem' : '1rem', top: 0, bottom: 0, width: '2px', background: 'linear-gradient(to bottom, var(--gold) 0%, var(--border-soft) 100%)', opacity: 0.3 }} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1.5rem' : '2.5rem' }}>
           {events.map((ev, i) => {
             const date = new Date(ev.date)
             const month = date.toLocaleString('default', { month: 'short' })
@@ -117,30 +125,41 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
               <div key={i} className="transit-row" style={{ position: 'relative' }}>
                 {/* Dot */}
                 <div style={{ 
-                   position: 'absolute', left: '-2.4rem', top: '0.2rem', 
-                   width: '12px', height: '12px', borderRadius: '50%', 
+                   position: 'absolute', left: isMobile ? '-1.52rem' : '-2.4rem', top: isMobile ? '0.3rem' : '0.2rem', 
+                   width: isMobile ? '10px' : '12px', height: isMobile ? '10px' : '12px', borderRadius: '50%', 
                    background: color, border: '3px solid var(--bg-page)',
                    boxShadow: `0 0 10px ${color}88`, zIndex: 2
                 }} />
 
                 {/* Date Label (Floating) */}
-                <div style={{ 
-                   position: 'absolute', left: '-7rem', top: '0', 
-                   width: '4rem', textAlign: 'right', 
-                   fontFamily: 'var(--font-mono)', fontSize: '0.75rem', 
-                   color: 'var(--text-muted)', lineHeight: 1.2 
-                }}>
-                   <div style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{day}</div>
-                   <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', opacity: 0.7 }}>{month}</div>
-                </div>
+                {!isMobile && (
+                  <div style={{ 
+                    position: 'absolute', left: '-7rem', top: '0', 
+                    width: '4rem', textAlign: 'right', 
+                    fontFamily: 'var(--font-mono)', fontSize: '0.75rem', 
+                    color: 'var(--text-muted)', lineHeight: 1.2 
+                  }}>
+                    <div style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{day}</div>
+                    <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', opacity: 0.7 }}>{month}</div>
+                  </div>
+                )}
 
                 <div className="card" style={{ 
-                   padding: '1.25rem', display: 'flex', gap: '1.25rem', alignItems: 'center',
+                   padding: isMobile ? '1rem' : '1.25rem', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '0.75rem' : '1.25rem', alignItems: isMobile ? 'flex-start' : 'center',
                    background: `linear-gradient(90deg, ${color}08 0%, transparent 100%)`,
                    borderLeft: `4px solid ${color}`,
                    transition: 'transform 0.2s',
                    cursor: 'default'
-                }} onMouseOver={e => e.currentTarget.style.transform = 'translateX(5px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateX(0)'}>
+                }} onMouseOver={e => !isMobile && (e.currentTarget.style.transform = 'translateX(5px)')} onMouseOut={e => !isMobile && (e.currentTarget.style.transform = 'translateX(0)')}>
+                   
+                   {isMobile && (
+                     <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 800 }}>{day} {month}</div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 800, color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)' }}>
+                           H{ev.house} Focus
+                        </div>
+                     </div>
+                   )}
                    
                    <div style={{ 
                      width: '48px', height: '48px', borderRadius: '12px', 
@@ -154,21 +173,23 @@ export function TransitTimeline({ ascRashi }: TransitTimelineProps) {
 
                    <div style={{ flex: 1 }}>
                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                       <span className="badge" style={{ background: `${color}15`, color: color, fontSize: '0.65rem', fontWeight: 800, border: `1px solid ${color}33` }}>{ev.type.replace('_',' ').toUpperCase()}</span>
-                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{planetLabel}</span>
+                       <span className="badge" style={{ background: `${color}15`, color: color, fontSize: '0.6rem', fontWeight: 800, border: `1px solid ${color}33` }}>{ev.type.replace('_',' ').toUpperCase()}</span>
+                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{planetLabel}</span>
                      </div>
-                     <div style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.4 }}>
+                     <div style={{ fontSize: isMobile ? '0.95rem' : '1.1rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.4 }}>
                        {ev.description}
                      </div>
                    </div>
 
-                   <div style={{ textAlign: 'right', minWidth: '90px' }}>
-                     <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activation</div>
-                     <div style={{ fontSize: '0.95rem', fontWeight: 700, color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)' }}>
-                       House {ev.house}
+                   {!isMobile && (
+                     <div style={{ textAlign: 'right', minWidth: '90px' }}>
+                       <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activation</div>
+                       <div style={{ fontSize: '0.95rem', fontWeight: 700, color: ev.type.includes('house') ? 'var(--text-gold)' : 'var(--text-secondary)' }}>
+                         House {ev.house}
+                       </div>
+                       <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Focus Area</div>
                      </div>
-                     <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Focus Area</div>
-                   </div>
+                   )}
                 </div>
               </div>
             )

@@ -26,7 +26,7 @@ export function MuhurtaDiagnostics({ diagnostics }: MuhurtaDiagnosticsProps) {
   if (!diagnostics) return null;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginTop: '0.5rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.75rem', marginTop: '0.5rem' }}>
       
       {/* 1. Choghadiya */}
       {diagnostics.choghadiya && (

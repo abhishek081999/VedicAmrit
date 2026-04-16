@@ -140,8 +140,6 @@ export function SarvatobhadraChakra({
     }
 
     return {
-      width:          cs,
-      height:         cs,
       background:     cellBg(cell.type, isVedha),
       border,
       boxShadow:      shadow,
@@ -156,21 +154,25 @@ export function SarvatobhadraChakra({
       boxSizing:      'border-box',
       transition:     'background 0.18s ease, border-color 0.13s ease, box-shadow 0.13s ease',
     }
-  }, [cs, hovered, vedhaSet, natalActivatedSet])
+  }, [hovered, vedhaSet, natalActivatedSet])
 
   // ─────────────────────────────────────────────────────────────
   return (
     <div
       style={{
         display:             'grid',
-        gridTemplateColumns: `repeat(9, ${cs}px)`,
-        gridTemplateRows:    `repeat(9, ${cs}px)`,
+        gridTemplateColumns: 'repeat(9, 1fr)',
+        gridTemplateRows:    'repeat(9, 1fr)',
         gap:                 1,
         background:          'var(--sbc-grid-bg)',
         borderRadius:        10,
         padding:             1,
         border:              '1px solid var(--sbc-grid-bdr)',
         boxShadow:           '0 4px 32px rgba(0,0,0,0.15)',
+        width:               '100%',
+        maxWidth:            size,
+        aspectRatio:         '1 / 1',
+        touchAction:         'manipulation'
       }}
     >
       {grid.flat().map(cell => {

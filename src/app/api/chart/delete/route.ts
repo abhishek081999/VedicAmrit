@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import connectDB from '@/lib/db/mongodb'
 import { Chart, ChartCache } from '@/lib/db/models/Chart'
+import { User } from '@/lib/db/models/User'
 
 export const runtime = 'nodejs'
 
@@ -27,12 +28,16 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Chart not found' }, { status: 404 })
     }
 
-    // Delete chart and its cache in parallel
+    // Delete chart, its cache and clear default reference in parallel
     await Promise.all([
       Chart.deleteOne({ _id: id, userId: session.user.id }),
       chart.cachedDataId
         ? ChartCache.deleteOne({ _id: chart.cachedDataId })
         : Promise.resolve(),
+      User.updateOne(
+        { _id: session.user.id, defaultChartId: id },
+        { $set: { defaultChartId: null } }
+      )
     ])
 
     return NextResponse.json({ success: true })

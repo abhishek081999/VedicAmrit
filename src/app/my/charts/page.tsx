@@ -59,14 +59,16 @@ function fmtSaved(iso: string): string {
 }
 
 function ChartCard({
-  chart, isSelected, toggleSelection, onLoad, onDelete, onUpdate,
+  chart, isSelected, isDefault, toggleSelection, onLoad, onDelete, onUpdate, onSetDefault,
 }: {
   chart: SavedChart
   isSelected:    boolean
+  isDefault:     boolean
   toggleSelection: (id: string) => void
   onLoad:        (c: SavedChart) => void
   onDelete:      (id: string) => void | Promise<void>
   onUpdate:      (id: string, update: ChartUpdate) => void
+  onSetDefault:  (id: string) => void
 }) {
   const [confirmDel, setConfirmDel] = useState(false)
   const [deleting,   setDeleting]   = useState(false)
@@ -154,6 +156,22 @@ function ChartCard({
     setDeleting(false)
   }
 
+  async function handleSetDefault() {
+    try {
+      const res = await fetch('/api/user/default-chart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chartId: chart._id })
+      })
+      const json = await res.json()
+      if (json.success) {
+        onSetDefault(chart._id)
+      }
+    } catch (e) {
+      console.error('Failed to set default', e)
+    }
+  }
+
   return (
     <div style={{
       background: 'var(--surface-1)',
@@ -191,6 +209,21 @@ function ChartCard({
         }}>
           {chart.name}
         </span>
+        <button
+          onClick={(e) => { e.stopPropagation(); handleSetDefault() }}
+          title={isDefault ? "Default Chart (Loads on Login)" : "Set as Default (Load on Login)"}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem',
+            color: isDefault ? 'var(--gold)' : 'var(--text-muted)',
+            opacity: isDefault ? 1 : 0.3,
+            transition: 'all 0.2s',
+            padding: '2px',
+          }}
+          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+          onMouseLeave={e => !isDefault && (e.currentTarget.style.opacity = '0.3')}
+        >
+          {isDefault ? '★' : '☆'}
+        </button>
         {chart.isPersonal && (
           <span className="badge badge-gold" style={{ fontSize: '0.62rem' }}>Personal</span>
         )}
@@ -370,6 +403,7 @@ export default function MyChartsPage() {
   const [bulkExporting,    setBulkExporting]    = useState(false)
   const [tmplDownloading,  setTmplDownloading]  = useState(false)
   const [selectedIds,      setSelectedIds]      = useState<string[]>([])
+  const [defaultChartId,   setDefaultChartId]   = useState<string | null>(null)
 
   const userPlan = (session?.user as any)?.plan ?? 'free'
 
@@ -472,6 +506,13 @@ export default function MyChartsPage() {
       if (!json.success) throw new Error(json.error)
       setCharts(json.charts)
       setPag(json.pagination)
+
+      // Fetch default chart ID
+      const defRes = await fetch('/api/user/default-chart')
+      const defJson = await defRes.json()
+      if (defJson.success) {
+        setDefaultChartId(defJson.defaultChartId)
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
@@ -630,10 +671,12 @@ export default function MyChartsPage() {
               key={chart._id} 
               chart={chart} 
               isSelected={selectedIds.includes(chart._id)}
+              isDefault={defaultChartId === chart._id}
               toggleSelection={toggleSelection}
               onLoad={handleLoad} 
               onDelete={handleDelete} 
               onUpdate={handleUpdate} 
+              onSetDefault={(id) => setDefaultChartId(id)}
             />
           ))}
         </div>

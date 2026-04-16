@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 
 import {
@@ -16,7 +16,7 @@ import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/Plane
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { ConditionBadges } from '@/components/ui/AdvancedAnalysisPanel'
-import { VARGA_META, getVargaPosition } from '@/lib/engine/vargas'
+import { VARGA_META, getVargaPosition, SHODASHA_VARGAS } from '@/lib/engine/vargas'
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -134,81 +134,89 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
   useEffect(() => { setIsMounted(true) }, [])
 
-
-  // Sync with prop if it changes
+  // Sync with prop if it changes externally
   React.useEffect(() => {
     if (activeVarga && activeVarga !== selectedVarga) {
       setSelectedVarga(activeVarga)
     }
-  }, [activeVarga, selectedVarga])
+  }, [activeVarga])
 
-  // Use the selected varga's grahas if available
-  const currentGrahas = (vargas && vargas[selectedVarga]) ? vargas[selectedVarga] : grahas
-  const vPos = (lagnas && selectedVarga !== 'D1') 
-    ? getVargaPosition(lagnas.ascDegree, selectedVarga as any)
-    : null
-  
-  const currentLagnaRashi = vPos ? vPos.rashi : (vargaLagnas && vargaLagnas[selectedVarga]) 
-    ? vargaLagnas[selectedVarga] 
-    : (lagnas?.ascRashi || 1)
+  // 1. Identify which Graha set to use for coordinates
+  // Use the selected varga's grahas if available, otherwise fallback to root grahas (D1)
+  const currentVargaGrahas = (vargas && vargas[selectedVarga]) ? vargas[selectedVarga] : grahas
 
-  // Build combined body list
-  const bodies: BodyInfo[] = []
-  const main9 = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
-
-  currentGrahas
-    .filter(g => !limited || main9.includes(g.id))
-    .forEach(g => {
-      bodies.push({
-        id:       g.id,
-        name:     isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
-        totalDeg: g.totalDegree,
-        isRetro:  g.isRetro,
-        karaka:   g.charaKaraka,
-        color:    g.isRetro ? 'var(--rose)' : 'inherit',
-        avastha:  g.avastha,
-        dignity:  g.dignity,
+  // 2. Prepare the bodies list for the table
+  const bodies = useMemo(() => {
+    const list: BodyInfo[] = []
+    const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
+    
+    // Filter and map the planets for the current varga
+    currentVargaGrahas
+      .filter(g => !limited || mainIds.includes(g.id))
+      .forEach(g => {
+        list.push({
+          id:       g.id,
+          name:     isSa ? GRAHA_SANSKRIT[g.id] : GRAHA_NAMES[g.id],
+          totalDeg: g.totalDegree,
+          isRetro:  g.isRetro,
+          karaka:   g.charaKaraka,
+          color:    g.isRetro ? 'var(--rose)' : 'inherit',
+          avastha:  g.avastha,
+          dignity:  g.dignity,
+        })
       })
-    })
 
-  if (lagnas && selectedVarga === 'D1') {
-    const items = [
-      { name: 'Lagna',              deg: lagnas.ascDegree    },
-      ...(!limited ? [
-        { name: 'Bhāva Lagna (BL)', deg: lagnas.bhavaLagna  },
-        { name: 'Hora Lagna (HL)',  deg: lagnas.horaLagna   },
-        { name: 'Ghaṭi Lagna (GL)',deg: lagnas.ghatiLagna  },
-        { name: 'Prāṇapada (PP)',  deg: lagnas.pranapada   },
-        { name: 'Śrī Lagna (SL)',  deg: lagnas.sriLagna    },
-        { name: 'Varṇada (VL)',    deg: lagnas.varnadaLagna },
-      ] : []),
-    ]
-    items.forEach(l => {
-      if (l.deg !== undefined && l.deg !== 0)
-        bodies.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
-    })
-  } else if (lagnas && selectedVarga !== 'D1') {
-    // Show only the Varga Lagna for divisional charts
-    bodies.push({ 
-      name: `Lagna (${selectedVarga})`, 
-      totalDeg: vPos ? vPos.totalDegree : (currentLagnaRashi - 1) * 30,
-      color: 'var(--text-gold)' 
-    })
-  }
+    // Handle Lagnas (Ascendants)
+    if (selectedVarga === 'D1' && lagnas) {
+      const items = [
+        { name: 'Lagna',              deg: lagnas.ascDegree    },
+        ...(!limited ? [
+          { name: 'BH (Bhāva)',       deg: lagnas.bhavaLagna   },
+          { name: 'HL (Hora)',        deg: lagnas.horaLagna    },
+          { name: 'GL (Ghaṭi)',       deg: lagnas.ghatiLagna   },
+          { name: 'PP (Prāṇapada)',   deg: lagnas.pranapada    },
+          { name: 'SL (Śrī)',         deg: lagnas.sriLagna     },
+          { name: 'VL (Varṇada)',     deg: lagnas.varnadaLagna },
+        ] : []),
+      ]
+      items.forEach(l => {
+        if (l.deg !== undefined && l.deg !== 0) {
+          list.push({ name: l.name, totalDeg: l.deg, color: 'var(--text-gold)' })
+        }
+      })
+    } else if (lagnas) {
+      // Find the specific Varga Lagna rashi
+      const vLagnaRashi = (vargaLagnas && vargaLagnas[selectedVarga]) || lagnas.ascRashi || 1
+      const vPosition = getVargaPosition(lagnas.ascDegree, selectedVarga as any)
+      
+      list.push({ 
+        name: `Lagna (${selectedVarga})`, 
+        totalDeg: vPosition ? vPosition.totalDegree : (vLagnaRashi - 1) * 30,
+        color: 'var(--text-gold)' 
+      })
+    }
 
-  if (upagrahas && !limited && selectedVarga === 'D1') {
-    Object.values(upagrahas).forEach(d => {
-      bodies.push({ name: d.name, totalDeg: d.totalDegree, color: 'var(--text-secondary)' })
-    })
-  }
+    // Upagrahas only in D1
+    if (upagrahas && !limited && selectedVarga === 'D1') {
+      Object.values(upagrahas).forEach(d => {
+        list.push({ name: d.name, totalDeg: d.totalDegree, color: 'var(--text-secondary)' })
+      })
+    }
 
-  const vargaOptions = vargas ? Object.keys(vargas).sort((a, b) => {
-    const numA = parseInt(a.replace(/\D/g, '') || '0', 10)
-    const numB = parseInt(b.replace(/\D/g, '') || '0', 10)
-    return numA - numB || a.localeCompare(b)
-  }) : ['D1']
+    return list
+  }, [currentVargaGrahas, selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited])
 
-  // ── Render ────────────────────────────────────────────────
+  const vargaOptions = vargas ? Object.keys(vargas)
+    .filter(opt => SHODASHA_VARGAS.includes(opt as any) || opt === 'D1')
+    .sort((a, b) => {
+      const numA = parseInt(a.replace(/\D/g, '') || '0', 10)
+      const numB = parseInt(b.replace(/\D/g, '') || '0', 10)
+      return numA - numB || a.localeCompare(b)
+    }) : ['D1']
+
+  // Normalized natal Lagna for house calculations
+  const natalLagnaRashi = lagnas?.ascRashi || 1
+
   return (
     <div style={{ width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
 
@@ -224,7 +232,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span style={{ fontSize: '0.9rem' }}>✦</span>
           <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
-            Planetary Details {selectedVarga !== 'D1' ? ` — ${selectedVarga}` : ''}
+            Micro-Details {selectedVarga !== 'D1' ? ` — ${selectedVarga}` : ''}
           </span>
         </div>
         
@@ -257,47 +265,8 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         )}
       </div>
 
-      {/* ── Legend ─────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        gap: '0.5rem 1rem',
-        padding: '0.5rem 0.9rem',
-        background: 'var(--surface-2)',
-        borderBottom: '1px solid var(--border-soft)',
-        fontSize: '0.68rem',
-        color: 'var(--text-muted)',
-        lineHeight: 1.5,
-      }}>
-        <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-secondary)' }}>
-          Conditions:
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <LBadge label="G" bg="rgba(224,123,142,0.15)" color="var(--rose)" /> Gandanta
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <LBadge label="P" bg="rgba(78,205,196,0.12)" color="var(--teal)" /> Puṣkara
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <LBadge label="M" bg="rgba(245,158,66,0.12)" color="var(--amber, #f59e42)" /> Mṛtyu Bhāga
-        </span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-          <LBadge label="YW" bg="rgba(78,205,196,0.15)" color="var(--teal)" />
-          <LBadge label="YL" bg="rgba(224,123,142,0.15)" color="var(--rose)" />
-          &nbsp;Yuddha
-        </span>
-      </div>
-
-      {/* ── Scrollable table wrapper ────────────────────────── */}
       <div style={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{
-          width: '100%',
-          minWidth: 520,
-          borderCollapse: 'collapse',
-          background: 'var(--surface-1)',
-          tableLayout: 'fixed',
-        }}>
+        <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: '22%' }} />
             <col style={{ width: '15%' }} />
@@ -309,25 +278,10 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
-              {[
-                'Body', 
-                'Deg  ′  ″', 
-                'Nakshatra', 
-                selectedVarga === 'D1' ? 'Rashi · D9' : 'Rashi · Sub', 
-                'Dignity', 
-                'Avasthā'
-              ].map((h, idx) => (
+              {['Body', 'Deg  ′  ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi · D9' : 'Natal · Varga', 'Dignity', 'Avasthā'].map((h, idx) => (
                 <th key={h} style={{
-                  padding: '0.55rem 0.7rem',
-                  color: 'var(--primary-brand)',
-                  fontSize: '0.6rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: idx === 0 ? 'left' : 'center', // Center analysis columns
+                  padding: '0.55rem 0.7rem', color: 'var(--primary-brand)', fontSize: '0.6rem', fontWeight: 800,
+                  letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: idx === 0 ? 'left' : 'center',
                 }}>
                   {h}
                 </th>
@@ -340,149 +294,65 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
               const { deg, min, sec, rshort, rashiIdx } = fmtDeg(b.totalDeg)
               const nak = getNak(b.totalDeg)
               const nav = getNav(b.totalDeg)
-              const graha = b.id ? grahas.find(g => g.id === b.id) : undefined
+              // Lookup natal graha for cross-reference
+              const natalGraha = b.id ? grahas.find(g => g.id === b.id) : undefined
               const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(b.id as string)
 
-              const handleMouseLeave = () => {
-                if (hoverTimer.current) clearTimeout(hoverTimer.current)
-                setHoveredPlanet(null)
-              }
-
-
               return (
-                <tr
-                  key={`${b.name}-${i}`}
-                  style={{
-                    borderBottom: '1px solid var(--border-soft)',
-                    background: i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent',
-                    transition: 'background 0.15s',
-                  }}
-                >
-
-                  {/* ── Body ──────────────────────────────── */}
-                  <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'nowrap' }}>
+                <tr key={`${b.name}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>
+                  <td style={{ padding: '0.45rem 0.7rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <span 
                         onMouseEnter={(e) => {
-                          if (!isMainPlanet || !graha) return
+                          if (!isMainPlanet || !natalGraha) return
                           setMousePos({ x: e.clientX, y: e.clientY })
                           if (hoverTimer.current) clearTimeout(hoverTimer.current)
                           hoverTimer.current = setTimeout(() => {
                             const nak = getNak(b.totalDeg)
-                            const house = ((rashiIdx - currentLagnaRashi + 12) % 12) + 1
+                            const house = ((rashiIdx - natalLagnaRashi + 12) % 12) + 1
                             setHoveredPlanet({
                               id: String(b.id), name: b.name, totalDeg: b.totalDeg,
                               isRetro: b.isRetro, dignity: b.dignity, avastha: b.avastha,
+                              nakshatraName: nak.name, pada: nak.pada, house,
                               nakshatraIndex: Math.floor(b.totalDeg / (360/27)) % 27,
-                              nakshatraName: nak.name, pada: nak.pada,
                               charaKaraka: b.karaka ?? undefined,
-                              isCombust: graha.isCombust,
-                              house,
+                              isCombust: natalGraha.isCombust,
                             })
                           }, 200)
                         }}
-
-                        onMouseLeave={handleMouseLeave}
-                        onMouseMove={(e) => setMousePos({ x: e.clientX, y: e.clientY })}
-                        style={{
-                          fontWeight: 600,
-                          color: b.color || 'var(--text-primary)',
-                          fontSize: '0.82rem',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          maxWidth: '7rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.2rem',
-                          cursor: isMainPlanet ? 'help' : 'default',
-                          textDecoration: isMainPlanet ? 'underline dotted var(--gold-faint)' : 'none',
-                          textUnderlineOffset: '3px'
-                        }}>
-                        {b.name}
-                        {b.isRetro && (
-                          <span style={{ fontSize: '0.58rem', marginLeft: 2, verticalAlign: 'super', opacity: 0.8 }}>℞</span>
-                        )}
-                        {isMainPlanet && (
-                          <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', opacity: 0.6, marginLeft: 2 }} title="Hover for interpretation">●</span>
-                        )}
+                        onMouseLeave={() => {
+                          if (hoverTimer.current) clearTimeout(hoverTimer.current)
+                          setHoveredPlanet(null)
+                        }}
+                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.82rem', cursor: isMainPlanet ? 'help' : 'default' }}>
+                        {b.name} {b.isRetro && <span style={{ fontSize: '0.58rem' }}>℞</span>}
                       </span>
-
-                      {b.karaka && (
-                        <span style={{
-                          fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700,
-                          padding: '0 3px', background: 'var(--surface-3)', borderRadius: 3,
-                          flexShrink: 0,
-                        }}>
-                          {b.karaka}
-                        </span>
-                      )}
+                      {b.karaka && <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 3px', background: 'var(--surface-3)', borderRadius: 3 }}>{b.karaka}</span>}
                     </div>
-                    {graha && (
-                      <div style={{ marginTop: '0.15rem' }}>
-                        <ConditionBadges graha={graha} />
-                      </div>
+                    {natalGraha && <div style={{ marginTop: '0.15rem' }}><ConditionBadges graha={natalGraha} /></div>}
+                  </td>
+                  <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.76rem' }}>
+                    <span style={{ fontWeight: 600 }}>{deg}°</span> {String(min).padStart(2, '0')}′ {String(sec).padStart(2, '0')}″
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <span style={{ fontWeight: 600 }}>{nak.name}</span> <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({nak.pada})</span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    {selectedVarga === 'D1' ? (
+                      <>
+                        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--primary-brand)', marginLeft: 4 }}>({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})</span>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{natalGraha ? (isSa ? RASHI_SANSKRIT[natalGraha.rashi] : RASHI_SHORT[natalGraha.rashi]) : '—'}</span>
+                        <span style={{ color: 'var(--border-bright)', margin: '0 4px' }}>→</span>
+                        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</span>
+                      </>
                     )}
                   </td>
-
-                  {/* ── Deg ───────────────────────────────── */}
-                  <td style={{
-                    padding: '0.45rem 0.7rem',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '0.76rem',
-                    color: 'var(--text-secondary)',
-                    whiteSpace: 'nowrap',
-                    verticalAlign: 'middle',
-                    textAlign: 'center',
-                  }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{deg}°</span>
-                    <span style={{ color: 'var(--text-muted)', margin: '0 1px' }}>{String(min).padStart(2, '0')}′</span>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{String(sec).padStart(2, '0')}″</span>
-                  </td>
-
-                  {/* ── Nakshatra ─────────────────────────── */}
-                  <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'center' }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.8rem' }}>
-                      {nak.name}
-                    </span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginLeft: 3 }}>
-                      ({nak.pada})
-                    </span>
-                  </td>
-
-                  {/* ── Rashi · D9 ────────────────────────── */}
-                  <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'center' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--text-gold)', fontSize: '0.8rem' }}>
-                      {isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}
-                    </span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--primary-brand)', marginLeft: 4, opacity: 0.8 }}>
-                      ({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})
-                    </span>
-                  </td>
-
-                  {/* ── Dignity ───────────────────────────── */}
-                  <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'center' }}>
-                    {b.dignity ? <DignityCell dignity={b.dignity} /> : <span style={{ color: 'var(--text-muted)' }}>—</span>}
-                  </td>
-
-                  {/* ── Avasthā ───────────────────────────── */}
-                  <td style={{ padding: '0.45rem 0.7rem', verticalAlign: 'middle', textAlign: 'center' }}>
-                    {b.avastha ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.76rem', color: 'var(--text-primary)', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                          {b.avastha.baladi}
-                        </span>
-                        <span style={{
-                          fontSize: '0.62rem', color: 'var(--text-muted)',
-                          background: 'var(--surface-2)', padding: '0 5px',
-                          borderRadius: 3, whiteSpace: 'nowrap',
-                          display: 'inline-block', width: 'fit-content',
-                        }}>
-                          {b.avastha.jagradadi}
-                        </span>
-                      </div>
-                    ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
-                  </td>
+                  <td style={{ textAlign: 'center' }}>{b.dignity ? <DignityCell dignity={b.dignity} /> : '—'}</td>
+                  <td style={{ textAlign: 'center' }}>{b.avastha ? <div style={{ fontSize: '0.76rem' }}>{b.avastha.baladi}<div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{b.avastha.jagradadi}</div></div> : '—'}</td>
                 </tr>
               )
             })}
@@ -492,7 +362,11 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
       {/* ── Tooltip Portal ── */}
       {isMounted && hoveredPlanet && (
-        <PlanetTooltipCard planet={hoveredPlanet} x={mousePos.x} y={mousePos.y} />
+        <PlanetTooltipCard 
+          planet={hoveredPlanet} 
+          x={mousePos.x} y={mousePos.y} 
+          onClose={() => setHoveredPlanet(null)} 
+        />
       )}
 
     </div>
