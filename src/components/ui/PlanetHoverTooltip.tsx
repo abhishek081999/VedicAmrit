@@ -207,7 +207,7 @@ export function PlanetTooltipCard({ planet, x, y }: { planet: PlanetTooltipData;
 // ── Main exported wrapper ─────────────────────────────────────
 
 interface PlanetHoverTooltipProps {
-  planet: PlanetData
+  planet: PlanetTooltipData
   children: React.ReactNode
   disabled?: boolean
 }

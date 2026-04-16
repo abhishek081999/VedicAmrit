@@ -210,6 +210,7 @@ export function SouthIndianChakra({
         
         const houseOfSign = ((sign - ascRashi + 12) % 12) + 1
         const isHouseHi  = highlightHouses.includes(houseOfSign)
+        const isAspected = aspectHighlights.includes(sign)
 
         const nGrahas = cellGrahas.length
         const useTwoCol = nGrahas > 3
