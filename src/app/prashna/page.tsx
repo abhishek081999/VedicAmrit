@@ -394,7 +394,7 @@ export default function PrashnaPage() {
                         {chart?.grahas.filter(g => !['Ur','Ne','Pl'].includes(g.id)).map(g => (
                           <tr key={g.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
                             <td style={{ padding: '0.6rem 0.4rem', fontWeight: 600, color: 'var(--text-gold)' }}>{g.name}</td>
-                            <td style={{ padding: '0.6rem 0.4rem' }}>{g.rashiName.slice(0,3)} {Math.floor(g.degree)}°{Math.floor((g.degree%1)*60)}{"'"}</td>
+                            <td style={{ padding: '0.6rem 0.4rem' }}>{g.rashiName.slice(0,3)} {Math.floor(g.degree)}°{Math.floor((g.degree%1)*60)}{"&apos;"}</td>
                             <td style={{ padding: '0.6rem 0.4rem' }}>{g.nakshatraName} ({g.pada})</td>
                             <td style={{ padding: '0.6rem 0.4rem' }}>
                                <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: 4, background: 'var(--surface-3)', border: '1px solid var(--border)' }}>
@@ -555,7 +555,7 @@ export default function PrashnaPage() {
                     ))}
                  </div>
                  <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '1rem', fontStyle: 'italic' }}>
-                    Note: Connection between Querent{"'"}s RP and Query{"'"}s House Sub-lords confirms accuracy.
+                    Note: Connection between Querent&apos;s RP and Query&apos;s House Sub-lords confirms accuracy.
                  </p>
               </div>
 
@@ -573,7 +573,7 @@ export default function PrashnaPage() {
                  
                  <div style={{ background: 'var(--surface-3)', padding: '1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                       <span className="label-caps" style={{ fontSize: '0.65rem' }}>Oracle's Compass</span>
+                       <span className="label-caps" style={{ fontSize: '0.65rem' }}>Oracle&apos;s Compass</span>
                        <span style={{ fontWeight: 700, color: 'var(--gold)', fontSize: '0.9rem' }}>{analysis?.direction}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>

@@ -145,6 +145,9 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const [relocatedPoint, setRelocatedPoint] = useState<[number, number] | null>(null)
   const [relocationStats, setRelocationStats] = useState<any>(null)
 
+  const birthLat = birthCoords?.[0]
+  const birthLng = birthCoords?.[1]
+
   useEffect(() => {
     const filtered = natalParans.filter(p => visiblePlanets.has(p.p1) && visiblePlanets.has(p.p2));
     onVisiblePlanetsChange?.(visiblePlanets, filtered, natalData);
@@ -169,7 +172,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
       } catch (err) {} finally { setLoading(false) }
     }
     fetchAll()
-  }, [natalJd, birthCoords?.[0], birthCoords?.[1]])
+  }, [natalJd, birthLat, birthLng])
 
   const setPlanetaryTheme = (themeId: string) => {
     setActiveTheme(themeId)
@@ -196,7 +199,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
           setRelocationStats({ ...json, nearest })
       }
     } catch (e) {}
-  }, [viewMode, natalJd])
+  }, [viewMode, natalJd, natalData])
 
   if (loading) return <div style={{ height: 600, background: '#0b0b14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="loader" /></div>
 

@@ -35,16 +35,16 @@ const activities = [
 ];
 
 export function MuhurtaTimeline(props: MuhurtaTimelineProps) {
-  const data = props.data || [];
   const loading = props.loading || false;
   const [selectedActivity, setSelectedActivity] = useState('BUSINESS');
 
   const activeData = useMemo(() => {
+    const data = props.data || [];
     return data.map(point => ({
       time: point.time,
       info: point.scores[selectedActivity] || { score: 50, label: 'Neutral', factors: [] }
     }));
-  }, [data, selectedActivity]);
+  }, [props.data, selectedActivity]);
 
   const bestWindow = useMemo(() => {
     if (!activeData.length) return null;
