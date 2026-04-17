@@ -668,7 +668,7 @@ export default function ClientsPage() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: '2rem', alignItems: 'start' }}>
+      <div className="clients-shell-grid">
         
         {/* Main List */}
         <section>
@@ -803,16 +803,8 @@ export default function ClientsPage() {
 
       {/* Quick Add Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(4px)', zIndex: 2000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
-        }}>
-          <div style={{
-            background: 'var(--surface-1)', borderRadius: 'var(--r-xl)',
-            width: '100%', maxWidth: 500, padding: '2rem', position: 'relative',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid var(--border)'
-          }}>
+        <div className="clients-modal-shell">
+          <div className="clients-modal-card">
             <button 
               onClick={() => setShowAddModal(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--text-muted)', cursor: 'pointer' }}
@@ -835,16 +827,8 @@ export default function ClientsPage() {
         </div>
       )}
       {showEditModal && editingClient && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-          backdropFilter: 'blur(4px)', zIndex: 2000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
-        }}>
-          <div style={{
-            background: 'var(--surface-1)', borderRadius: 'var(--r-xl)',
-            width: '100%', maxWidth: 500, padding: '2rem', position: 'relative',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid var(--border)'
-          }}>
+        <div className="clients-modal-shell">
+          <div className="clients-modal-card">
             <button 
               onClick={() => setShowEditModal(false)}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'none', border: 'none', fontSize: '1.5rem', color: 'var(--text-muted)', cursor: 'pointer' }}

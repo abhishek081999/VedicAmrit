@@ -572,7 +572,7 @@ export default function MyChartsPage() {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+      <div className="charts-toolbar">
         <input
           className="input"
           placeholder="Search by name or place…"
@@ -684,22 +684,7 @@ export default function MyChartsPage() {
 
       {/* Floating Action Bar for Bulk Selection */}
       {selectedIds.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: '2rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'var(--surface-1)',
-          border: '1px solid var(--border-bright)',
-          borderRadius: 'var(--r-lg)',
-          padding: '0.8rem 1.5rem',
-          boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1.5rem',
-          zIndex: 1000,
-          animation: 'fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}>
+        <div className="charts-floating-actions">
           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
             {selectedIds.length} chart{selectedIds.length > 1 ? 's' : ''} selected
           </div>

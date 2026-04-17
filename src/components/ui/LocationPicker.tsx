@@ -55,10 +55,18 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
   const [open,       setOpen]       = useState(false)
   const [loading,    setLoading]    = useState(false)
   const [geoLoading, setGeoLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const timer   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => { setQuery(value.name) }, [value.name])
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -190,12 +198,29 @@ export function LocationPicker({ value, onChange, label = 'Location', birthLocat
         )}
       </div>
 
+      {open && results.length > 0 && isMobile && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            zIndex: 3000,
+          }}
+        />
+      )}
+
       {open && results.length > 0 && (
         <div style={{
-          position: 'absolute', zIndex: 200, top: 'calc(100% + 4px)', left: 0, right: 0,
+          position: isMobile ? 'fixed' : 'absolute',
+          zIndex: isMobile ? 3001 : 200,
+          top: isMobile ? 'auto' : 'calc(100% + 4px)',
+          bottom: isMobile ? 12 : 'auto',
+          left: isMobile ? 12 : 0,
+          right: isMobile ? 12 : 0,
           background: 'var(--surface-2)', border: '1px solid var(--border-soft)',
           borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-          maxHeight: 260, overflowY: 'auto',
+          maxHeight: isMobile ? 'min(55vh, 420px)' : 260, overflowY: 'auto',
         }}>
           {results.map((r, i) => (
             <button

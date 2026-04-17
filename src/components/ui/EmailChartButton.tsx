@@ -5,7 +5,7 @@
 //  calls /api/chart/send-email.
 // ─────────────────────────────────────────────────────────────
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import type { ChartOutput } from '@/types/astrology'
 
@@ -25,6 +25,14 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
   const [loading, setLoading] = useState(false)
   const [status, setStatus]   = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   async function handleSend() {
     if (!email || !email.includes('@')) {
@@ -70,6 +78,8 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
     setIsOpen(!isOpen)
   }
 
+  const isMobileCompactPopup = compact && isMobile
+
   return (
     <div style={{ position: 'relative', display: 'inline-block', ...style }}>
       <button
@@ -97,18 +107,33 @@ export function EmailChartButton({ chart, compact = false, style }: Props) {
         {compact ? 'Email' : 'Email to Client'}
       </button>
 
+      {isOpen && isMobileCompactPopup && (
+        <div
+          onClick={() => setIsOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.42)',
+            zIndex: 2000,
+          }}
+        />
+      )}
+
       {isOpen && (
         <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 8px)',
-          right: 0,
-          width: 260,
+          position: isMobileCompactPopup ? 'fixed' : 'absolute',
+          top: isMobileCompactPopup ? 'auto' : 'calc(100% + 8px)',
+          bottom: isMobileCompactPopup ? 12 : 'auto',
+          right: isMobileCompactPopup ? 12 : 0,
+          left: isMobileCompactPopup ? 12 : 'auto',
+          width: isMobileCompactPopup ? 'auto' : 260,
+          maxWidth: isMobileCompactPopup ? 'none' : 'calc(100vw - 24px)',
           background: 'var(--surface-1, #fff)',
           border: '1px solid var(--border, #eee)',
           borderRadius: 'var(--r-md, 8px)',
           padding: '12px',
           boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-          zIndex: 100,
+          zIndex: isMobileCompactPopup ? 2001 : 100,
           animation: 'fadeUp 0.2s ease-out'
         }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>

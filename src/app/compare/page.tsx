@@ -165,10 +165,10 @@ function CompareContent() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
      
 
-      <main style={{ flex: 1, maxWidth: 1100, width: '100%', margin: '0 auto', padding: 'clamp(1rem,3vw,2rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <main className="compare-main">
 
         {/* Steps */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="compare-steps">
           {[{s:'a',l:'1. Chart A',done:step!=='a'},{s:'b',l:'2. Chart B',done:step==='done'},{s:'done',l:'3. Result',done:false}].map(({s,l,done},i,arr)=>(
             <React.Fragment key={s}>
               <span style={{ padding:'0.2rem 0.7rem',borderRadius:99,fontSize:'0.75rem',fontWeight:600,fontFamily:'var(--font-display)',background:step===s?'rgba(201,168,76,0.15)':done?'rgba(78,205,196,0.10)':'var(--surface-2)',color:step===s?'var(--text-gold)':done?'var(--teal)':'var(--text-muted)',border:`1px solid ${step===s?'var(--border-bright)':done?'rgba(78,205,196,0.30)':'var(--border)'}`}}>
@@ -230,7 +230,7 @@ function CompareContent() {
             </div>
 
             {/* View tabs */}
-            <div className="no-print" style={{ display:'flex',gap:'0.4rem',flexWrap:'wrap' }}>
+            <div className="no-print compare-tabs">
               {([
                 ['compat','🔮 Basic Affinity'],
                 ['doshas', '⚔️ Dosha Analysis'],
@@ -320,7 +320,7 @@ function CompareContent() {
                         </div>
                       </div>
                       
-                      <div style={{ overflowX: 'auto' }}>
+                      <div className="compare-wide-table-wrap">
                         <table style={{ minWidth: 650, width:'100%', borderCollapse:'collapse', fontFamily:'var(--font-mono)', fontSize:'0.85rem' }}>
                           <thead>
                             <tr style={{ borderBottom: '2px solid var(--border)', textAlign:'left' }}>

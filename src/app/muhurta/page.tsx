@@ -316,7 +316,7 @@ export default function MuhurtaPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-page)' }}>
 
-      <main style={{ flex: 1, maxWidth: 820, width: '100%', margin: '0 auto', padding: isMobile ? '1.5rem 1rem' : '1rem clamp(1rem,3vw,2rem) 3rem', display: 'flex', flexDirection: 'column', gap: isMobile ? '1.25rem' : '2rem' }}>
+      <main className="muhurta-main">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '2rem', fontWeight: 800, color: 'var(--text-gold)', margin: 0 }}>Muhūrta Intelligence</h1>
         </div>
@@ -332,7 +332,7 @@ export default function MuhurtaPage() {
           </h1>
           <div>
             <label style={{ fontSize: '0.72rem' }}>Purpose</label>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+            <div className="muhurta-purpose-list">
               {PURPOSES.map(({ id, label, icon }) => (
                 <button key={id} onClick={() => setPurpose(id)} style={{
                   padding: '0.35rem 0.75rem',
@@ -348,7 +348,7 @@ export default function MuhurtaPage() {
               ))}
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+          <div className="muhurta-range-grid">
             <div style={{ flex: 1, minWidth: 140 }}>
               <label style={{ fontSize: '0.72rem' }}>From</label>
               <input type="date" className="input" value={fromDate} min={today}
@@ -372,7 +372,7 @@ export default function MuhurtaPage() {
           <div style={{ maxWidth: isMobile ? '100%' : 400 }}>
             <LocationPicker value={location} onChange={setLocation} label="📍 Location" />
           </div>
-          <button onClick={findMuhurta} disabled={loading} className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}>
+          <button onClick={findMuhurta} disabled={loading} className="btn btn-primary muhurta-find-btn" style={{ alignSelf: 'flex-start', padding: '0.6rem 1.5rem' }}>
             {loading ? <><span className="spin-loader" style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff' }} /> Searching…</> : '🔍 Find Muhūrta'}
           </button>
         </div>

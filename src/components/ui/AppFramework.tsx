@@ -289,15 +289,9 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       )}
       
       {/* ── Top Global Header ────────────────────────────────── */}
-      <header style={{
-        padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        borderBottom: `1px solid var(--header-border)`, backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        background: 'var(--header-bg)', gap: '0.75rem',
-        zIndex: 200, flexShrink: 0,
-        height: '60px'
-      }}>
+      <header className="app-header">
         {/* Left: Toggler + Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+        <div className="app-header-left">
           <button 
             onClick={() => setIsSidenavOpen((o: boolean) => !o)}
             style={{
@@ -328,7 +322,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Right: Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="app-header-right">
           <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
             <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Pañcāṅga</Link>
             <Link href="/sbc"      style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>SBC</Link>
@@ -623,6 +617,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           {/* Floating Scroll to Top button */}
           <button
             onClick={scrollToTop}
+            className="floating-scroll-top"
             style={{
               position: 'fixed',
               bottom: '2rem',

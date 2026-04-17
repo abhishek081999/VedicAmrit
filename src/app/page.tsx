@@ -548,9 +548,9 @@ function HomeContent() {
                  </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.5rem', flexWrap: 'wrap' }}>
+              <div className="chart-action-wrap">
                   {status === 'authenticated' && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="chart-action-row">
                       <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
                         {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                       </button>
@@ -572,7 +572,7 @@ function HomeContent() {
                      {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                    </button>
                  )}
-                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+                 <div className="chart-action-row">
                    <ExportPdfButton chart={chart} compact />
                    <EmailChartButton chart={chart} compact />
                  </div>
@@ -1073,15 +1073,7 @@ function HomeContent() {
       ) : (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '2rem' }}>
             {!isFormOpen && (
-              <div style={{ 
-                textAlign: 'center', 
-                maxWidth: '600px',
-                padding: '3rem 2rem',
-                background: 'var(--surface-1)',
-                border: '1px solid var(--border-soft)',
-                borderRadius: 'var(--r-lg)',
-                boxShadow: 'var(--shadow-deep)',
-              }} className="fade-in">
+              <div className="fade-in main-empty-state">
                 <div style={{ fontSize: '4.5rem', marginBottom: '1.5rem', animation: 'float 6s ease-in-out infinite' }}>🌌</div>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '2.2rem', color: 'var(--text-primary)', margin: '0 0 1rem 0', fontWeight: 500, letterSpacing: '-0.02em' }}>
                   The Cosmic Canvas
@@ -1157,7 +1149,7 @@ function HomeContent() {
         transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         width: 450, // Default width for desktop (overridden by class on mobile)
       }}>
-        <div style={{
+        <div className="form-drawer-header" style={{
           padding: '1.5rem', borderBottom: '1px solid var(--border)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           background: 'var(--surface-2)'
@@ -1182,7 +1174,7 @@ function HomeContent() {
           </button>
         </div>
         
-        <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
+        <div className="form-drawer-body" style={{ padding: '1.5rem', flex: 1, overflowY: 'auto' }}>
             {/* 
                 Optimization: Render BirthForm immediately if query params are present (from "My Charts" or deep links).
                 Don't wait for the background user/me fetch to finish.
