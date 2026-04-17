@@ -320,7 +320,7 @@ export default function MonthlyPanchangPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.2rem' }}>🪐</span>
+            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 22, height: 22, objectFit: 'contain' }} />
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)', fontSize: '1rem' }}>|</span>

@@ -385,6 +385,16 @@ export function CircleChakra({
           onClose={() => setHoveredPlanet(null)} 
         />
       )}
+      {/* ── Center Brand Watermark ── */}
+      <image 
+        href="/veda-icon.png" 
+        x={cx - (size * 0.08)} 
+        y={cy - (size * 0.08)} 
+        width={size * 0.16} 
+        height={size * 0.16} 
+        opacity="0.25"
+        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
+      />
     </svg>
 
 

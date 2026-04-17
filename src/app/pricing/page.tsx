@@ -172,8 +172,8 @@ export default function PricingPage() {
 
       {/* Header */}
       <header className="pricing-header">
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-          <span>🪐</span>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+          <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 24, height: 24, objectFit: 'contain' }} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
         </Link>
         <div className="pricing-header-actions">
@@ -202,6 +202,11 @@ export default function PricingPage() {
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
             Swiss Ephemeris precision for every chart. All core features free forever on the Free tier.
           </p>
+        </div>
+
+        {/* Brand Icon Hero */}
+        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+          <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 80, height: 80, objectFit: 'contain' }} />
         </div>
 
         {/* Billing toggle */}
@@ -371,7 +376,7 @@ export default function PricingPage() {
             { icon: '🔒', text: 'Secure payments via Razorpay' },
             { icon: '↩', text: '7-day money-back guarantee' },
             { icon: '❌', text: 'Cancel anytime, no lock-in' },
-            { icon: '🪐', text: 'Swiss Ephemeris precision' },
+            { icon: <img src="/veda-icon.png" style={{ width: 16, height: 16, objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
               <span>{icon}</span> {text}

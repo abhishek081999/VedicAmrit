@@ -654,7 +654,9 @@ export default function MyChartsPage() {
 
       {!loading && !error && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🪐</div>
+          <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 64, height: 64, objectFit: 'contain', opacity: 0.8 }} />
+          </div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
             {search ? 'No charts match your search' : 'No saved charts yet'}
           </p>

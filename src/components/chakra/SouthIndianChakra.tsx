@@ -500,6 +500,16 @@ export function SouthIndianChakra({
           onClose={() => setHoveredPlanet(null)} 
         />
       )}
+      {/* ── Center Brand Watermark ── */}
+      <image 
+        href="/veda-icon.png" 
+        x={size/2 - (size * 0.1)} 
+        y={size/2 - (size * 0.1)} 
+        width={size * 0.2} 
+        height={size * 0.2} 
+        opacity="0.22"
+        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
+      />
     </svg>
 
 

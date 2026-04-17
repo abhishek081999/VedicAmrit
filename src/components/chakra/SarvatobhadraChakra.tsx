@@ -554,25 +554,16 @@ export function SarvatobhadraChakra({
       >
         Brahma
       </text>
-      {/* Decorative star / asterisk in centre */}
-      <g
-        transform={`translate(${cx(4)}, ${cy(4) + fs.brahma * 0.6})`}
-        stroke="rgba(201,168,76,0.45)"
-        strokeWidth="1.0"
-        strokeLinecap="round"
-      >
-        {[0, 45, 90, 135].map((deg) => {
-          const r  = cell * 0.18
-          const rd = (deg * Math.PI) / 180
-          return (
-            <line
-              key={deg}
-              x1={-Math.cos(rd) * r} y1={-Math.sin(rd) * r}
-              x2={Math.cos(rd) * r}  y2={Math.sin(rd) * r}
-            />
-          )
-        })}
-      </g>
+      {/* Center Brand icon instead of star */}
+      <image
+        href="/veda-icon.png"
+        x={cx(4) - cell * 0.25}
+        y={cy(4)}
+        width={cell * 0.5}
+        height={cell * 0.5}
+        opacity="0.3"
+        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
+      />
 
       {/* ── Ring border emphasis lines (The 5 structural borders) ── */}
       <g stroke="var(--gold)" strokeWidth="1.6" fill="none">

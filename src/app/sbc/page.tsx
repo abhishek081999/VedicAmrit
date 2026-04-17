@@ -169,7 +169,7 @@ export default function SBCPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.2rem' }}>🪐</span>
+            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 22, height: 22, objectFit: 'contain' }} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
