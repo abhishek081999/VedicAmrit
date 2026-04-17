@@ -317,7 +317,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </button>
           
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-            <div style={{ width: 24, height: 24, color: 'var(--logo-border)' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
+            <img 
+              src="/veda-icon.png" 
+              alt="Vedaansh Logo"
+              style={{ width: 34, height: 34, objectFit: 'contain' }}
+            />
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span 
                 className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
@@ -394,7 +398,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           {/* Logo area */}
           <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-               <div style={{ width: 30, height: 30, color: 'var(--logo-border)', opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
+               <img 
+                 src="/veda-icon.png" 
+                 alt="Vedaansh Logo"
+                 style={{ width: 44, height: 44, objectFit: 'contain' }}
+               />
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
                 <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>

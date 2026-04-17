@@ -22,7 +22,10 @@ const createLayout = (content: string) => `
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
       <!-- Header -->
       <div style="background: linear-gradient(135deg, #1a1b1e 0%, #2d2e32 100%); padding: 32px; text-align: center;">
-        <div style="color: #c9a84c; font-size: 28px; font-weight: bold; letter-spacing: 1px;">🪐 ${appName}</div>
+        <div style="color: #c9a84c; font-size: 28px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <img src="${baseUrl}/veda-icon.png" width="32" height="32" style="display: block;" />
+          ${appName}
+        </div>
       </div>
       
       <!-- Content -->

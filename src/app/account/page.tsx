@@ -345,8 +345,9 @@ function AccountContent() {
 
           {/* Birth Chart */}
           <section className="card card-gold" style={{ padding: '1.25rem' }}>
-            <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🪐 My Birth Details
+            <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <img src="/veda-icon.png" alt="Icon" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+              My Birth Details
             </h2>
             {personalChart ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

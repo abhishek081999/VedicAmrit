@@ -636,6 +636,16 @@ export function NorthIndianChakra({
           onClose={() => setHoveredPlanet(null)} 
         />
       )}
+      {/* ── Center Brand Watermark ── */}
+      <image 
+        href="/veda-icon.png" 
+        x={S/2 - (S * 0.09)} 
+        y={S/2 - (S * 0.09)} 
+        width={S * 0.18} 
+        height={S * 0.18} 
+        opacity="0.21"
+        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(1.5)' }}
+      />
     </svg>
 
 

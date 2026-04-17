@@ -41,8 +41,10 @@ export default async function OGImage({ params }: { params: { slug: string } }) 
           display: 'flex',
         }} />
 
-        {/* Planet emoji */}
-        <div style={{ fontSize: 72, marginBottom: 24 }}>🪐</div>
+        {/* Brand Icon */}
+        <div style={{ marginBottom: 24, display: 'flex' }}>
+          <img src={`${baseUrl}/veda-icon.png`} width="96" height="96" />
+        </div>
 
         {/* Name */}
         <div style={{
@@ -76,8 +78,9 @@ export default async function OGImage({ params }: { params: { slug: string } }) 
     )
   } catch {
     return new ImageResponse(
-      <div style={{ width: '100%', height: '100%', background: '#0e0e18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 48, fontFamily: 'Georgia' }}>
-        🪐 Vedaansh
+      <div style={{ width: '100%', height: '100%', background: '#0e0e18', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 48, fontFamily: 'Georgia', gap: 20 }}>
+        <img src={`${baseUrl}/veda-icon.png`} width="64" height="64" />
+        Vedaansh
       </div>,
       { width: 1200, height: 630 }
     )
