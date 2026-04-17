@@ -92,8 +92,17 @@ const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: str
 
 const VEDIC_ICONS = {
   om: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M52.3,47.2c0.2,2,1.3,4,3.2,5.2c1.9,1.1,4.3,1.4,6.4,1.1c2-0.3,3.8-1.2,5.3-2.6c1.5-1.4,2.5-3.3,2.8-5.3 c0.3-2,0-4-1.1-5.7c-1.1-1.7-2.9-2.9-4.8-3.4c1.1-0.2,2.3-0.5,3.4-1c1.1-0.6,2.1-1.3,2.9-2.2c0.8-0.9,1.5-2,1.8-3.3 c0.4-1.3,0.4-2.7,0-4c-0.4-1.3-1.1-2.4-2-3.4c-1-0.9-2.2-1.6-3.6-2c-1.4-0.4-2.9-0.5-4.3-0.2c-1.4,0.3-2.8,1-3.9,1.9 c-1.1-0.9-2.4-1.6-3.8-1.9c-1.4-0.3-2.9-0.2-4.3,0.2c-1.4,0.4-2.7,1.1-3.6,2c-1,0.9-1.6,2.1-2,3.4c-0.4,1.3-0.4,2.7-0,4 c0.4,1.3,1,2.4,1.8,3.3c0.8,0.9,1.8,1.7,2.9,2.2c1.1,0.6,2.3,0.8,3.4,1c-2,0.5-3.8,1.7-4.8,3.4c-1.1,1.7-1.4,3.7-1.1,5.7 C50,44,50.8,45.8,52.3,47.2z M65.7,21.5c1.3,0.3,2.5,1,3.4,2c0.9,1,1.4,2.3,1.6,3.6c0.2,1.4,0,2.8-0.7,4.1 c-0.6,1.4-1.7,2.5-3.1,3.1c1.3,0.6,2.4,1.7,3,3.1c0.7,1.3,0.9,2.8,0.7,4.1c-0.2,1.4-0.7,2.6-1.6,3.6c-0.9,1-2,1.7-3.4,2 c-1.3,0.3-2.7,0.2-4-0.2c-1.4-0.4-2.4-1.2-3.2-2.3c-0.8-1-1.1-2.4-1.1-3.8c0-1.4,0.4-2.8,1.2-3.8c0.8-1.1,1.8-1.8,3.1-2.3 c-1.3-0.4-2.3-1.2-3.1-2.3c-0.7-1.1-1.1-2.4-1.1-3.8c0-1.4,0.3-2.7,1.1-3.8c0.8-1.1,1.8-1.9,3.1-2.3C63,21.3,64.4,21.3,65.7,21.5z"/></svg>`,
-  swastik: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M50,0v37.5H12.5V12.5H25v12.5h12.5V0H50z M12.5,50V12.5h37.5V50H12.5z M87.5,50H50V12.5H87.5V25h-12.5v12.5H87.5V50z M50,87.5V50h37.5v37.5H75v-12.5H62.5v12.5 H50z M12.5,87.5v-37.5H50v37.5H37.5v-12.5H25v12.5H12.5z"/></svg>`,
-  ganesha: `<svg viewBox="0 0 100 100" fill="currentColor"><path d="M50,10c-15,0-20,10-20,20s5,15,10,20c0,0-15,5-15,20c0,10,10,20,25,20s25-10,25-20c0-15-15-20-15-20c5-5,10-10,10-20 S65,10,50,10z M50,15c10,0,15,8,15,15s-5,15-10,20c-5,5-10,10-10,20c0,5,5,10,5,10s-10,0-10-10c0-10-5-15-10-20c-5-5-10-12-10-20 S40,15,50,15z"/></svg>`
+  swastik: `<svg viewBox="0 0 120 120" fill="currentColor"><path d="M60 20 L 60 60 L 100 60 Q 115 60 110 80 Q 105 100 85 100 L 85 85 Q 95 85 95 75 Q 95 65 85 65 L 60 65 L 60 105 Q 60 120 40 115 Q 20 110 20 90 L 35 90 Q 35 100 45 100 Q 55 100 55 90 L 55 65 L 15 65 Q 0 65 5 45 Q 10 25 30 25 L 30 40 Q 20 40 20 50 Q 20 60 30 60 L 55 60 L 55 20 Q 55 5 75 10 Q 95 15 95 35 L 80 35 Q 80 25 70 25 Q 60 25 60 35 V 20 Z" /><circle cx="40" cy="40" r="5" /><circle cx="80" cy="40" r="5" /><circle cx="40" cy="80" r="5" /><circle cx="80" cy="80" r="5" /></svg>`,
+  ganesha: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M50 20 C 35 20, 25 32, 25 45 C 25 60, 35 70, 50 75 C 65 70, 75 60, 75 45 C 75 32, 65 20, 50 20 Z" opacity="0.3" /><path d="M25 45 C 10 45, 10 75, 30 75 C 40 75, 45 70, 50 65 C 55 70, 60 75, 70 75 C 90 75, 90 45, 75 45" /><path d="M50 65 L 50 85 C 50 92, 58 92, 68 92" /><circle cx="50" cy="38" r="4" fill="currentColor" stroke="none" /></svg>`,
+  ganeshaSwastik: `<svg viewBox="0 0 120 120" fill="currentColor">
+    <g opacity="0.15">
+      <path d="M60 20 L 60 60 L 100 60 Q 115 60 110 80 Q 105 100 85 100 L 85 85 Q 95 85 95 75 Q 95 65 85 65 L 60 65 L 60 105 Q 60 120 40 115 Q 20 110 20 90 L 35 90 Q 35 100 45 100 Q 55 100 55 90 L 55 65 L 15 65 Q 0 65 5 45 Q 10 25 30 25 L 30 40 Q 20 40 20 50 Q 20 60 30 60 L 55 60 L 55 20 Q 55 5 75 10 Q 95 15 95 35 L 80 35 Q 80 25 70 25 Q 60 25 60 35 V 20 Z" />
+      <circle cx="40" cy="40" r="5" /><circle cx="80" cy="40" r="5" /><circle cx="40" cy="80" r="5" /><circle cx="80" cy="80" r="5" />
+    </g>
+    <g transform="translate(10, 5) scale(0.8)">
+      <path d="M30.63,77.67c-9.43-13.04-12.22-32.41-2.3-41.01c-2.28-8.02-11.02-10.6-18.19-8.23 C-0.23,31.87-0.99,40.02,0.69,48.47c1.56,7.83,7.99,31.71,10.79,37.66c1.24,2.64,2.78,4.04,4.58,4.32c2.54,0.4,5.6-1.43,9.11-5.16 L30.63,77.67L30.63,77.67z M37.21,47.99c5.67,2,6.33,4.37,7.38,9.55c-0.65-0.57-1.25-1.16-1.8-1.77c-0.09,0.07-0.19,0.13-0.29,0.18 c-1.23,0.64-2.8,0.05-3.52-1.32c-0.61-1.17-0.39-2.52,0.45-3.29C38.68,50.22,37.97,49.1,37.21,47.99L37.21,47.99z M55.9,10.26 h-5.63c-0.01-0.81-0.56-1.68-1.22-2.18c2.01-0.47,3.35-1.47,4.14-3.19c0.73,2.02,2.33,2.65,3.96,3.19 C56.35,8.55,55.91,9.51,55.9,10.26L55.9,10.26z M69,47.99c-5.67,2-6.33,4.37-7.38,9.55c0.65-0.57,1.25-1.16,1.8-1.77 c0.09,0.07,0.19,0.13,0.29,0.18c1.23,0.64,2.8,0.05,3.52-1.32c0.61-1.17,0.39-2.52-0.45-3.29C67.52,50.22,68.24,49.1,69,47.99 L69,47.99z M32.91,32.48c12.95-5.35,26.47-5.57,40.62,0c9.35-12.51-24.19-17.86-11.8-25.13C58.32,6.22,54.77,4.22,53.24,0 c-1.65,3.6-4.27,6.38-8.46,7.35C56.82,16.34,22.81,18.58,32.91,32.48L32.91,32.48z M75.17,75.96c9.43-13.04,12.22-32.41,2.3-41.01 c2.28-8.02,11.02-10.6,18.19-8.23c10.37,3.43,11.13,11.58,9.45,20.04c-1.56,7.83-7.99,31.71-10.79,37.66 c-1.24,2.64,2.78,4.04-4.58,4.32c-2.54,0.4-5.6-1.43-9.11-5.16L75.17,75.96L75.17,75.96z M72.8,38.28 c-15.29-4.85-28.42-4.41-38.75-0.21c-7.5,5.47-8.23,14.04-4.73,25.63c2.4,7.94,6.76,10.58,9.01,16.68 c6.44,17.44,3.08,47.17,43.53,41.89c4.55-0.59,8.75-1.77,12.59-3.56c9.99-6.06-3.86-6.69-7.78-6.91 c-21.58-1.25-23.04-8.24-18.05-27.29l2.02-7.71C77.82,58.76,80.49,44.36,72.8,38.28L72.8,38.28z"/>
+    </g>
+  </svg>`
 }
 
 const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = [
@@ -307,15 +316,19 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <span style={{ fontSize: '1.25rem' }}>☰</span>
           </button>
           
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-            <div style={{ width: 22, height: 22, color: 'var(--gold)' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.swastik }} />
-            <span 
-              className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
-              style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '0.04em' }}
-            >
-              Vedaansh
-            </span>
-            <div style={{ width: 14, height: 14, color: 'var(--gold)', opacity: 0.5 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
+            <div style={{ width: 24, height: 24, color: 'var(--logo-border)' }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span 
+                className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
+                style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--logo-border)', letterSpacing: '0.04em' }}
+              >
+                Vedaansh
+              </span>
+              <span style={{ fontSize: '0.55rem', color: 'var(--logo-border)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9 }}>
+                ॥ श्री गणेशाय नमः ॥
+              </span>
+            </div>
           </Link>
 
           {isOffline && (
@@ -379,17 +392,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'linear-gradient(to bottom, var(--surface-1), var(--surface-2))' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', marginBottom: '0.5rem' }}>
-              <div style={{ width: 44, height: 44 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganesha }} />
-            </div>
-            <div style={{ textAlign: 'center', fontSize: '0.6rem', color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '1rem', opacity: 0.8 }}>॥ श्री गणेशाय नमः ॥</div>
-            
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-               <div style={{ width: 28, height: 28, color: 'var(--gold)', opacity: 0.8 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.swastik }} />
+               <div style={{ width: 30, height: 30, color: 'var(--logo-border)', opacity: 0.9 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.ganeshaSwastik }} />
               <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, flex: 1 }}>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-gold)', letterSpacing: '0.05em' }}>Vedaansh</span>
-                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 600 }}>TATTVA & JYOTIṢA</span>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600 }}>॥ श्री गणेशाय नमः ॥</span>
               </div>
               <button
                 onClick={() => setIsSidenavOpen(false)}

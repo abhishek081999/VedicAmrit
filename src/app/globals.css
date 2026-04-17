@@ -128,6 +128,13 @@
   --sbc-act-shd:  0 0 10px rgba(224, 123, 142, 0.42);
   --sbc-vdh-bdr:  rgba(255, 215, 0, 0.20);
   --sbc-center-bdr:rgba(255, 215, 0, 0.45);
+
+  /* Branding accents (Theme-aware) */
+  --logo-bg: rgba(192, 108, 45, 0.08);
+  --logo-border: rgba(192, 108, 45, 0.4);
+  --logo-gradient: linear-gradient(to bottom, var(--surface-1), var(--bg-page));
+  --logo-text-title: #facc15;
+  --logo-text-sub: rgba(250, 204, 21, 0.8);
 }
 
 /* ── Light theme tokens ─────────────────────────────────────── */
@@ -242,6 +249,13 @@
   --sbc-act-shd:  0 0 8px rgba(225, 29, 72, 0.20);
   --sbc-vdh-bdr:  rgba(180, 134, 0, 0.22);
   --sbc-center-bdr:rgba(180, 134, 0, 0.50);
+
+  /* Branding accents (Theme-aware - Light) */
+  --logo-bg: #FDF4C1;
+  --logo-border: #C06C2D;
+  --logo-gradient: linear-gradient(to bottom, #FDF4C1, #FCF5E5);
+  --logo-text-title: #8b4513;
+  --logo-text-sub: #C06C2D;
 }
 
 /* ── Classic theme tokens ────────────────────────────────────── */
@@ -356,6 +370,13 @@
   --sbc-act-shd:  0 0 8px rgba(146, 24, 43, 0.18);
   --sbc-vdh-bdr:  rgba(166, 124, 0, 0.22);
   --sbc-center-bdr:rgba(166, 124, 0, 0.50);
+
+  /* Branding accents (Theme-aware - Classic) */
+  --logo-bg: #FCF5E5;
+  --logo-border: #C06C2D;
+  --logo-gradient: linear-gradient(to bottom, #FCF5E5, #F7F3E8);
+  --logo-text-title: #8b4513;
+  --logo-text-sub: #C06C2D;
 }
 
 /* ── Typography constants ───────────────────────────────────── */
