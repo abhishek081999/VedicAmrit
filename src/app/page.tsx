@@ -1251,7 +1251,32 @@ function HomeContent() {
           <span style={{ color: 'var(--text-gold)', fontStyle: 'italic' }}>Swiss Ephemeris</span>
           {' '}· Lahiri ayanamsha
         </span>
-        <span>Kāla tier — free forever ✦</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <a
+            href="https://www.instagram.com/vedaanshlife"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+          >
+            Instagram
+          </a>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <a
+            href="https://www.linkedin.com/in/abhishek-kumar-96a8381a0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+          >
+            LinkedIn
+          </a>
+          <span style={{ color: 'var(--border-bright)' }}>•</span>
+          <a
+            href="mailto:vedaanshlife@gmail.com"
+            style={{ color: 'var(--text-muted)', textDecoration: 'none' }}
+          >
+            Gmail
+          </a>
+        </div>
       </footer>
 
       {/* ── Fixed Drawer for Birth Details Form ──────────────── */}
