@@ -106,6 +106,45 @@ const TEMPLATE_ONBOARD: Record<ReelType, { blurb: string }> = {
   },
 }
 
+const DENSE_TWO_SLIDE_TYPES: ReelType[] = ['panchang_full', 'muhurta', 'choghadiya', 'nakshatra']
+
+function getExportSlices(
+  reelType: ReelType,
+  aspect: ExportAspectPreset,
+): { sx: number; sy: number; sw: number; sh: number; outW: number; outH: number; suffix: string }[] {
+  const base = getExportCropRect(aspect)
+  if (!DENSE_TWO_SLIDE_TYPES.includes(reelType)) {
+    return [{ ...base, suffix: '' }]
+  }
+
+  const segmentH = 1080
+  const top = { sx: 0, sy: 0, sw: 1080, sh: segmentH, outW: base.outW, outH: base.outH, suffix: '-1' }
+  const bottom = { sx: 0, sy: 1920 - segmentH, sw: 1080, sh: segmentH, outW: base.outW, outH: base.outH, suffix: '-2' }
+  return [top, bottom]
+}
+
+function renderSliceIntoCanvas(
+  source: HTMLCanvasElement,
+  target: HTMLCanvasElement,
+  part: { sx: number; sy: number; sw: number; sh: number; outW: number; outH: number },
+) {
+  target.width = part.outW
+  target.height = part.outH
+  const tctx = target.getContext('2d')
+  if (!tctx) return
+  tctx.clearRect(0, 0, part.outW, part.outH)
+  tctx.fillStyle = '#0b1022'
+  tctx.fillRect(0, 0, part.outW, part.outH)
+
+  // Keep aspect ratio exact; no stretching for split exports.
+  const scale = Math.min(part.outW / part.sw, part.outH / part.sh)
+  const dw = part.sw * scale
+  const dh = part.sh * scale
+  const dx = (part.outW - dw) / 2
+  const dy = (part.outH - dh) / 2
+  tctx.drawImage(source, part.sx, part.sy, part.sw, part.sh, dx, dy, dw, dh)
+}
+
 function findTemplateItem(id: ReelType): { group: string; label: string; icon: string } {
   for (const g of REEL_GROUPS) {
     const item = g.items.find((t) => t.id === id)
@@ -315,7 +354,9 @@ export default function ReelPage() {
   })
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
   const [vedaIcon, setVedaIcon] = useState<HTMLImageElement | null>(null)
+  const [previewPart, setPreviewPart] = useState<1 | 2>(1)
 
   useEffect(() => {
     const img = new Image()
@@ -535,9 +576,30 @@ export default function ReelPage() {
     vedaIcon,
   ])
 
+  const drawPreview = useCallback(() => {
+    const master = canvasRef.current
+    const preview = previewCanvasRef.current
+    if (!master || !preview) return
+
+    const slices = getExportSlices(reelType, settings.exportAspect)
+    const idx = Math.min(previewPart - 1, slices.length - 1)
+    const part = slices[Math.max(0, idx)]
+    renderSliceIntoCanvas(master, preview, part)
+  }, [reelType, settings.exportAspect, previewPart])
+
   useEffect(() => {
     drawReel()
   }, [drawReel])
+
+  useEffect(() => {
+    drawPreview()
+  }, [drawPreview, drawReel, loading, skyLoading, transitLoading, data, skyGrahas, transitEvents])
+
+  useEffect(() => {
+    if (!DENSE_TWO_SLIDE_TYPES.includes(reelType) && previewPart !== 1) {
+      setPreviewPart(1)
+    }
+  }, [reelType, previewPart])
 
   const canDownload =
     reelType === 'festival' ||
@@ -554,27 +616,31 @@ export default function ReelPage() {
     try {
       const mimeType = settings.exportFormat === 'jpeg' ? 'image/jpeg' : 'image/png'
       const ext = settings.exportFormat === 'jpeg' ? 'jpg' : 'png'
-      const crop = getExportCropRect(settings.exportAspect)
+      const slices = getExportSlices(reelType, settings.exportAspect)
       const tag = EXPORT_ASPECT_META[settings.exportAspect].short
-      const out = document.createElement('canvas')
-      out.width = crop.outW
-      out.height = crop.outH
-      const octx = out.getContext('2d')
-      if (!octx) return
-      octx.drawImage(canvas, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, crop.outW, crop.outH)
-      out.toBlob(
-        (blob) => {
-          if (!blob) return
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = `vedaansh-${reelType}-${date}-${tag}.${ext}`
-          a.click()
-          URL.revokeObjectURL(url)
-        },
-        mimeType,
-        settings.exportFormat === 'jpeg' ? settings.jpegQuality : undefined,
-      )
+      for (const part of slices) {
+        const out = document.createElement('canvas')
+        renderSliceIntoCanvas(canvas, out, part)
+        await new Promise<void>((resolve) => {
+          out.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve()
+                return
+              }
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `vedaansh-${reelType}-${date}-${tag}${part.suffix}.${ext}`
+              a.click()
+              URL.revokeObjectURL(url)
+              setTimeout(resolve, 120)
+            },
+            mimeType,
+            settings.exportFormat === 'jpeg' ? settings.jpegQuality : undefined,
+          )
+        })
+      }
     } finally {
       setDownloading(false)
     }
@@ -1185,7 +1251,8 @@ export default function ReelPage() {
               ? 'Generating…'
               : (() => {
                   const d = getExportCropRect(settings.exportAspect)
-                  return `Download ${d.outW}×${d.outH} (${EXPORT_ASPECT_META[settings.exportAspect].short})`
+                  const parts = DENSE_TWO_SLIDE_TYPES.includes(reelType) ? '2 images' : '1 image'
+                  return `Download ${parts} · ${d.outW}×${d.outH} (${EXPORT_ASPECT_META[settings.exportAspect].short})`
                 })()}
           </button>
 
@@ -1222,10 +1289,76 @@ export default function ReelPage() {
           <div className={styles.studioHero}>
             <TemplateHeroCard st={selectedTemplate} mode="studio" />
           </div>
+          {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
+            <div
+              style={{
+                display: 'inline-flex',
+                gap: 8,
+                padding: 6,
+                borderRadius: 999,
+                border: '0.5px solid var(--color-border-secondary)',
+                background: 'var(--color-background-secondary)',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setPreviewPart(1)}
+                style={{
+                  borderRadius: 999,
+                  border: previewPart === 1 ? '1.5px solid #6C5CE7' : '0.5px solid var(--color-border-secondary)',
+                  padding: '5px 10px',
+                  background: previewPart === 1 ? '#f5f2ff' : 'var(--color-background-primary)',
+                  color: previewPart === 1 ? '#3C3489' : 'var(--color-text-secondary)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Preview part 1
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewPart(2)}
+                style={{
+                  borderRadius: 999,
+                  border: previewPart === 2 ? '1.5px solid #6C5CE7' : '0.5px solid var(--color-border-secondary)',
+                  padding: '5px 10px',
+                  background: previewPart === 2 ? '#f5f2ff' : 'var(--color-background-primary)',
+                  color: previewPart === 2 ? '#3C3489' : 'var(--color-text-secondary)',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Preview part 2
+              </button>
+            </div>
+          )}
           <div
             className={styles.previewShell}
             style={{ aspectRatio: EXPORT_ASPECT_META[settings.exportAspect].aspectCss }}
           >
+            {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  zIndex: 2,
+                  borderRadius: 999,
+                  padding: '4px 10px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.04em',
+                  background: 'rgba(10, 12, 24, 0.72)',
+                  color: '#F8FAFC',
+                  border: '0.5px solid rgba(148, 163, 184, 0.6)',
+                  backdropFilter: 'blur(4px)',
+                }}
+              >
+                Part {previewPart} of 2
+              </div>
+            )}
             {(needsPanchang && loading) ||
             (reelType === 'transit_sky' && skyLoading) ||
             ((reelType === 'transit_weekly' || reelType === 'rashi_forecast') && transitLoading) ? (
@@ -1245,17 +1378,21 @@ export default function ReelPage() {
                 Loading…
               </div>
             ) : null}
-            <canvas ref={canvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
+            <canvas ref={previewCanvasRef} style={{ width: '100%', height: '100%', display: 'block' }} />
           </div>
           <p style={{ fontSize: 12, color: 'var(--color-text-tertiary)', margin: 0, textAlign: 'center', maxWidth: 420 }}>
             {(() => {
               const d = getExportCropRect(settings.exportAspect)
               const a = EXPORT_ASPECT_META[settings.exportAspect]
+              if (DENSE_TWO_SLIDE_TYPES.includes(reelType)) {
+                return `This template exports in 2 images (${a.short}) so Panchang details are split and easier to read. Toggle part 1/2 above.`
+              }
               return d.outW === 1080 && d.outH === 1920
                 ? `Preview and file are full reel ${d.outW}×${d.outH}px (${a.short}).`
                 : `Preview shows the ${d.outW}×${d.outH}px export (${a.short}) — center crop from the 1080×1920 reel.`
             })()}
           </p>
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
       </div>
     </div>
