@@ -1,0 +1,128 @@
+/* Manual reel generator — responsive layout */
+
+.page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 2.5vw, 1rem);
+  font-family: system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+.pageHeader h1 {
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+}
+
+.layout {
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+  grid-template-columns: 1fr;
+}
+
+/* Preview + studio hero first on phones/tablets */
+@media (max-width: 1023px) {
+  .studio {
+    order: -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  }
+
+  .studio {
+    order: unset;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.studio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.studioHero {
+  width: 100%;
+  max-width: 560px;
+}
+
+.previewShell {
+  width: 100%;
+  max-width: min(400px, 100%);
+  /* aspect-ratio set inline from export preset so preview matches export crop */
+  border: 0.5px solid var(--color-border-secondary);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.heroRow {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+@media (max-width: 520px) {
+  .heroRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .heroRowThumb {
+    align-self: center;
+    max-width: 160px;
+  }
+}
+
+.styleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exportRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exportRow > select {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.exportRow > button {
+  flex: 0 1 auto;
+}
+
+.templateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 380px) {
+  .templateGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.badgeRow {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 100%;
+}

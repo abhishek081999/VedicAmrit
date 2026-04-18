@@ -191,6 +191,7 @@ export function CircleChakra({
   }
 
   return (
+    <>
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width={size} height={size}
@@ -377,14 +378,6 @@ export function CircleChakra({
         )
       })}
 
-      {/* ── Tooltip Portal ── */}
-      {isMounted && showTooltip && hoveredPlanet && (
-        <PlanetTooltipCard 
-          planet={hoveredPlanet} 
-          x={mousePos.x} y={mousePos.y} 
-          onClose={() => setHoveredPlanet(null)} 
-        />
-      )}
       {/* ── Center Brand Watermark ── */}
       <image 
         href="/veda-icon.png" 
@@ -396,8 +389,15 @@ export function CircleChakra({
         style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
       />
     </svg>
-
-
+    {isMounted && showTooltip && hoveredPlanet && (
+      <PlanetTooltipCard
+        planet={hoveredPlanet}
+        x={mousePos.x}
+        y={mousePos.y}
+        onClose={() => setHoveredPlanet(null)}
+      />
+    )}
+    </>
   )
 }
 

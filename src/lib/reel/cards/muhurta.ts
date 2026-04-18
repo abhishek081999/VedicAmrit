@@ -1,0 +1,346 @@
+import type { PanchangApiData } from '@/types/reel-panchang'
+import type { ReelSettings } from '@/lib/reel/reel-settings'
+import {
+  CHOGHADIYA_COLORS,
+  CHOGHADIYA_MEANING,
+  drawBrandFooter,
+  drawDivider,
+  drawGeometricBg,
+  drawHashtagFooter,
+  drawLogo,
+  drawStars,
+  fmtTime,
+  getBgColors,
+  roundRect,
+  truncate,
+  type ReelStyle,
+  formatDateDisplay,
+} from '@/lib/reel/canvas-utils'
+
+type Tone = 'good' | 'neutral' | 'warn'
+
+function sectionLabel(ctx: CanvasRenderingContext2D, colors: ReturnType<typeof getBgColors>, y: number, text: string) {
+  ctx.save()
+  ctx.textAlign = 'center'
+  ctx.font = 'bold 13px sans-serif'
+  ctx.fillStyle = colors.accent
+  ctx.letterSpacing = '0.12em'
+  ctx.fillText(text.toUpperCase(), 540, y)
+  ctx.letterSpacing = 'normal'
+  ctx.restore()
+}
+
+function drawKeyCard(
+  ctx: CanvasRenderingContext2D,
+  colors: ReturnType<typeof getBgColors>,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  title: string,
+  timeRange: string,
+  hint: string,
+  tone: Tone,
+) {
+  const fill =
+    tone === 'good' ? 'rgba(34,197,94,0.14)' : tone === 'warn' ? 'rgba(220,38,38,0.12)' : `${colors.accent}12`
+  const stroke =
+    tone === 'good' ? 'rgba(34,197,94,0.45)' : tone === 'warn' ? 'rgba(248,113,113,0.45)' : `${colors.accent}38`
+  const titleCol = tone === 'good' ? '#DCFCE7' : tone === 'warn' ? '#FECACA' : colors.text
+  const timeCol = tone === 'good' ? '#BBF7D0' : tone === 'warn' ? '#FEE2E2' : colors.sub
+
+  ctx.save()
+  ctx.fillStyle = fill
+  roundRect(ctx, x, y, w, h, 14)
+  ctx.fill()
+  ctx.strokeStyle = stroke
+  ctx.lineWidth = 1.25
+  roundRect(ctx, x, y, w, h, 14)
+  ctx.stroke()
+  ctx.restore()
+
+  ctx.textAlign = 'left'
+  ctx.font = 'bold 20px sans-serif'
+  ctx.fillStyle = titleCol
+  ctx.fillText(title, x + 16, y + 30)
+  ctx.font = 'bold 22px sans-serif'
+  ctx.fillStyle = timeCol
+  ctx.fillText(timeRange, x + 16, y + 58)
+  ctx.font = '15px sans-serif'
+  ctx.fillStyle = `${colors.sub}DD`
+  const h2 = truncate(hint, 44)
+  ctx.fillText(h2, x + 16, y + 82)
+}
+
+function drawAvoidMini(
+  ctx: CanvasRenderingContext2D,
+  colors: ReturnType<typeof getBgColors>,
+  x: number,
+  y: number,
+  w: number,
+  label: string,
+  start: string | undefined,
+  end: string | undefined,
+) {
+  ctx.save()
+  ctx.fillStyle = 'rgba(220,38,38,0.1)'
+  roundRect(ctx, x, y, w, 72, 12)
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(248,113,113,0.35)'
+  ctx.lineWidth = 1
+  roundRect(ctx, x, y, w, 72, 12)
+  ctx.stroke()
+  ctx.restore()
+  ctx.textAlign = 'center'
+  ctx.font = '16px sans-serif'
+  ctx.fillStyle = '#FCA5A5'
+  ctx.fillText(label, x + w / 2, y + 28)
+  ctx.font = 'bold 18px sans-serif'
+  ctx.fillStyle = '#FEE2E2'
+  ctx.fillText(`${fmtTime(start)} – ${fmtTime(end)}`, x + w / 2, y + 54)
+}
+
+export function drawMuhurtaCard(
+  ctx: CanvasRenderingContext2D,
+  data: PanchangApiData,
+  dateInfo: ReturnType<typeof formatDateDisplay>,
+  style: ReelStyle,
+  settings: ReelSettings,
+  seedKey: string,
+  vedaIcon?: HTMLImageElement | null,
+) {
+  const colors = getBgColors(style)
+  drawGeometricBg(ctx, colors, style)
+  drawStars(ctx, style, seedKey)
+  ctx.textAlign = 'center'
+
+  drawLogo(ctx, colors, 88, settings.brandTitle, vedaIcon)
+
+  ctx.font = 'bold 54px serif'
+  ctx.fillStyle = colors.accent
+  ctx.fillText('आज का मुहूर्त', 540, 198)
+  ctx.font = '26px sans-serif'
+  ctx.fillStyle = colors.sub
+  ctx.fillText('Muhurta — auspicious & delicate timings', 540, 236)
+  ctx.font = 'bold 32px sans-serif'
+  ctx.fillStyle = colors.text
+  ctx.fillText(`${dateInfo.weekday}`, 540, 278)
+  ctx.font = '24px sans-serif'
+  ctx.fillStyle = colors.sub
+  ctx.fillText(`${dateInfo.day} ${dateInfo.month} ${dateInfo.year}`, 540, 310)
+
+  const panchangSub = [
+    data.vara?.name ? `Vāra: ${data.vara.name}` : '',
+    data.tithi?.name ? `Tithi: ${data.tithi.name}` : '',
+    data.tithi?.paksha ? `(${data.tithi.paksha})` : '',
+  ]
+    .filter(Boolean)
+    .join('  ·  ')
+  if (panchangSub) {
+    ctx.font = '18px sans-serif'
+    ctx.fillStyle = `${colors.sub}EE`
+    ctx.fillText(truncate(panchangSub, 52), 540, 340)
+  }
+
+  ctx.font = '17px sans-serif'
+  ctx.fillStyle = colors.text
+  ctx.fillText(
+    `Sunrise ${fmtTime(data.sunrise)}  ·  Sunset ${fmtTime(data.sunset)}`,
+    540,
+    366,
+  )
+
+  drawDivider(ctx, colors, 388, 920)
+
+  sectionLabel(ctx, colors, 412, 'Key muhurtas')
+
+  const gap = 18
+  const cardW = (900 - gap) / 2
+  const cardH = 96
+  let rowY = 428
+
+  type Slot = { title: string; time: string; hint: string; tone: Tone }
+  const slots: Slot[] = []
+  if (data.brahmaMuhurta) {
+    slots.push({
+      title: 'Brahma Muhurta',
+      time: `${fmtTime(data.brahmaMuhurta.start)} – ${fmtTime(data.brahmaMuhurta.end)}`,
+      hint: 'Best for meditation, mantra, study',
+      tone: 'good',
+    })
+  }
+  if (data.abhijitMuhurta) {
+    slots.push({
+      title: 'Abhijit Muhurta',
+      time: `${fmtTime(data.abhijitMuhurta.start)} – ${fmtTime(data.abhijitMuhurta.end)}`,
+      hint: 'Midday auspicious window — new work',
+      tone: 'good',
+    })
+  }
+  if (data.godhuliMuhurat) {
+    slots.push({
+      title: 'Godhuli / Sandhyā',
+      time: `${fmtTime(data.godhuliMuhurat.start)} – ${fmtTime(data.godhuliMuhurat.end)}`,
+      hint: 'Twilight — light worship & transitions',
+      tone: 'neutral',
+    })
+  }
+  ;(data.durMuhurat || []).forEach((dm, i) => {
+    slots.push({
+      title: i === 0 ? 'Dur Muhurta I' : i === 1 ? 'Dur Muhurta II' : `Dur Muhurta ${i + 1}`,
+      time: `${fmtTime(dm.start)} – ${fmtTime(dm.end)}`,
+      hint: 'Avoid new ventures & major starts',
+      tone: 'warn',
+    })
+  })
+
+  const maxKeySlots = 8
+  const displaySlots = slots.slice(0, maxKeySlots)
+
+  for (let i = 0; i < displaySlots.length; i += 2) {
+    const left = displaySlots[i]
+    const right = displaySlots[i + 1]
+    drawKeyCard(ctx, colors, 90, rowY, cardW, cardH, left.title, left.time, left.hint, left.tone)
+    if (right) {
+      drawKeyCard(ctx, colors, 90 + cardW + gap, rowY, cardW, cardH, right.title, right.time, right.hint, right.tone)
+    }
+    rowY += cardH + gap
+  }
+
+  drawDivider(ctx, colors, rowY + 4, 920)
+  rowY += 28
+
+  sectionLabel(ctx, colors, rowY, 'Avoid today')
+  rowY += 22
+  const aw = 280
+  const ag = 15
+  const ax0 = 90
+  drawAvoidMini(ctx, colors, ax0, rowY, aw, 'Rāhu Kāla', data.rahuKalam?.start, data.rahuKalam?.end)
+  drawAvoidMini(ctx, colors, ax0 + aw + ag, rowY, aw, 'Gulika Kāla', data.gulikaKalam?.start, data.gulikaKalam?.end)
+  drawAvoidMini(ctx, colors, ax0 + 2 * (aw + ag), rowY, aw, 'Yamagaṇḍa', data.yamaganda?.start, data.yamaganda?.end)
+  rowY += 88
+
+  drawDivider(ctx, colors, rowY, 920)
+  rowY += 26
+
+  sectionLabel(ctx, colors, rowY, 'Day Horā (planetary hours)')
+  rowY += 28
+
+  const horasDay = (data.horaTable || []).filter((h) => h.isDaytime)
+  const cols = 3
+  const hw = 280
+  const hg = 20
+  const hh = 48
+  const maxH = 12
+  horasDay.slice(0, maxH).forEach((h, i) => {
+    const col = i % cols
+    const row = Math.floor(i / cols)
+    const x = 90 + col * (hw + hg)
+    const yy = rowY + row * (hh + 6)
+    ctx.save()
+    ctx.fillStyle = `${colors.accent}0f`
+    roundRect(ctx, x, yy, hw, hh, 10)
+    ctx.strokeStyle = `${colors.accent}30`
+    ctx.lineWidth = 1
+    roundRect(ctx, x, yy, hw, hh, 10)
+    ctx.stroke()
+    ctx.restore()
+    ctx.textAlign = 'left'
+    ctx.font = 'bold 17px sans-serif'
+    ctx.fillStyle = colors.accent
+    ctx.fillText(h.lord, x + 12, yy + 22)
+    ctx.font = '14px sans-serif'
+    ctx.fillStyle = colors.sub
+    ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 12, yy + 40)
+  })
+  rowY += Math.ceil(Math.min(horasDay.length, maxH) / cols) * (hh + 6) + 12
+
+  const horasNight = (data.horaTable || []).filter((h) => !h.isDaytime).slice(0, 6)
+  if (horasNight.length > 0) {
+    drawDivider(ctx, colors, rowY, 920)
+    rowY += 22
+    sectionLabel(ctx, colors, rowY, 'Night Horā (first slots)')
+    rowY += 26
+    const ncols = 2
+    const nw = 430
+    const ng = 20
+    const nh = 44
+    horasNight.forEach((h, i) => {
+      const col = i % ncols
+      const row = Math.floor(i / ncols)
+      const x = 90 + col * (nw + ng)
+      const yy = rowY + row * (nh + 6)
+      ctx.save()
+      ctx.fillStyle = 'rgba(148,163,184,0.12)'
+      roundRect(ctx, x, yy, nw, nh, 10)
+      ctx.strokeStyle = 'rgba(148,163,184,0.28)'
+      ctx.lineWidth = 1
+      roundRect(ctx, x, yy, nw, nh, 10)
+      ctx.stroke()
+      ctx.restore()
+      ctx.textAlign = 'left'
+      ctx.font = 'bold 16px sans-serif'
+      ctx.fillStyle = colors.text
+      ctx.fillText(h.lord, x + 12, yy + 20)
+      ctx.font = '14px sans-serif'
+      ctx.fillStyle = colors.sub
+      ctx.fillText(`${fmtTime(h.start)} – ${fmtTime(h.end)}`, x + 12, yy + 38)
+    })
+    rowY += Math.ceil(horasNight.length / ncols) * (nh + 6) + 8
+  }
+
+  drawDivider(ctx, colors, rowY, 920)
+  rowY += 22
+
+  sectionLabel(ctx, colors, rowY, 'Auspicious Choghadiya (day)')
+  rowY += 26
+
+  const goodSlots = (data.choghadiya?.day || []).filter((s) => s.quality === 'good').slice(0, 4)
+  if (goodSlots.length === 0) {
+    ctx.textAlign = 'center'
+    ctx.font = '18px sans-serif'
+    ctx.fillStyle = colors.sub
+    ctx.fillText('No “good” day slots in returned data.', 540, rowY + 24)
+    rowY += 48
+  } else {
+    goodSlots.forEach((slot, i) => {
+      const x = 90 + i * 225
+      const yy = rowY
+      const col = CHOGHADIYA_COLORS[slot.name] || colors.accent
+      const meaning = CHOGHADIYA_MEANING[slot.name] || ''
+      ctx.save()
+      ctx.fillStyle = `${col}1a`
+      roundRect(ctx, x, yy, 200, 78, 12)
+      ctx.strokeStyle = `${col}66`
+      ctx.lineWidth = 1.25
+      roundRect(ctx, x, yy, 200, 78, 12)
+      ctx.stroke()
+      ctx.restore()
+      ctx.textAlign = 'center'
+      ctx.font = 'bold 22px sans-serif'
+      ctx.fillStyle = col
+      ctx.fillText(slot.name, x + 100, yy + 28)
+      ctx.font = '15px sans-serif'
+      ctx.fillStyle = colors.sub
+      ctx.fillText(`${fmtTime(slot.start)} – ${fmtTime(slot.end)}`, x + 100, yy + 50)
+      ctx.font = '12px sans-serif'
+      ctx.fillStyle = `${colors.sub}CC`
+      ctx.fillText(truncate(meaning, 28), x + 100, yy + 68)
+    })
+    rowY += 92
+  }
+
+  drawDivider(ctx, colors, rowY + 8, 920)
+  rowY += 36
+
+  const tipY = Math.min(rowY, 1588)
+  ctx.textAlign = 'center'
+  ctx.font = '18px sans-serif'
+  ctx.fillStyle = colors.sub
+  ctx.fillText('Use Brahma / Abhijit for sādhanā & beginnings; avoid Dur & Rāhu kāla for important starts.', 540, tipY)
+  ctx.fillText(settings.ctaLine, 540, tipY + 30)
+
+  drawDivider(ctx, colors, 1660, 920)
+  drawBrandFooter(ctx, colors, settings, 1710)
+  drawHashtagFooter(ctx, colors, settings, 1755)
+}

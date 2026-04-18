@@ -1,4 +1,3 @@
-
 'use client'
 import React from 'react'
 import Link from 'next/link'
@@ -12,6 +11,7 @@ export function AdminSidebar({ user, onClose }: { user: any, onClose?: () => voi
     { href: '/admin/users', icon: '👥', label: 'Users' },
     { href: '/admin/charts', icon: '📚', label: 'Charts' },
     { href: '/admin/revenue', icon: '💰', label: 'Revenue' },
+    { href: '/admin/reel', icon: '🎬', label: 'Reel Generator' },
   ]
 
   return (

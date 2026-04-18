@@ -273,6 +273,7 @@ export function NorthIndianChakra({
   // Planet font — SAME size for all cells (corners are large enough)
 
   return (
+    <>
     <svg
       viewBox={`0 0 ${S} ${S}`}
       width={S}
@@ -628,14 +629,6 @@ export function NorthIndianChakra({
         )
       })}
 
-      {/* ── Tooltip Portal ── */}
-      {isMounted && showTooltip && hoveredPlanet && (
-        <PlanetTooltipCard 
-          planet={hoveredPlanet} 
-          x={mousePos.x} y={mousePos.y} 
-          onClose={() => setHoveredPlanet(null)} 
-        />
-      )}
       {/* ── Center Brand Watermark ── */}
       <image 
         href="/veda-icon.png" 
@@ -647,7 +640,14 @@ export function NorthIndianChakra({
         style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(1.5)' }}
       />
     </svg>
-
-
+    {isMounted && showTooltip && hoveredPlanet && (
+      <PlanetTooltipCard
+        planet={hoveredPlanet}
+        x={mousePos.x}
+        y={mousePos.y}
+        onClose={() => setHoveredPlanet(null)}
+      />
+    )}
+    </>
   )
 }

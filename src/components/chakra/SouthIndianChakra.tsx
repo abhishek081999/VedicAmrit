@@ -214,6 +214,7 @@ export function SouthIndianChakra({
   }
 
   return (
+    <>
     <svg
       viewBox={`0 0 ${size} ${size}`}
       width={size}
@@ -492,14 +493,6 @@ export function SouthIndianChakra({
         <line x1={cell*3} y1={cell} x2={cell} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
       </g>
 
-      {/* ── Tooltip Portal ── */}
-      {isMounted && showTooltip && hoveredPlanet && (
-        <PlanetTooltipCard 
-          planet={hoveredPlanet} 
-          x={mousePos.x} y={mousePos.y} 
-          onClose={() => setHoveredPlanet(null)} 
-        />
-      )}
       {/* ── Center Brand Watermark ── */}
       <image 
         href="/veda-icon.png" 
@@ -511,7 +504,14 @@ export function SouthIndianChakra({
         style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
       />
     </svg>
-
-
+    {isMounted && showTooltip && hoveredPlanet && (
+      <PlanetTooltipCard
+        planet={hoveredPlanet}
+        x={mousePos.x}
+        y={mousePos.y}
+        onClose={() => setHoveredPlanet(null)}
+      />
+    )}
+    </>
   )
 }

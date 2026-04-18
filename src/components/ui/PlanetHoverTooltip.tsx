@@ -123,6 +123,10 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
     top = Math.max(10, Math.min(top, window.innerHeight - 480))
   }
 
+  if (typeof document === 'undefined' || !document.body) {
+    return null
+  }
+
   return createPortal(
     <div 
       onClick={(e) => isMobile && e.stopPropagation()}
@@ -343,7 +347,7 @@ export function PlanetHoverTooltip({ planet, children, disabled = false }: Plane
         onMouseEnter={handleMouseEnter}
         onMouseLeave={hide}
         onTouchStart={handleTouchStart}
-        style={{ display: 'contents' }}
+        style={{ display: 'inline-flex', flexDirection: 'column', width: 'fit-content', maxWidth: '100%' }}
       >
         {children}
       </div>
