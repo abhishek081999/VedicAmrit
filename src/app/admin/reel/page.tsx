@@ -609,7 +609,7 @@ export default function ReelPage() {
       !transitLoading) ||
     (needsPanchang && !!data)
 
-  const downloadImage = async () => {
+  const downloadImage = async (which: 'all' | 1 | 2 = 'all') => {
     const canvas = canvasRef.current
     if (!canvas || !canDownload) return
     setDownloading(true)
@@ -618,9 +618,11 @@ export default function ReelPage() {
       const ext = settings.exportFormat === 'jpeg' ? 'jpg' : 'png'
       const slices = getExportSlices(reelType, settings.exportAspect)
       const tag = EXPORT_ASPECT_META[settings.exportAspect].short
-      for (const part of slices) {
+      const selected =
+        which === 'all' ? slices : slices.filter((_, i) => i === which - 1)
+      for (const slice of selected) {
         const out = document.createElement('canvas')
-        renderSliceIntoCanvas(canvas, out, part)
+        renderSliceIntoCanvas(canvas, out, slice)
         await new Promise<void>((resolve) => {
           out.toBlob(
             (blob) => {
@@ -631,7 +633,7 @@ export default function ReelPage() {
               const url = URL.createObjectURL(blob)
               const a = document.createElement('a')
               a.href = url
-              a.download = `vedaansh-${reelType}-${date}-${tag}${part.suffix}.${ext}`
+              a.download = `vedaansh-${reelType}-${date}-${tag}${slice.suffix}.${ext}`
               a.click()
               URL.revokeObjectURL(url)
               setTimeout(resolve, 120)
@@ -835,11 +837,11 @@ export default function ReelPage() {
                     const active = reelType === t.id
                     const spec = TEMPLATE_PREVIEW_STYLE[t.id]
                     return (
-                      <button
+              <button
                         key={t.id}
                         type="button"
                         onClick={() => setReelType(t.id)}
-                        style={{
+                style={{
                           textAlign: 'left',
                           padding: 0,
                           borderRadius: 10,
@@ -894,7 +896,7 @@ export default function ReelPage() {
                         <div style={{ padding: '8px 9px' }}>
                           <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>{t.label}</div>
                         </div>
-                      </button>
+              </button>
                     )
                   })}
                 </div>
@@ -1085,25 +1087,25 @@ export default function ReelPage() {
             </label>
             <div className={styles.styleChips}>
               {(['cosmic', 'traditional', 'modern'] as ReelStyle[]).map((s) => (
-                <button
-                  key={s}
+              <button
+                key={s}
                   type="button"
-                  onClick={() => setReelStyle(s)}
-                  style={{
+                onClick={() => setReelStyle(s)}
+                style={{
                     display: 'inline-block',
                     padding: '6px 14px',
                     borderRadius: 20,
                     border: reelStyle === s ? '1.5px solid #00B894' : '0.5px solid var(--color-border-secondary)',
-                    background: reelStyle === s ? '#E1F5EE' : 'transparent',
-                    color: reelStyle === s ? '#085041' : 'var(--color-text-secondary)',
+                  background: reelStyle === s ? '#E1F5EE' : 'transparent',
+                  color: reelStyle === s ? '#085041' : 'var(--color-text-secondary)',
                     cursor: 'pointer',
                     fontSize: 13,
                     fontWeight: reelStyle === s ? 600 : 400,
-                  }}
-                >
+                }}
+              >
                   {s}
-                </button>
-              ))}
+              </button>
+            ))}
             </div>
           </div>
 
@@ -1196,10 +1198,10 @@ export default function ReelPage() {
                   <option value="png">PNG</option>
                   <option value="jpeg">JPEG</option>
                 </select>
-                <button
+          <button
                   type="button"
                   onClick={() => setSettings((prev) => ({ ...prev, showSafeGuides: !prev.showSafeGuides }))}
-                  style={{
+            style={{
                     padding: '8px 10px',
                     borderRadius: 8,
                     border: '0.5px solid var(--color-border-secondary)',
@@ -1210,7 +1212,7 @@ export default function ReelPage() {
                   }}
                 >
                   {settings.showSafeGuides ? 'Guides on' : 'Guides off'}
-                </button>
+          </button>
               </div>
               {settings.exportFormat === 'jpeg' && (
                 <div>
@@ -1233,7 +1235,7 @@ export default function ReelPage() {
 
           <button
             type="button"
-            onClick={() => void downloadImage()}
+            onClick={() => void downloadImage('all')}
             disabled={!canDownload || downloading}
             style={{
               width: '100%',
@@ -1255,6 +1257,47 @@ export default function ReelPage() {
                   return `Download ${parts} · ${d.outW}×${d.outH} (${EXPORT_ASPECT_META[settings.exportAspect].short})`
                 })()}
           </button>
+
+          {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <button
+                type="button"
+                onClick={() => void downloadImage(1)}
+                disabled={!canDownload || downloading}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: '0.5px solid var(--color-border-secondary)',
+                  background: canDownload ? 'var(--color-background-primary)' : 'var(--color-background-secondary)',
+                  color: canDownload ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                  cursor: canDownload ? 'pointer' : 'not-allowed',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                Download part 1 only
+              </button>
+              <button
+                type="button"
+                onClick={() => void downloadImage(2)}
+                disabled={!canDownload || downloading}
+                style={{
+                  flex: 1,
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: '0.5px solid var(--color-border-secondary)',
+                  background: canDownload ? 'var(--color-background-primary)' : 'var(--color-background-secondary)',
+                  color: canDownload ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                  cursor: canDownload ? 'pointer' : 'not-allowed',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                Download part 2 only
+              </button>
+            </div>
+          )}
 
           <div
             style={{
@@ -1288,7 +1331,7 @@ export default function ReelPage() {
         <div className={styles.studio}>
           <div className={styles.studioHero}>
             <TemplateHeroCard st={selectedTemplate} mode="studio" />
-          </div>
+            </div>
           {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
             <div
               style={{
@@ -1296,7 +1339,7 @@ export default function ReelPage() {
                 gap: 8,
                 padding: 6,
                 borderRadius: 999,
-                border: '0.5px solid var(--color-border-secondary)',
+              border: '0.5px solid var(--color-border-secondary)',
                 background: 'var(--color-background-secondary)',
               }}
             >
