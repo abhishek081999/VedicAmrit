@@ -2,6 +2,8 @@
 
 import type { CSSProperties } from 'react'
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
 import type { PanchangApiData } from '@/types/reel-panchang'
 import type { TransitEvent } from '@/lib/engine/transits'
@@ -32,6 +34,8 @@ import { drawTransitSkyCard } from '@/lib/reel/cards/transit-sky'
 import { drawRashiForecastCard } from '@/lib/reel/cards/rashi-forecast'
 import { drawFestivalManualCard, type FestivalCardFields } from '@/lib/reel/cards/festival-manual'
 import { suggestFestivalFromTithi } from '@/lib/reel/festival-tithi-suggest'
+import { getCarouselSlideCount, isCarouselReelType } from '@/lib/reel/carousel'
+import { stashReelVideoHandoff } from '@/lib/reel/reel-video-draft'
 import styles from './reel-admin.module.css'
 
 export type ReelType =
@@ -69,10 +73,10 @@ const TEMPLATE_PREVIEW_STYLE: Record<
   ReelType,
   { bg: string; accent: string; lines: number; tag: string }
 > = {
-  panchang_full: { bg: 'linear-gradient(180deg,#1a1032 0%,#25124b 100%)', accent: '#c084fc', lines: 4, tag: 'Daily' },
-  muhurta: { bg: 'linear-gradient(180deg,#1f0b0b 0%,#3a1212 100%)', accent: '#f59e0b', lines: 5, tag: 'Daily' },
-  nakshatra: { bg: 'linear-gradient(180deg,#101b3b 0%,#1d2f63 100%)', accent: '#60a5fa', lines: 3, tag: 'Daily' },
-  choghadiya: { bg: 'linear-gradient(180deg,#1a1a2d 0%,#2f2f52 100%)', accent: '#22c55e', lines: 6, tag: 'Daily' },
+  panchang_full: { bg: 'linear-gradient(180deg,#1a1032 0%,#25124b 100%)', accent: '#c084fc', lines: 5, tag: 'Daily' },
+  muhurta: { bg: 'linear-gradient(180deg,#1f0b0b 0%,#3a1212 100%)', accent: '#f59e0b', lines: 4, tag: 'Daily' },
+  nakshatra: { bg: 'linear-gradient(180deg,#101b3b 0%,#1d2f63 100%)', accent: '#60a5fa', lines: 4, tag: 'Daily' },
+  choghadiya: { bg: 'linear-gradient(180deg,#1a1a2d 0%,#2f2f52 100%)', accent: '#22c55e', lines: 4, tag: 'Daily' },
   transit_sky: { bg: 'linear-gradient(180deg,#0a2031 0%,#133f60 100%)', accent: '#38bdf8', lines: 4, tag: 'Sky' },
   transit_weekly: { bg: 'linear-gradient(180deg,#0f1f15 0%,#1e3a27 100%)', accent: '#34d399', lines: 5, tag: 'Weekly' },
   rashi_forecast: { bg: 'linear-gradient(180deg,#291a2a 0%,#4d2b4e 100%)', accent: '#f472b6', lines: 4, tag: 'Weekly' },
@@ -106,21 +110,26 @@ const TEMPLATE_ONBOARD: Record<ReelType, { blurb: string }> = {
   },
 }
 
-const DENSE_TWO_SLIDE_TYPES: ReelType[] = ['panchang_full', 'muhurta', 'choghadiya', 'nakshatra']
+type ExportSlice = {
+  sx: number
+  sy: number
+  sw: number
+  sh: number
+  outW: number
+  outH: number
+  suffix: string
+  pageIndex: number
+}
 
-function getExportSlices(
-  reelType: ReelType,
-  aspect: ExportAspectPreset,
-): { sx: number; sy: number; sw: number; sh: number; outW: number; outH: number; suffix: string }[] {
+function getExportSlices(reelType: ReelType, aspect: ExportAspectPreset): ExportSlice[] {
   const base = getExportCropRect(aspect)
-  if (!DENSE_TWO_SLIDE_TYPES.includes(reelType)) {
-    return [{ ...base, suffix: '' }]
-  }
-
-  const segmentH = 1080
-  const top = { sx: 0, sy: 0, sw: 1080, sh: segmentH, outW: base.outW, outH: base.outH, suffix: '-1' }
-  const bottom = { sx: 0, sy: 1920 - segmentH, sw: 1080, sh: segmentH, outW: base.outW, outH: base.outH, suffix: '-2' }
-  return [top, bottom]
+  const n = getCarouselSlideCount(reelType)
+  if (n <= 1) return [{ ...base, suffix: '', pageIndex: 0 }]
+  return Array.from({ length: n }, (_, i) => ({
+    ...base,
+    suffix: `-${i + 1}`,
+    pageIndex: i,
+  }))
 }
 
 function renderSliceIntoCanvas(
@@ -319,6 +328,8 @@ export default function ReelPage() {
   const [data, setData] = useState<PanchangApiData | null>(null)
   const [loading, setLoading] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [videoSending, setVideoSending] = useState(false)
+  const router = useRouter()
   const [location] = useState<LocationValue>(getSavedLocation)
 
   const [weekAnchorDate, setWeekAnchorDate] = useState(todayIST)
@@ -356,7 +367,7 @@ export default function ReelPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const previewCanvasRef = useRef<HTMLCanvasElement>(null)
   const [vedaIcon, setVedaIcon] = useState<HTMLImageElement | null>(null)
-  const [previewPart, setPreviewPart] = useState<1 | 2>(1)
+  const [previewPart, setPreviewPart] = useState(1)
 
   useEffect(() => {
     const img = new Image()
@@ -460,121 +471,138 @@ export default function ReelPage() {
     return filterEventsInWeek(transitEvents, weekMonday)
   }, [transitEvents, weekMonday])
 
+  const renderReelPage = useCallback(
+    (carouselPageZero: number) => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      canvas.width = 1080
+      canvas.height = 1920
+
+      const drawPlaceholder = (msg: string) => {
+        ctx.fillStyle = '#0f0f12'
+        ctx.fillRect(0, 0, 1080, 1920)
+        ctx.font = '28px sans-serif'
+        ctx.fillStyle = '#9ca3af'
+        ctx.textAlign = 'center'
+        ctx.fillText(msg, 540, 960)
+      }
+
+      const carouselPages = getCarouselSlideCount(reelType)
+      const pageIdx =
+        isCarouselReelType(reelType) ? Math.min(Math.max(carouselPageZero, 0), carouselPages - 1) : 0
+
+      if (reelType === 'festival') {
+        drawFestivalManualCard(ctx, festivalFields, dateInfo, reelStyle, settings, seedKey, vedaIcon)
+        if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
+        return
+      }
+
+      if (reelType === 'transit_sky') {
+        if (skyLoading || !skyGrahas) {
+          drawPlaceholder(skyLoading ? 'Loading grahas…' : 'No sky data')
+          return
+        }
+        drawTransitSkyCard(
+          ctx,
+          skyGrahas,
+          date,
+          dateInfo,
+          reelStyle,
+          settings,
+          seedKey,
+          vedaIcon,
+          skyAyanamshaMode ? { ayanamshaMode: skyAyanamshaMode } : null,
+        )
+        if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
+        return
+      }
+
+      if (reelType === 'transit_weekly') {
+        if (transitLoading || transitEvents === null) {
+          drawPlaceholder(transitLoading ? 'Loading transits…' : 'No transit data')
+          return
+        }
+        drawTransitWeeklyCard(
+          ctx,
+          filteredWeekEvents,
+          weekLabel,
+          RASHI_NAMES[lagnaRashi],
+          reelStyle,
+          settings,
+          seedKey,
+          vedaIcon,
+        )
+        if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
+        return
+      }
+
+      if (reelType === 'rashi_forecast') {
+        if (transitLoading || transitEvents === null) {
+          drawPlaceholder(transitLoading ? 'Loading outlook…' : 'No transit data')
+          return
+        }
+        drawRashiForecastCard(
+          ctx,
+          forecastRashi,
+          RASHI_NAMES[forecastRashi],
+          filteredWeekEvents,
+          weekLabel,
+          reelStyle,
+          settings,
+          seedKey,
+          vedaIcon,
+        )
+        if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
+        return
+      }
+
+      if (!data) {
+        drawPlaceholder(loading ? 'Loading Panchang…' : 'Panchang unavailable')
+        return
+      }
+
+      if (reelType === 'panchang_full')
+        drawPanchangFullCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon, pageIdx, carouselPages)
+      else if (reelType === 'choghadiya')
+        drawChoghadiyaCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon, pageIdx, carouselPages)
+      else if (reelType === 'nakshatra')
+        drawNakshatraCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon, pageIdx, carouselPages)
+      else if (reelType === 'muhurta')
+        drawMuhurtaCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon, pageIdx, carouselPages)
+
+      if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
+    },
+    [
+      data,
+      loading,
+      reelType,
+      reelStyle,
+      dateInfo,
+      settings,
+      seedKey,
+      date,
+      festivalFields,
+      skyGrahas,
+      skyLoading,
+      skyAyanamshaMode,
+      transitLoading,
+      transitEvents,
+      filteredWeekEvents,
+      weekLabel,
+      lagnaRashi,
+      forecastRashi,
+      vedaIcon,
+    ],
+  )
+
   const drawReel = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    canvas.width = 1080
-    canvas.height = 1920
-
-    const drawPlaceholder = (msg: string) => {
-      ctx.fillStyle = '#0f0f12'
-      ctx.fillRect(0, 0, 1080, 1920)
-      ctx.font = '28px sans-serif'
-      ctx.fillStyle = '#9ca3af'
-      ctx.textAlign = 'center'
-      ctx.fillText(msg, 540, 960)
-    }
-
-    if (reelType === 'festival') {
-      drawFestivalManualCard(ctx, festivalFields, dateInfo, reelStyle, settings, seedKey, vedaIcon)
-      if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
-      return
-    }
-
-    if (reelType === 'transit_sky') {
-      if (skyLoading || !skyGrahas) {
-        drawPlaceholder(skyLoading ? 'Loading grahas…' : 'No sky data')
-        return
-      }
-      drawTransitSkyCard(
-        ctx,
-        skyGrahas,
-        date,
-        dateInfo,
-        reelStyle,
-        settings,
-        seedKey,
-        vedaIcon,
-        skyAyanamshaMode ? { ayanamshaMode: skyAyanamshaMode } : null,
-      )
-      if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
-      return
-    }
-
-    if (reelType === 'transit_weekly') {
-      if (transitLoading || transitEvents === null) {
-        drawPlaceholder(transitLoading ? 'Loading transits…' : 'No transit data')
-        return
-      }
-      drawTransitWeeklyCard(
-        ctx,
-        filteredWeekEvents,
-        weekLabel,
-        RASHI_NAMES[lagnaRashi],
-        reelStyle,
-        settings,
-        seedKey,
-        vedaIcon,
-      )
-      if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
-      return
-    }
-
-    if (reelType === 'rashi_forecast') {
-      if (transitLoading || transitEvents === null) {
-        drawPlaceholder(transitLoading ? 'Loading outlook…' : 'No transit data')
-        return
-      }
-      drawRashiForecastCard(
-        ctx,
-        forecastRashi,
-        RASHI_NAMES[forecastRashi],
-        filteredWeekEvents,
-        weekLabel,
-        reelStyle,
-        settings,
-        seedKey,
-        vedaIcon,
-      )
-      if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
-      return
-    }
-
-    if (!data) {
-      drawPlaceholder(loading ? 'Loading Panchang…' : 'Panchang unavailable')
-      return
-    }
-
-    if (reelType === 'panchang_full') drawPanchangFullCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon)
-    else if (reelType === 'choghadiya') drawChoghadiyaCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon)
-    else if (reelType === 'nakshatra') drawNakshatraCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon)
-    else if (reelType === 'muhurta') drawMuhurtaCard(ctx, data, dateInfo, reelStyle, settings, seedKey, vedaIcon)
-
-    if (settings.showSafeGuides) drawSafeGuides(ctx, reelStyle)
-  }, [
-    data,
-    loading,
-    reelType,
-    reelStyle,
-    dateInfo,
-    settings,
-    seedKey,
-    date,
-    festivalFields,
-    skyGrahas,
-    skyLoading,
-    skyAyanamshaMode,
-    transitLoading,
-    transitEvents,
-    filteredWeekEvents,
-    weekLabel,
-    lagnaRashi,
-    forecastRashi,
-    vedaIcon,
-  ])
+    const n = getCarouselSlideCount(reelType)
+    const p = isCarouselReelType(reelType) ? Math.min(Math.max(previewPart, 1), n) - 1 : 0
+    renderReelPage(p)
+  }, [renderReelPage, reelType, previewPart])
 
   const drawPreview = useCallback(() => {
     const master = canvasRef.current
@@ -596,9 +624,8 @@ export default function ReelPage() {
   }, [drawPreview, drawReel, loading, skyLoading, transitLoading, data, skyGrahas, transitEvents])
 
   useEffect(() => {
-    if (!DENSE_TWO_SLIDE_TYPES.includes(reelType) && previewPart !== 1) {
-      setPreviewPart(1)
-    }
+    const n = getCarouselSlideCount(reelType)
+    if (previewPart > n) setPreviewPart(1)
   }, [reelType, previewPart])
 
   const canDownload =
@@ -609,7 +636,7 @@ export default function ReelPage() {
       !transitLoading) ||
     (needsPanchang && !!data)
 
-  const downloadImage = async (which: 'all' | 1 | 2 = 'all') => {
+  const downloadImage = async (which: 'all' | number = 'all') => {
     const canvas = canvasRef.current
     if (!canvas || !canDownload) return
     setDownloading(true)
@@ -619,8 +646,11 @@ export default function ReelPage() {
       const slices = getExportSlices(reelType, settings.exportAspect)
       const tag = EXPORT_ASPECT_META[settings.exportAspect].short
       const selected =
-        which === 'all' ? slices : slices.filter((_, i) => i === which - 1)
+        which === 'all'
+          ? slices
+          : slices.filter((_, i) => i === (which as number) - 1)
       for (const slice of selected) {
+        renderReelPage(slice.pageIndex)
         const out = document.createElement('canvas')
         renderSliceIntoCanvas(canvas, out, slice)
         await new Promise<void>((resolve) => {
@@ -645,8 +675,65 @@ export default function ReelPage() {
       }
     } finally {
       setDownloading(false)
+      drawReel()
+      drawPreview()
     }
   }
+
+  const sendSlidesToVideoBuilder = useCallback(async () => {
+    const canvas = canvasRef.current
+    if (!canvas || !canDownload) return
+    setVideoSending(true)
+    try {
+      const mimeType = settings.exportFormat === 'jpeg' ? 'image/jpeg' : 'image/png'
+      const ext = settings.exportFormat === 'jpeg' ? 'jpg' : 'png'
+      const slices = getExportSlices(reelType, settings.exportAspect)
+      const tag = EXPORT_ASPECT_META[settings.exportAspect].short
+      const files: File[] = []
+      for (const slice of slices) {
+        renderReelPage(slice.pageIndex)
+        const out = document.createElement('canvas')
+        renderSliceIntoCanvas(canvas, out, slice)
+        const blob = await new Promise<Blob | null>((resolve) => {
+          out.toBlob(
+            resolve,
+            mimeType,
+            settings.exportFormat === 'jpeg' ? settings.jpegQuality : undefined,
+          )
+        })
+        if (!blob) continue
+        const name = `vedaansh-${reelType}-${date}-${tag}${slice.suffix}.${ext}`
+        files.push(new File([blob], name, { type: mimeType }))
+      }
+      let brandIcon: File | undefined
+      try {
+        const iconRes = await fetch('/veda-icon.png')
+        if (iconRes.ok) {
+          const iconBlob = await iconRes.blob()
+          brandIcon = new File([iconBlob], 'veda-icon.png', { type: iconBlob.type || 'image/png' })
+        }
+      } catch {
+        /* optional asset */
+      }
+      stashReelVideoHandoff({ slides: files, brandIcon })
+      router.push('/admin/reel/video')
+    } finally {
+      setVideoSending(false)
+      drawReel()
+      drawPreview()
+    }
+  }, [
+    canDownload,
+    settings.exportFormat,
+    settings.jpegQuality,
+    settings.exportAspect,
+    reelType,
+    date,
+    renderReelPage,
+    drawReel,
+    drawPreview,
+    router,
+  ])
 
   const captionText = useMemo(() => {
     const tags = HASHTAG_PRESETS[settings.hashtagPreset].join(' ')
@@ -764,6 +851,24 @@ export default function ReelPage() {
           }}
         >
           <span>Branding: veda-icon in every reel</span>
+        </div>
+        <div style={{ marginTop: 14 }}>
+          <Link
+            href="/admin/reel/video"
+            style={{
+              display: 'inline-flex',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--color-text-primary)',
+              textDecoration: 'none',
+              padding: '8px 14px',
+              borderRadius: 8,
+              border: '0.5px solid var(--color-border-secondary)',
+              background: 'var(--color-background-secondary)',
+            }}
+          >
+            Video editor — WebM / MP4 / Remotion →
+          </Link>
         </div>
       </div>
 
@@ -1253,50 +1358,58 @@ export default function ReelPage() {
               ? 'Generating…'
               : (() => {
                   const d = getExportCropRect(settings.exportAspect)
-                  const parts = DENSE_TWO_SLIDE_TYPES.includes(reelType) ? '2 images' : '1 image'
+                  const n = getCarouselSlideCount(reelType)
+                  const parts = n > 1 ? `${n} images (carousel)` : '1 image'
                   return `Download ${parts} · ${d.outW}×${d.outH} (${EXPORT_ASPECT_META[settings.exportAspect].short})`
                 })()}
           </button>
 
-          {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={() => void downloadImage(1)}
-                disabled={!canDownload || downloading}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 10,
-                  border: '0.5px solid var(--color-border-secondary)',
-                  background: canDownload ? 'var(--color-background-primary)' : 'var(--color-background-secondary)',
-                  color: canDownload ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                  cursor: canDownload ? 'pointer' : 'not-allowed',
-                  fontSize: 13,
-                  fontWeight: 600,
-                }}
-              >
-                Download part 1 only
-              </button>
-              <button
-                type="button"
-                onClick={() => void downloadImage(2)}
-                disabled={!canDownload || downloading}
-                style={{
-                  flex: 1,
-                  padding: '10px 12px',
-                  borderRadius: 10,
-                  border: '0.5px solid var(--color-border-secondary)',
-                  background: canDownload ? 'var(--color-background-primary)' : 'var(--color-background-secondary)',
-                  color: canDownload ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                  cursor: canDownload ? 'pointer' : 'not-allowed',
-                  fontSize: 13,
-                  fontWeight: 600,
-                }}
-              >
-                Download part 2 only
-              </button>
-            </div>
+          <button
+            type="button"
+            onClick={() => void sendSlidesToVideoBuilder()}
+            disabled={!canDownload || downloading || videoSending}
+            style={{
+              width: '100%',
+              marginTop: 10,
+              padding: '12px',
+              borderRadius: 10,
+              border: '1px solid rgba(0, 184, 148, 0.45)',
+              background: canDownload && !downloading && !videoSending ? 'rgba(0, 184, 148, 0.12)' : 'var(--color-background-secondary)',
+              color: canDownload && !downloading && !videoSending ? '#0d5c4a' : 'var(--color-text-tertiary)',
+              cursor: canDownload && !downloading && !videoSending ? 'pointer' : 'not-allowed',
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            {videoSending ? 'Preparing…' : 'Send exports to video builder'}
+          </button>
+          <p style={{ fontSize: 11, color: 'var(--color-text-tertiary)', margin: '6px 0 0', lineHeight: 1.45 }}>
+            Opens the video page with these frames (WebM in browser or Remotion MP4).{' '}
+            <Link href="/admin/reel/video" style={{ color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+              Video builder →
+            </Link>
+          </p>
+
+          {isCarouselReelType(reelType) && (
+            <button
+              type="button"
+              onClick={() => void downloadImage(previewPart)}
+              disabled={!canDownload || downloading}
+              style={{
+                width: '100%',
+                marginTop: 8,
+                padding: '10px 12px',
+                borderRadius: 10,
+                border: '0.5px solid var(--color-border-secondary)',
+                background: canDownload ? 'var(--color-background-primary)' : 'var(--color-background-secondary)',
+                color: canDownload ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                cursor: canDownload ? 'pointer' : 'not-allowed',
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              {`Download slide ${previewPart} only`}
+            </button>
           )}
 
           <div
@@ -1332,56 +1445,45 @@ export default function ReelPage() {
           <div className={styles.studioHero}>
             <TemplateHeroCard st={selectedTemplate} mode="studio" />
             </div>
-          {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
+          {isCarouselReelType(reelType) && (
             <div
               style={{
-                display: 'inline-flex',
+                display: 'flex',
+                flexWrap: 'wrap',
                 gap: 8,
                 padding: 6,
                 borderRadius: 999,
-              border: '0.5px solid var(--color-border-secondary)',
+                border: '0.5px solid var(--color-border-secondary)',
                 background: 'var(--color-background-secondary)',
               }}
             >
-              <button
-                type="button"
-                onClick={() => setPreviewPart(1)}
-                style={{
-                  borderRadius: 999,
-                  border: previewPart === 1 ? '1.5px solid #6C5CE7' : '0.5px solid var(--color-border-secondary)',
-                  padding: '5px 10px',
-                  background: previewPart === 1 ? '#f5f2ff' : 'var(--color-background-primary)',
-                  color: previewPart === 1 ? '#3C3489' : 'var(--color-text-secondary)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Preview part 1
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewPart(2)}
-                style={{
-                  borderRadius: 999,
-                  border: previewPart === 2 ? '1.5px solid #6C5CE7' : '0.5px solid var(--color-border-secondary)',
-                  padding: '5px 10px',
-                  background: previewPart === 2 ? '#f5f2ff' : 'var(--color-background-primary)',
-                  color: previewPart === 2 ? '#3C3489' : 'var(--color-text-secondary)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Preview part 2
-              </button>
+              {Array.from({ length: getCarouselSlideCount(reelType) }, (_, i) => i + 1).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setPreviewPart(n)}
+                  style={{
+                    borderRadius: 999,
+                    border:
+                      previewPart === n ? '1.5px solid #6C5CE7' : '0.5px solid var(--color-border-secondary)',
+                    padding: '5px 12px',
+                    background: previewPart === n ? '#f5f2ff' : 'var(--color-background-primary)',
+                    color: previewPart === n ? '#3C3489' : 'var(--color-text-secondary)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Slide {n}
+                </button>
+              ))}
             </div>
           )}
           <div
             className={styles.previewShell}
             style={{ aspectRatio: EXPORT_ASPECT_META[settings.exportAspect].aspectCss }}
           >
-            {DENSE_TWO_SLIDE_TYPES.includes(reelType) && (
+            {isCarouselReelType(reelType) && (
               <div
                 style={{
                   position: 'absolute',
@@ -1399,7 +1501,7 @@ export default function ReelPage() {
                   backdropFilter: 'blur(4px)',
                 }}
               >
-                Part {previewPart} of 2
+                Slide {previewPart} of {getCarouselSlideCount(reelType)}
               </div>
             )}
             {(needsPanchang && loading) ||
@@ -1427,12 +1529,16 @@ export default function ReelPage() {
             {(() => {
               const d = getExportCropRect(settings.exportAspect)
               const a = EXPORT_ASPECT_META[settings.exportAspect]
-              if (DENSE_TWO_SLIDE_TYPES.includes(reelType)) {
-                return `This template exports in 2 images (${a.short}) so Panchang details are split and easier to read. Toggle part 1/2 above.`
+              if (isCarouselReelType(reelType)) {
+                const n = getCarouselSlideCount(reelType)
+                const head = `This template exports ${n} full-frame images (${a.short}) for a swipeable carousel — pick a slide above to preview.`
+                if (settings.exportAspect === 'reel_9_16') return head
+                return `${head} Files are ${d.outW}×${d.outH}px: the full 9:16 slide is scaled to fit (letterboxed), so nothing is cropped — dense slides shrink to fit.`
               }
-              return d.outW === 1080 && d.outH === 1920
-                ? `Preview and file are full reel ${d.outW}×${d.outH}px (${a.short}).`
-                : `Preview shows the ${d.outW}×${d.outH}px export (${a.short}) — center crop from the 1080×1920 reel.`
+              if (d.outW === 1080 && d.outH === 1920) {
+                return `Preview and file are full reel ${d.outW}×${d.outH}px (${a.short}).`
+              }
+              return `Preview and file are ${d.outW}×${d.outH}px (${a.short}). The full 1080×1920 design is scaled to fit and centered; empty bars fill the rest (no cropping).`
             })()}
           </p>
           <canvas ref={canvasRef} style={{ display: 'none' }} />

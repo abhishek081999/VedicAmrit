@@ -1,0 +1,16 @@
+{
+  "images": [
+    "reel-remotion-assets/slide-01.png",
+    "reel-remotion-assets/slide-02.png"
+  ],
+  "secondsPerImage": 2.5,
+  "title": "Daily Panchang",
+  "objectFit": "contain",
+  "effects": {
+    "enableFade": true,
+    "fadeFrames": 25,
+    "enableZoom": true,
+    "zoomStart": 1.06,
+    "zoomEnd": 1
+  }
+}

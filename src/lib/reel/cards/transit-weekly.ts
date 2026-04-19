@@ -6,6 +6,7 @@ import {
   drawGeometricBg,
   drawHashtagFooter,
   drawLogo,
+  drawReelSocialBackdrop,
   drawStars,
   getBgColors,
   roundRect,
@@ -26,6 +27,7 @@ export function drawTransitWeeklyCard(
   const colors = getBgColors(style)
   drawGeometricBg(ctx, colors, style)
   drawStars(ctx, style, seedKey)
+  drawReelSocialBackdrop(ctx, colors)
   ctx.textAlign = 'center'
 
   drawLogo(ctx, colors, 96, settings.brandTitle, vedaIcon)

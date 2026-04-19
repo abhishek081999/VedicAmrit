@@ -18,7 +18,8 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  // ffmpeg.wasm loads core from unpkg and needs wasm compile (Chrome)
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com${isDev ? " 'unsafe-eval'" : ''}`,
   `connect-src 'self' https:${isDev ? ' http: ws: wss:' : ''}`,
   "frame-src 'self' https:",
   ...(isDev ? [] : ['upgrade-insecure-requests']),
@@ -37,7 +38,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['sweph'],
   },
-  transpilePackages: ['next-auth'],
+  transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
 
   // Security headers
   async headers() {

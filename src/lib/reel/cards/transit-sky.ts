@@ -8,6 +8,7 @@ import {
   drawGeometricBg,
   drawHashtagFooter,
   drawLogo,
+  drawReelSocialBackdrop,
   drawStars,
   getBgColors,
   roundRect,
@@ -60,6 +61,7 @@ export function drawTransitSkyCard(
   const colors = getBgColors(style)
   drawGeometricBg(ctx, colors, style)
   drawStars(ctx, style, seedKey)
+  drawReelSocialBackdrop(ctx, colors)
   drawSkyOrbits(ctx, colors)
   ctx.textAlign = 'center'
 

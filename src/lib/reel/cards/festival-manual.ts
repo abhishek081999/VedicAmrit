@@ -5,6 +5,7 @@ import {
   drawGeometricBg,
   drawHashtagFooter,
   drawLogo,
+  drawReelSocialBackdrop,
   drawStars,
   getBgColors,
   roundRect,
@@ -33,6 +34,7 @@ export function drawFestivalManualCard(
   const colors = getBgColors(style)
   drawGeometricBg(ctx, colors, style)
   drawStars(ctx, style, seedKey)
+  drawReelSocialBackdrop(ctx, colors)
   ctx.textAlign = 'center'
 
   drawLogo(ctx, colors, 100, settings.brandTitle, vedaIcon)

@@ -1,0 +1,266 @@
+/* Reel video admin — mobile-first responsive layout */
+
+.page {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: clamp(14px, 4vw, 24px) clamp(12px, 4vw, 20px) clamp(28px, 5vw, 48px);
+  box-sizing: border-box;
+}
+
+.navRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 20px;
+}
+
+.navSep {
+  color: var(--text-tertiary);
+  user-select: none;
+}
+
+.navButtonPrimary {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navButtonSecondary {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pageTitle {
+  font-size: clamp(1.25rem, 4.5vw, 1.625rem);
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+.brandRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+  border: 0.5px solid var(--border);
+  background: var(--surface-2);
+}
+
+.brandRowBody {
+  flex: 1;
+  min-width: min(100%, 200px);
+}
+
+.dropZone {
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  padding: clamp(16px, 5vw, 28px);
+  text-align: center;
+  background: var(--surface-2);
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.formRowTwo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+  width: 100%;
+  max-width: min(640px, 100%);
+}
+
+.fieldCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.fullWidth {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.presetField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: min(640px, 100%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.editorCard {
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: clamp(12px, 3vw, 18px);
+  margin-bottom: 20px;
+  background: var(--surface-1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.formStack {
+  margin-top: 12px;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: min(520px, 100%);
+}
+
+.formStackWide {
+  margin-top: 12px;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: min(480px, 100%);
+}
+
+.motionDetails {
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  background: var(--surface-1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.slideGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.slideToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.exportStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.exportProgressWrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+.exportProgressLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.exportProgressBar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.exportProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #00b894, #55efc4);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.shareSection {
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.shareActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.shareActions button {
+  flex: 1 1 auto;
+  min-width: min(140px, 100%);
+}
+
+.remotionDetails {
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--surface-1);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.remotionPre {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font-size: 11px;
+  overflow: auto;
+  max-height: 220px;
+  line-height: 1.45;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.zoomRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.zoomRow label {
+  flex: 1 1 min(100%, 220px);
+  min-width: 0;
+}
