@@ -28,14 +28,14 @@ const TOP_TABS: { id: string; label: string; icon: string; path?: string }[] = [
 ]
 
 const NAKSHATRA_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'nakshatra-overview', label: 'Overview',  icon: '🌟', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-navtara',  label: 'Navtara',   icon: '🔯', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-bestdays', label: 'Best Days', icon: '📅', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-muhurta',  label: 'Muhurta',   icon: '⚡', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-panchaka', label: 'Panchaka',  icon: '🔥', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-planet',   label: 'Planet',    icon: '✦', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-compat',   label: 'Compat',    icon: '🔗', path: ASTROLOGY_ROUTE },
-  { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: ASTROLOGY_ROUTE },
+  { id: 'nakshatra-overview', label: 'Overview',  icon: '🌟', path: '/nakshatra/overview' },
+  { id: 'nakshatra-navtara',  label: 'Navtara',   icon: '🔯', path: '/nakshatra/navtara' },
+  { id: 'nakshatra-bestdays', label: 'Best Days', icon: '📅', path: '/nakshatra/bestdays' },
+  { id: 'nakshatra-muhurta',  label: 'Muhurta',   icon: '⚡', path: '/nakshatra/muhurta' },
+  { id: 'nakshatra-panchaka', label: 'Panchaka',  icon: '🔥', path: '/nakshatra/panchaka' },
+  { id: 'nakshatra-planet',   label: 'Planet',    icon: '✦', path: '/nakshatra/planet' },
+  { id: 'nakshatra-compat',   label: 'Compat',    icon: '🔗', path: '/nakshatra/compat' },
+  { id: 'nakshatra-remedies', label: 'Remedies',  icon: '🙏', path: '/nakshatra/remedies' },
 ]
 
 const ASTRO_GROUPS: { label: string; tabs: { id: string; label: string; icon: string; path?: string }[] }[] = [
@@ -80,7 +80,7 @@ const PANCHANG_TABS: { id: string; label: string; icon: string; path?: string }[
 ]
 
 const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: string }[] = [
-  { id: 'jaimini', label: 'Jaimini Astrology', icon: '💠', path: ASTROLOGY_ROUTE },
+  { id: 'jaimini', label: 'Jaimini Astrology', icon: '💠', path: '/jaimini' },
   { id: 'astro-vastu', label: 'Astro Vastu', icon: '🏠', path: '/vastu' },
   { id: 'astro-carto', label: 'AstroCartography', icon: '🌍', path: '/acg' },
   { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: '⬛', path: '/sbc' },

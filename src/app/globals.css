@@ -1404,7 +1404,7 @@ select.input {
   /* 2-col chart grid: chart | tabs */
   .chart-layout-grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 650px;
     gap: 2.5rem;
     align-items: start;
     width: 100%;
@@ -1446,14 +1446,14 @@ select.input {
 /* On larger screens tighten the right tab column */
 @media (min-width: 1440px) and (max-width: 1680px) {
   .chart-layout-grid {
-    grid-template-columns: 1fr 300px !important;
+    grid-template-columns: 1fr 650px !important;
   }
 }
 
 /* Very wide — give chart even more breathing room */
 @media (min-width: 1400px) {
   .chart-layout-grid {
-    grid-template-columns: 1fr 420px !important;
+    grid-template-columns: 1fr 650px !important;
   }
 }
 

@@ -34,6 +34,10 @@ interface ChakraSelectorProps {
   size?:         number
   userPlan?:     'free' | 'gold' | 'platinum'
   highlightHouses?: number[]
+  headerControls?: React.ReactNode
+  showSettingsOverride?: boolean
+  onToggleSettings?: () => void
+  hideInternalSettingsToggle?: boolean
 }
 
 // ── Style definitions ─────────────────────────────────────────
@@ -65,6 +69,10 @@ export function ChakraSelector({
   comparisonGrahas = [],
   vargaName = 'D1',
   highlightHouses = [],
+  headerControls,
+  showSettingsOverride,
+  onToggleSettings,
+  hideInternalSettingsToggle = false,
 }: ChakraSelectorProps) {
   const VALID_STYLES: ChartStyle[] = ['north','south','sarvatobhadra','circle']
   const [style, setStyle] = useState<ChartStyle>(
@@ -90,6 +98,9 @@ export function ChakraSelector({
   const [lagnaSource,   setLagnaSource]   = useState('natal')
   
   const [showSettings,  setShowSettings]  = useState(false)
+  const [showLegend,    setShowLegend]    = useState(true)
+  const resolvedShowSettings = showSettingsOverride ?? showSettings
+  const handleSettingsToggle = onToggleSettings ?? (() => setShowSettings(!showSettings))
 
   // Use smaller scale on mobile initially
   React.useEffect(() => {
@@ -113,18 +124,6 @@ export function ChakraSelector({
       // Very likely D1/Natal
       return lagnas
     }
-    
-    // We need to find which Varga this ascRashi belongs to.
-    // However, ChakraSelector is agnostic of the Varga name usually.
-    // We'll try to find a match in the grahas' Varga logic or just use the ascRashi.
-    // For now, let's assume we can derive it if we knew the Varga name.
-    // Since we don't have the varga name string here, we'll check if the parent passed it.
-    
-    // BUT! We can just use the provided ascRashi and calculate a 'representative' degree
-    // if we don't have the exact divisional degree.
-    // Wait, the best way is to calculate the divisional position for the natal longitude.
-    // We can iterate through all vargas to find which one produces this ascRashi.
-    // This is expensive. 
     
     // If we have a vargaName and natal lagnas, project the ascendant
     if (vargaName && vargaName !== 'D1') {
@@ -175,198 +174,176 @@ export function ChakraSelector({
     return ascRashi
   }, [ascRashi, lagnaSource, grahas, arudhas])
 
-
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', width: '100%' }}>
 
-      {/* ── Style switcher ─────────────────────────────────── */}
-      <div style={{
-        display: 'flex', gap: '0.375rem', alignItems: 'center',
-        flexWrap: 'wrap',
-        borderBottom: '1px solid var(--border-soft)',
-        paddingBottom: '0.75rem',
-      }}>
-        {STYLES.map((s) => {
-          const active = style === s.id
-          const locked = s.tier === 'gold' && userPlan === 'free'
-          return (
-            <button
-              key={s.id}
-              onClick={() => locked ? (window.location.href = '/pricing') : setStyle(s.id as ChartStyle)}
-              title={locked ? `${s.label} — requires Gold plan` : s.description}
-              style={{
-                padding: '0.3rem 0.65rem',
-                fontSize: '0.8rem',
-                fontFamily: 'var(--font-chart-planets)',
-                letterSpacing: '0.04em',
-                cursor: 'pointer',
-                border: '1px solid',
-                borderRadius: '4px',
-                transition: 'all 0.15s',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.2rem',
-                opacity: locked ? 0.55 : 1,
-                background: active ? 'var(--gold-faint)' : 'transparent',
-                borderColor: active ? 'var(--gold)' : locked ? 'var(--border-soft)' : 'var(--border)',
-                color: active ? 'var(--gold)' : 'var(--text-muted)',
-              }}
-            >
-              {locked && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
-              {s.shortLabel}
-            </button>
-          )
-        })}
-
-        <div style={{ flex: 1 }} />
-
-        {/* ── Config toggles ──────────────────────────────── */}
-        <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {!isSBC && (
-            <>
-              <Toggle label="9 Planets"   value={onlyNine}   onChange={setOnlyNine} />
-              <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
-              <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
-              {userPlan !== 'free' && (
-                <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
-              )}
-              {arudhas && (
-                <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
-              )}
-              {transitGrahas.length > 0 && (
-                <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
-              )}
-              <Toggle label="Tooltip" value={showTooltip} onChange={setShowTooltip} />
-            </>
-          )}
-          {isSBC && (
-            <>
-              <Toggle label="Tithi"  value={showTithi} onChange={setShowTithi} />
-              <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
-            </>
-          )}
-
-          {/* Settings Toggle */}
+      {/* ── Settings Toggle ────────────────────────────────── */}
+      {!hideInternalSettingsToggle && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', flexWrap: 'nowrap' }}>
+          {headerControls}
           <button
-            onClick={() => setShowSettings(!showSettings)}
+            onClick={handleSettingsToggle}
             style={{
-              marginLeft: '0.5rem', padding: '0.2rem 0.6rem',
-              fontSize: '0.8rem', cursor: 'pointer',
-              background: showSettings ? 'var(--gold-faint)' : 'transparent',
-              border: '1px solid',
-              borderColor: showSettings ? 'var(--gold)' : 'var(--border)',
-              borderRadius: '4px', color: showSettings ? 'var(--gold)' : 'var(--text-muted)'
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              whiteSpace: 'nowrap',
+              padding: '0.4rem 0.75rem', fontSize: '0.75rem',
+              borderRadius: '6px', border: '1px solid var(--border-soft)',
+              background: resolvedShowSettings ? 'var(--gold-faint)' : 'transparent',
+              color: resolvedShowSettings ? 'var(--gold)' : 'var(--text-muted)',
+              cursor: 'pointer', transition: 'all 0.2s',
+              boxShadow: 'var(--shadow-sm)',
+              fontFamily: 'var(--font-chart-planets)',
+              letterSpacing: '0.04em',
             }}
-            title="Advanced Typography Settings"
           >
-            ⚙ Text Scales
+            <SettingsIcon />
+            <span>{resolvedShowSettings ? 'Hide Panel' : 'Chart Settings'}</span>
           </button>
-        </div>
-      </div>
-
-      {/* ── Lagna Source Selector ──────────────────────────── */}
-      {!isSBC && (
-        <div style={{
-          display: 'flex', gap: '0.85rem', alignItems: 'center',
-          padding: '0.5rem 0.85rem',
-          background: 'var(--surface-2)',
-          borderRadius: '8px',
-          border: '1px solid var(--border-soft)',
-          fontSize: '0.8rem',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ 
-            display: 'flex', alignItems: 'center', gap: '0.4rem', 
-            marginRight: '0.4rem', color: 'var(--gold)', 
-            fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.72rem', opacity: 0.9 
-          }}>
-             <span style={{ width: 6, height: 6, background: 'var(--gold)', borderRadius: '50%' }} />
-             LAGNA SOURCE
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-            {[
-              { id: 'natal',   label: 'Natal' },
-              { id: 'chandra', label: 'Moon' },
-              { id: 'surya',   label: 'Sun' },
-              { id: 'arudha',  label: 'AL' },
-            ].map(ls => {
-              const active = lagnaSource === ls.id
-              return (
-                <button
-                  key={ls.id}
-                  onClick={() => setLagnaSource(ls.id)}
-                  style={{
-                    padding: '0.25rem 0.65rem',
-                    fontSize: '0.75rem',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    fontFamily: 'var(--font-chart-planets)',
-                    background: active ? 'var(--gold-faint)' : 'transparent',
-                    borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
-                    color: active ? 'var(--gold)' : 'var(--text-muted)',
-                  }}
-                >
-                  {ls.label}
-                </button>
-              )
-            })}
-          </div>
-
-          <div style={{ width: '1px', height: '1.25rem', background: 'var(--border-soft)', margin: '0 0.25rem' }} />
-
-          {/* House Numbers 1-12 */}
-          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginRight: '0.2rem', fontStyle: 'italic' }}>House:</span>
-            {Array.from({length: 12}).map((_, i) => {
-              const id = `h${i+1}`
-              const active = lagnaSource === id
-              return (
-                <button
-                  key={id}
-                  onClick={() => setLagnaSource(id)}
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '0.72rem',
-                    borderRadius: '4px',
-                    border: '1px solid',
-                    cursor: 'pointer',
-                    transition: 'all 0.1s',
-                    fontFamily: 'var(--font-mono)',
-                    background: active ? 'var(--gold-faint)' : 'transparent',
-                    borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
-                    color: active ? 'var(--gold)' : 'var(--text-muted)',
-                    fontWeight: active ? 700 : 400
-                  }}
-                >
-                  {i+1}
-                </button>
-              )
-            })}
-          </div>
         </div>
       )}
 
-      {/* ── Advanced Settings Panel ───────────────────────── */}
-      {showSettings && (
-        <div style={{
-          padding: '0.75rem 1rem', background: 'var(--surface-2)', 
-          borderRadius: '6px', border: '1px solid var(--border-soft)',
-          display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center',
+      {resolvedShowSettings && (
+        <div className="fade-in" style={{
+          display: 'flex', flexDirection: 'column', gap: '1.25rem',
+          padding: '1.25rem', background: 'var(--surface-2)', 
+          borderRadius: '12px', border: '1px solid var(--border-soft)',
+          boxShadow: 'var(--shadow-card)',
           marginBottom: '0.5rem'
         }}>
-          <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
-          <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
-          <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
-          <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
-          <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+          
+          {/* Style switcher */}
+          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.5rem' }}>STYLE:</span>
+            {STYLES.map((s) => {
+              const active = style === s.id
+              const locked = s.tier === 'gold' && userPlan === 'free'
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => locked ? (window.location.href = '/pricing') : setStyle(s.id as ChartStyle)}
+                  title={locked ? `${s.label} — requires Gold plan` : s.description}
+                  style={{
+                    padding: '0.35rem 0.75rem', fontSize: '0.75rem',
+                    fontFamily: 'var(--font-chart-planets)', letterSpacing: '0.04em',
+                    cursor: 'pointer', border: '1px solid', borderRadius: '4px',
+                    transition: 'all 0.15s', display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                    opacity: locked ? 0.55 : 1,
+                    background: active ? 'var(--gold-faint)' : 'transparent',
+                    borderColor: active ? 'var(--gold)' : locked ? 'var(--border-soft)' : 'var(--border)',
+                    color: active ? 'var(--gold)' : 'var(--text-muted)',
+                  }}
+                >
+                  {locked && <span style={{ fontSize: '0.6rem' }}>🔒</span>}
+                  {s.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ height: '1px', background: 'var(--border-soft)' }} />
+
+          {/* Config toggles */}
+          <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700, marginRight: '0.25rem' }}>DISPLAY:</span>
+            {!isSBC && (
+              <>
+                <Toggle label="9 Planets"   value={onlyNine}   onChange={setOnlyNine} />
+                <Toggle label="Degrees"   value={showDegrees}   onChange={setShowDegrees} />
+                <Toggle label="Nakshatra" value={showNakshatra} onChange={setShowNakshatra} />
+                {userPlan !== 'free' && (
+                  <Toggle label="Karaka" value={showKaraka} onChange={setShowKaraka} />
+                )}
+                {arudhas && (
+                  <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
+                )}
+                <Toggle label="Legend" value={showLegend} onChange={setShowLegend} />
+                {transitGrahas.length > 0 && (
+                  <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
+                )}
+                <Toggle label="Tooltip" value={showTooltip} onChange={setShowTooltip} />
+              </>
+            )}
+            {isSBC && (
+              <>
+                <Toggle label="Tithi"  value={showTithi} onChange={setShowTithi} />
+                <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
+              </>
+            )}
+          </div>
+
+          {!isSBC && (
+            <>
+              <div style={{ height: '1px', background: 'var(--border-soft)' }} />
+              {/* Lagna Source Selector */}
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ 
+                  display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                  color: 'var(--gold)', fontWeight: 700, letterSpacing: '0.05em', fontSize: '0.72rem'
+                }}>
+                  LAGNA SOURCE
+                </div>
+                <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                  {[
+                    { id: 'natal',   label: 'Natal' },
+                    { id: 'chandra', label: 'Moon' },
+                    { id: 'surya',   label: 'Sun' },
+                    { id: 'arudha',  label: 'AL' },
+                  ].map(ls => {
+                    const active = lagnaSource === ls.id
+                    return (
+                      <button
+                        key={ls.id} onClick={() => setLagnaSource(ls.id)}
+                        style={{
+                          padding: '0.3rem 0.75rem', fontSize: '0.72rem',
+                          borderRadius: '4px', border: '1px solid', cursor: 'pointer',
+                          fontFamily: 'var(--font-chart-planets)',
+                          background: active ? 'var(--gold-faint)' : 'transparent',
+                          borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
+                          color: active ? 'var(--gold)' : 'var(--text-muted)',
+                        }}
+                      >
+                        {ls.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>House:</span>
+                <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  {Array.from({length: 12}).map((_, i) => {
+                    const id = `h${i+1}`
+                    const active = lagnaSource === id
+                    return (
+                      <button
+                        key={id} onClick={() => setLagnaSource(id)}
+                        style={{
+                          width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.7rem', borderRadius: '4px', border: '1px solid', cursor: 'pointer',
+                          fontFamily: 'var(--font-mono)',
+                          background: active ? 'var(--gold-faint)' : 'transparent',
+                          borderColor: active ? 'var(--gold)' : 'var(--border-soft)',
+                          color: active ? 'var(--gold)' : 'var(--text-muted)',
+                          fontWeight: active ? 700 : 400
+                        }}
+                      >
+                        {i+1}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+
+          <div style={{ height: '1px', background: 'var(--border-soft)' }} />
+          {/* Advanced Typography Scales */}
+          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--gold)', fontWeight: 700 }}>TYPOGRAPHY:</span>
+            <ScaleSlider label="Chart Size" value={chartScale} onChange={setChartScale} />
+            <ScaleSlider label="Base Scale" value={fontScale} onChange={setFontScale} />
+            <ScaleSlider label="Planets" value={planetScale} onChange={setPlanetScale} />
+            <ScaleSlider label="Details" value={infoScale} onChange={setInfoScale} />
+            <ScaleSlider label="Āruḍha" value={arudhaScale} onChange={setArudhaScale} />
+          </div>
         </div>
       )}
 
@@ -443,7 +420,7 @@ export function ChakraSelector({
       </div>
 
       {/* ── Legend ────────────────────────────────────────── */}
-      {!isSBC && (
+      {showLegend && !isSBC && (
         <div style={{
           display: 'flex', gap: '1rem', flexWrap: 'wrap',
           paddingTop: '0.5rem',
@@ -475,7 +452,7 @@ export function ChakraSelector({
       )}
 
       {/* SBC legend */}
-      {isSBC && (
+      {showLegend && isSBC && (
         <div style={{
           display: 'flex', gap: '1.25rem', flexWrap: 'wrap',
           paddingTop: '0.5rem',
@@ -553,5 +530,14 @@ function ScaleSlider({ label, value, onChange }: { label: string, value: number,
         {value.toFixed(2)}
       </span>
     </div>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
   )
 }
