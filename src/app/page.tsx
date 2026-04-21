@@ -960,7 +960,7 @@ function HomeContent() {
                             if (!nodes || nodes.length === 0) {
                               return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
                             }
-                            return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} limited />
+                            return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
                           })()}
                         </div>
                       )}
@@ -974,7 +974,6 @@ function HomeContent() {
                             longitude={chart.meta.longitude}
                             timezone={chart.meta.timezone}
                             todayPanchang={todayPanchang}
-                            variant="compact"
                           />
                           <div className="card" style={{ padding: '0.85rem' }}>
                             <h3 className="label-caps" style={{ marginBottom: '0.65rem', fontSize: '0.62rem', color: 'var(--text-muted)' }}>Daily Suitability</h3>
@@ -1243,7 +1242,7 @@ function HomeContent() {
                                   if (!nodes || nodes.length === 0) {
                                     return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
                                   }
-                                  return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} limited />
+                                  return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
                                 })()}
                               </div>
                             </div>
@@ -1268,14 +1267,13 @@ function HomeContent() {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(300px, 1.2fr) 1fr', gap: '1px', background: 'var(--border-soft)' }}>
                            <div style={{ background: 'var(--surface-1)' }}>
-                             <PersonalDayCard 
+                            <PersonalDayCard
                                birthMoonNakIdx={chart.panchang.nakshatra.index} 
                                birthMoonName={chart.panchang.nakshatra.name} 
                                latitude={chart.meta.latitude}
                                longitude={chart.meta.longitude}
                                timezone={chart.meta.timezone}
                                todayPanchang={todayPanchang}
-                               variant="compact"
                              />
                            </div>
                            <div style={{ background: 'var(--surface-1)', padding: '1rem 1.25rem' }}>
