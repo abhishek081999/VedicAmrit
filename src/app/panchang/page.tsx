@@ -78,21 +78,8 @@ export default function PanchangPage() {
       flexDirection: 'column',
       gap: '1.5rem',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <button
-          type="button"
-          onClick={() => setDate((d: string) => addDays(d, -1))}
-          style={{
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)', padding: '0.45rem 0.9rem',
-            cursor: 'pointer', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-display)', fontSize: '1rem',
-          }}
-        >
-          ← Prev
-        </button>
-
-        <div style={{ flex: 1, textAlign: 'center', minWidth: 200 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+        <div style={{ textAlign: 'center', minWidth: 0 }}>
           <div
             suppressHydrationWarning
             style={{
@@ -205,34 +192,46 @@ export default function PanchangPage() {
             )}
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => setDate((d: string) => addDays(d, 1))}
-          style={{
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)', padding: '0.45rem 0.9rem',
-            cursor: 'pointer', color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-display)', fontSize: '1rem',
-          }}
-        >
-          Next →
-        </button>
-
-        {!isToday && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           <button
             type="button"
-            onClick={() => setDate(todayIST())}
+            onClick={() => setDate((d: string) => addDays(d, -1))}
             style={{
-              background: 'rgba(201,168,76,0.10)', border: '1px solid rgba(201,168,76,0.30)',
+              background: 'var(--surface-2)', border: '1px solid var(--border)',
               borderRadius: 'var(--r-md)', padding: '0.45rem 0.9rem',
-              cursor: 'pointer', color: 'var(--text-gold)',
-              fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600,
+              cursor: 'pointer', color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-display)', fontSize: '1rem',
             }}
           >
-            Today
+            ← Prev
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setDate((d: string) => addDays(d, 1))}
+            style={{
+              background: 'var(--surface-2)', border: '1px solid var(--border)',
+              borderRadius: 'var(--r-md)', padding: '0.45rem 0.9rem',
+              cursor: 'pointer', color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-display)', fontSize: '1rem',
+            }}
+          >
+            Next →
+          </button>
+          {!isToday && (
+            <button
+              type="button"
+              onClick={() => setDate(todayIST())}
+              style={{
+                background: 'rgba(201,168,76,0.10)', border: '1px solid rgba(201,168,76,0.30)',
+                borderRadius: 'var(--r-md)', padding: '0.45rem 0.9rem',
+                cursor: 'pointer', color: 'var(--text-gold)',
+                fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 600,
+              }}
+            >
+              Today
+            </button>
+          )}
+        </div>
       </div>
 
       {loading && (

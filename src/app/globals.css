@@ -1140,6 +1140,10 @@ select.input {
 
 /* ── Responsive helpers ─────────────────────────────────────── */
 
+.show-mobile-only {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   .hide-mobile {
     display: none !important;
@@ -1362,6 +1366,10 @@ select.input {
 
   .hide-mobile {
      display: none !important;
+  }
+
+  .show-mobile-only {
+    display: inline-flex !important;
   }
 
   /* Birth Details Form Drawer - Full width on mobile */

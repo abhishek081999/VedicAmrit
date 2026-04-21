@@ -351,6 +351,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
 
         {/* Right: Actions */}
         <div className="app-header-right">
+          <Link
+            href="/astrology"
+            onClick={() => {
+              setActiveTab('dashboard')
+              if (window.innerWidth < 1024) setIsSidenavOpen(false)
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.32rem 0.62rem',
+              borderRadius: '999px',
+              border: '1px solid var(--border-soft)',
+              color: 'var(--header-text-muted)',
+              textDecoration: 'none',
+              fontSize: '0.63rem',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginRight: '0.5rem',
+            }}
+            className="show-mobile-only"
+          >
+            Dashboard
+          </Link>
           <nav className="hide-mobile" style={{ display: 'flex', gap: '1.25rem' }}>
             <Link href="/panchang" style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Pañcāṅga</Link>
             <Link href="/sbc"      style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--header-text-muted)', textDecoration: 'none', letterSpacing: '0.12em', textTransform: 'uppercase' }}>SBC</Link>
@@ -478,7 +503,8 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               </Link>
             ) : (
               <Link 
-                href="/login" 
+                href="/login"
+                onClick={() => { if (window.innerWidth < 1024) setIsSidenavOpen(false) }}
                 style={{ 
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   padding: '0.65rem 1rem', background: 'var(--gold-faint)', borderRadius: 'var(--r-md)',

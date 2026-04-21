@@ -29,6 +29,19 @@ const GRAHA_COLOR: Record<string, string> = {
   Sg: '#FACC15', Cp: '#6366F1', Aq: '#6366F1', Pi: '#FACC15'
 }
 
+const VIMSHOTTARI_SEQUENCE = ['Ke', 'Ve', 'Su', 'Mo', 'Ma', 'Ra', 'Ju', 'Sa', 'Me'] as const
+const NAVTARA_META = [
+  { name: 'Janma', quality: 'neutral' },
+  { name: 'Sampat', quality: 'auspicious' },
+  { name: 'Vipat', quality: 'inauspicious' },
+  { name: 'Kshema', quality: 'auspicious' },
+  { name: 'Pratyari', quality: 'inauspicious' },
+  { name: 'Sadhaka', quality: 'auspicious' },
+  { name: 'Vadha', quality: 'inauspicious' },
+  { name: 'Mitra', quality: 'auspicious' },
+  { name: 'Ati-Mitra', quality: 'auspicious' },
+] as const
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function toDate(d: Date | string): Date {
@@ -51,6 +64,21 @@ function fmtTime(d: Date | string) {
     minute: '2-digit',
     second: '2-digit'
   })
+}
+
+function fmtDateTimeCompact(d: Date | string) {
+  const date = toDate(d)
+  const dt = date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+  const tm = date.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+  return `${dt} • ${tm}`
 }
 
 function calculateProgress(start: Date | string, end: Date | string): number {
@@ -92,6 +120,7 @@ function DashaLevelBadge({ depth }: { depth: number }) {
 export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate: Date }) {
   // Navigation state
   const [activePath, setActivePath] = useState<DashaNode[]>([])
+  const [currentPath, setCurrentPath] = useState<DashaNode[]>([])
   
   // Find current active path on mount or if nodes change
   useEffect(() => {
@@ -102,6 +131,7 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
       current = current.children.find(c => c.isCurrent)
     }
     setActivePath(path)
+    setCurrentPath(path)
   }, [nodes])
 
   // Get current list based on path
@@ -112,7 +142,26 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
   }, [nodes, activePath])
 
   const currentLevel = activePath.length + 1
-  const isViewingDeepest = currentList.length === 1 && currentList[0] === activePath[activePath.length - 1]
+
+  const levelTitle = useMemo(() => {
+    if (currentLevel <= 1) return 'Major Vimshottari Dasha'
+    if (currentLevel === 2) return 'Antardasha'
+    if (currentLevel === 3) return 'Pratyantardasha'
+    if (currentLevel === 4) return 'Sookshmadasha'
+    if (currentLevel === 5) return 'Pranadasha'
+    return 'Dasha Sequence'
+  }, [currentLevel])
+
+  const currentMahaNode = activePath[0] ?? nodes.find((n) => n.isCurrent) ?? nodes[0]
+  const birthMahaNode = nodes[0]
+  const navtaraForCurrentMaha = useMemo(() => {
+    const startIdx = VIMSHOTTARI_SEQUENCE.indexOf((birthMahaNode?.lord ?? '') as (typeof VIMSHOTTARI_SEQUENCE)[number])
+    const currentIdx = VIMSHOTTARI_SEQUENCE.indexOf((currentMahaNode?.lord ?? '') as (typeof VIMSHOTTARI_SEQUENCE)[number])
+    if (startIdx < 0 || currentIdx < 0) return null
+    const taraNumber = ((currentIdx - startIdx + 9) % 9) + 1
+    const meta = NAVTARA_META[taraNumber - 1]
+    return { taraNumber, taraName: meta.name, quality: meta.quality }
+  }, [birthMahaNode, currentMahaNode])
 
   const handleNavigate = (node: DashaNode, depth: number) => {
     // If we click on a breadcrumb
@@ -130,229 +179,219 @@ export function DashaTree({ nodes, birthDate }: { nodes: DashaNode[]; birthDate:
     setActivePath(activePath.slice(0, -1))
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      
-      {/* ── Header: Active Dasha Hero ────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--surface-2) 0%, var(--surface-1) 100%)',
-        borderRadius: 'var(--r-md)',
-        border: '1px solid var(--border-soft)',
-        overflow: 'hidden',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-soft)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-            <div>
-              <div className="label-caps" style={{ color: 'var(--gold)', fontSize: '0.65rem', marginBottom: '0.5rem' }}>Current Timeline Perspective</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                {activePath.length === 0 ? (
-                  <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 600 }}>Mahādashā Cycle</h2>
-                ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-                    <button 
-                      onClick={() => setActivePath([])}
-                      style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem', padding: 0 }}
-                    >All</button>
-                    {activePath.map((node, i) => (
-                      <React.Fragment key={i}>
-                        <span style={{ color: 'var(--border-bright)', fontSize: '0.8rem' }}>/</span>
-                        <button 
-                          onClick={() => handleNavigate(node, i)}
-                          style={{ 
-                            background: 'transparent', border: 'none', 
-                            color: i === activePath.length - 1 ? 'var(--text-primary)' : 'var(--text-muted)', 
-                            fontWeight: i === activePath.length - 1 ? 600 : 400,
-                            cursor: 'pointer', fontSize: '0.9rem', padding: 0,
-                            fontFamily: 'var(--font-display)'
-                          }}
-                        >
-                          {node.label || GRAHA_NAME[node.lord]}
-                        </button>
-                      </React.Fragment>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {activePath.length > 0 && (
-              <button 
-                onClick={handleBack}
-                className="btn btn-ghost btn-sm"
-                style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-              >
-                ← Back
-              </button>
-            )}
-          </div>
+  const codePathForNode = (node: DashaNode): string => {
+    const chain = [...activePath.map((n) => n.lord), node.lord]
+    return chain.join('/')
+  }
+  const fullCurrentCode = currentPath.map((n) => n.lord).join('/')
 
-          {/* Progress Overview for the current focused node */}
-          {activePath.length > 0 && (
-            <div style={{ marginTop: '0.5rem' }}>
-              {(() => {
-                const node = activePath[activePath.length - 1]
-                const progress = calculateProgress(node.start, node.end)
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.start, true)}</span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', opacity: 0.8 }}>{fmtTime(node.start)}</span>
-                      </div>
-                      <span style={{ color: 'var(--gold)', fontWeight: 600 }}>{progress.toFixed(1)}% Completed</span>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>{fmtDate(node.end, true)}</span>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.65rem', opacity: 0.8 }}>{fmtTime(node.end)}</span>
-                      </div>
-                    </div>
-                    <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ 
-                        height: '100%', 
-                        width: `${progress}%`, 
-                        background: `linear-gradient(90deg, ${GRAHA_COLOR[node.lord]} 0%, var(--gold) 100%)`,
-                        transition: 'width 1s cubic-bezier(0.16, 1, 0.3, 1)',
-                        boxShadow: `0 0 10px ${GRAHA_COLOR[node.lord]}66`
-                      }} />
-                    </div>
-                  </div>
-                )
-              })()}
-            </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.9rem 1rem',
+          borderRadius: '10px',
+          border: '1px solid var(--border-soft)',
+          background: 'var(--surface-2)',
+        }}
+      >
+        <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          {levelTitle}
+        </div>
+        {activePath.length > 0 && (
+          <button
+            type="button"
+            onClick={handleBack}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1rem',
+              fontWeight: 600,
+            }}
+          >
+            ← Back
+          </button>
+        )}
+      </div>
+      {currentMahaNode && (
+        <div
+          style={{
+            borderRadius: '10px',
+            border: '1px solid var(--border-soft)',
+            background: 'var(--surface-2)',
+            padding: '0.55rem 0.8rem',
+            fontSize: '0.78rem',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <strong style={{ color: 'var(--text-primary)' }}>
+            Running Mahadasha: {currentMahaNode.label || GRAHA_NAME[currentMahaNode.lord] || currentMahaNode.lord}
+          </strong>
+          {navtaraForCurrentMaha && (
+            <span
+              style={{
+                marginLeft: 8,
+                color:
+                  navtaraForCurrentMaha.quality === 'auspicious'
+                    ? 'var(--teal)'
+                    : navtaraForCurrentMaha.quality === 'inauspicious'
+                      ? 'var(--rose)'
+                      : 'var(--amber)',
+                fontWeight: 700,
+              }}
+            >
+              · Navtara #{navtaraForCurrentMaha.taraNumber}: {navtaraForCurrentMaha.taraName}
+            </span>
           )}
         </div>
-      </div>
-
-      {/* ── Table: High-Density Dasha List ───────────────────── */}
-      <div style={{ 
-        background: 'var(--surface-1)', 
-        borderRadius: '8px', 
-        border: '1px solid var(--border-soft)',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1.5fr 1.2fr 1.2fr 0.8fr',
-          padding: '0.75rem 1rem',
-          background: 'var(--surface-2)',
-          borderBottom: '1px solid var(--border-soft)',
-          fontSize: '0.65rem',
-          fontWeight: 700,
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em'
-        }}>
-          <div>Lord & Period</div>
-          <div>Start Date</div>
-          <div>End Date</div>
-          <div style={{ textAlign: 'right' }}>Status</div>
+      )}
+      {currentPath.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '0.5rem',
+            borderRadius: '10px',
+            border: '1px solid var(--border-soft)',
+            background: 'var(--surface-1)',
+            padding: '0.55rem 0.8rem',
+          }}
+        >
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Full current dasha:</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 700 }}>
+            {fullCurrentCode}
+          </span>
+          <button
+            type="button"
+            onClick={() => setActivePath(currentPath)}
+            style={{
+              border: '1px solid rgba(78,205,196,0.35)',
+              background: 'rgba(78,205,196,0.08)',
+              color: 'var(--teal)',
+              borderRadius: 999,
+              padding: '0.22rem 0.7rem',
+              fontSize: '0.74rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            Show current
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePath([])}
+            style={{
+              border: '1px solid var(--border-soft)',
+              background: 'var(--surface-2)',
+              color: 'var(--text-primary)',
+              borderRadius: 999,
+              padding: '0.22rem 0.7rem',
+              fontSize: '0.74rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            Show Mahadasha
+          </button>
         </div>
+      )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '500px', overflowY: 'auto' }}>
-          {currentList.map((node, idx) => {
-            const isActive = node.isCurrent
-            const hasChildren = node.children && node.children.length > 0
-            const progress = calculateProgress(node.start, node.end)
-            const isCompleted = progress >= 100
-            const isFuture = progress <= 0 && !isActive
+      {activePath.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setActivePath([])}
+            style={{
+              border: '1px solid var(--border-soft)',
+              background: 'var(--surface-2)',
+              color: 'var(--text-muted)',
+              borderRadius: 999,
+              padding: '0.22rem 0.58rem',
+              fontSize: '0.72rem',
+              cursor: 'pointer',
+            }}
+          >
+            Root
+          </button>
+          {activePath.map((node, i) => (
+            <button
+              key={`${node.lord}-${i}`}
+              type="button"
+              onClick={() => handleNavigate(node, i)}
+              style={{
+                border: '1px solid var(--border-soft)',
+                background: i === activePath.length - 1 ? 'rgba(78,205,196,0.12)' : 'var(--surface-2)',
+                color: i === activePath.length - 1 ? 'var(--teal)' : 'var(--text-muted)',
+                borderRadius: 999,
+                padding: '0.22rem 0.58rem',
+                fontSize: '0.72rem',
+                cursor: 'pointer',
+              }}
+            >
+              {node.label || GRAHA_NAME[node.lord]}
+            </button>
+          ))}
+        </div>
+      )}
 
-            return (
-              <div 
-                key={`${node.lord}-${node.start}-${idx}`}
-                onClick={() => hasChildren && handleNavigate(node, activePath.length)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1.5fr 1.2fr 1.2fr 0.8fr',
-                  padding: '0.85rem 1rem',
-                  alignItems: 'center',
-                  borderBottom: '1px solid var(--border-soft)',
-                  background: isActive ? 'rgba(201,168,76,0.05)' : 'transparent',
-                  cursor: hasChildren ? 'pointer' : 'default',
-                  transition: 'background 0.2s',
-                  position: 'relative'
-                }}
-                onMouseEnter={e => !isActive && (e.currentTarget.style.background = 'var(--surface-2)')}
-                onMouseLeave={e => !isActive && (e.currentTarget.style.background = 'transparent')}
-              >
-                {/* Visual indicator for active row */}
-                {isActive && (
-                  <div style={{ 
-                    position: 'absolute', left: 0, top: '20%', bottom: '20%', 
-                    width: 3, background: 'var(--gold)', borderRadius: '0 2px 2px 0' 
-                  }} />
-                )}
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ 
-                    width: 32, height: 32, borderRadius: '6px', 
-                    background: `${GRAHA_COLOR[node.lord]}15`,
-                    border: `1px solid ${GRAHA_COLOR[node.lord]}44`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 600,
-                    color: GRAHA_COLOR[node.lord]
-                  }}>
-                    {node.lord}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ 
-                      fontSize: '0.95rem', 
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
-                      fontFamily: 'var(--font-display)'
-                    }}>
-                      {node.label || GRAHA_NAME[node.lord]}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <DashaLevelBadge depth={currentLevel} />
-                      {hasChildren && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>• {node.children.length} sub-periods</span>}
-                    </div>
-                  </div>
+      <div style={{ borderRadius: '10px', border: '1px solid var(--border-soft)', overflow: 'hidden', background: 'var(--surface-1)' }}>
+        {currentList.map((node, idx) => {
+          const hasChildren = node.children && node.children.length > 0
+          const rowLabel = codePathForNode(node)
+          const rowSubLabel = node.label || GRAHA_NAME[node.lord]
+          return (
+            <button
+              key={`${node.lord}-${node.start}-${idx}`}
+              type="button"
+              onClick={() => hasChildren && handleNavigate(node, activePath.length)}
+              style={{
+                width: '100%',
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 1fr) auto',
+                alignItems: 'center',
+                gap: '0.75rem',
+                textAlign: 'left',
+                border: 'none',
+                borderBottom: idx === currentList.length - 1 ? 'none' : '1px solid var(--border-soft)',
+                padding: '0.78rem 0.95rem',
+                background: node.isCurrent ? 'rgba(78,205,196,0.14)' : 'transparent',
+                cursor: hasChildren ? 'pointer' : 'default',
+              }}
+            >
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 600, color: node.isCurrent ? 'var(--teal)' : 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {rowLabel}
                 </div>
-
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column' }}>
-                  <span>{fmtDate(node.start, true)}</span>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{fmtTime(node.start)}</span>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: 1 }}>
+                  {rowSubLabel}
                 </div>
-
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column' }}>
-                  <span>{fmtDate(node.end, true)}</span>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{fmtTime(node.end)}</span>
-                </div>
-
-                <div style={{ textAlign: 'right' }}>
-                  {isActive ? (
-                    <span style={{ 
-                      fontSize: '0.65rem', fontWeight: 700, color: 'var(--gold)',
-                      background: 'rgba(201,168,76,0.1)', padding: '2px 6px', borderRadius: '4px',
-                      textTransform: 'uppercase', border: '1px solid rgba(201,168,76,0.2)'
-                    }}>Active</span>
-                  ) : isCompleted ? (
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', opacity: 0.6 }}>Elapsed</span>
-                  ) : (
-                    <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Upcoming</span>
-                  )}
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                  {fmtDateTimeCompact(node.start)}
                 </div>
               </div>
-            )
-          })}
-        </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                {node.isCurrent && (
+                  <span style={{ color: 'var(--teal)', fontSize: '0.82rem', fontWeight: 700 }}>Current</span>
+                )}
+                {hasChildren && (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>›</span>
+                )}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
-      {/* ── Footer: Cycle Info ──────────────────────────────── */}
-      <div style={{ 
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0.75rem 1rem', background: 'var(--surface-2)', borderRadius: '6px',
-        fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic'
-      }}>
-        <span>Cycle start: {fmtDate(nodes[0].start)}</span>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold)' }} />
-              <span>Present Moment</span>
-           </div>
-        </div>
+      <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        Born: {fmtDate(birthDate)} · Cycle starts {fmtDate(nodes[0].start)}
       </div>
-
     </div>
   )
 }

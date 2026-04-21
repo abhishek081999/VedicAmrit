@@ -259,6 +259,7 @@ function HomeContent() {
   const [expandAstro, setExpandAstro] = useState(false)
 
   const [isMobile, setIsMobile] = useState(false)
+  const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false)
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
   const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('shadbala')
@@ -310,6 +311,11 @@ function HomeContent() {
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
+
+  useEffect(() => {
+    if (!isMobile && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
+  }, [isMobile, mobileHeaderMenuOpen])
+
 
   const dashboardAshtakSummary = useMemo(() => {
     if (!chart?.ashtakavarga) return null
@@ -708,7 +714,7 @@ function HomeContent() {
          <div className="fade-up" style={{ minWidth: 0 }}>
             
             {/* Headings Row & Birth Summary Strip */}
-            <div className="chart-header-row">
+            <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                  <div>
                     <span className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.25rem', display: 'block', fontSize: '0.65rem' }}>Astrological Portrait</span>
@@ -741,7 +747,123 @@ function HomeContent() {
                  </div>
               </div>
 
-              <div className="chart-action-wrap">
+              {isMobile && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    zIndex: 5,
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMobileHeaderMenuOpen((s) => !s)}
+                    aria-label="Open chart actions"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: '1px solid var(--border-soft)',
+                      background: 'var(--surface-2)',
+                      color: 'var(--text-primary)',
+                      fontSize: '1.15rem',
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ⋮
+                  </button>
+                </div>
+              )}
+              {isMobile && mobileHeaderMenuOpen && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Close actions menu"
+                    onClick={() => setMobileHeaderMenuOpen(false)}
+                    style={{
+                      position: 'fixed',
+                      inset: 0,
+                      zIndex: 40,
+                      border: 'none',
+                      background: 'rgba(0,0,0,0.22)',
+                      padding: 0,
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'fixed',
+                      top: 76,
+                      right: 16,
+                      zIndex: 41,
+                      width: 220,
+                      background: 'var(--surface-1)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-md)',
+                      boxShadow: 'var(--shadow-card)',
+                      padding: '0.55rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.45rem',
+                    }}
+                  >
+                    {status === 'authenticated' && (
+                      <button
+                        onClick={() => {
+                          setMobileHeaderMenuOpen(false)
+                          handleSave('regular')
+                        }}
+                        disabled={saving || saveDone}
+                        className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}
+                        style={{ width: '100%', justifyContent: 'center' }}
+                      >
+                        {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
+                      </button>
+                    )}
+                    <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                      <ExportPdfButton chart={chart} compact />
+                      <EmailChartButton chart={chart} compact />
+                    </div>
+                    <button
+                      onClick={() => {
+                        setMobileHeaderMenuOpen(false)
+                        setIsFormOpen(true)
+                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        background: 'var(--surface-3)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--border-bright)',
+                      }}
+                    >
+                      ✎ Edit Details
+                    </button>
+                    <button
+                      onClick={() => {
+                        setMobileHeaderMenuOpen(false)
+                        setChart(null)
+                        setIsFormOpen(true)
+                      }}
+                      className="btn btn-primary btn-sm"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        background: 'var(--gold-faint)',
+                        color: 'var(--text-gold)',
+                        border: '1px solid var(--gold)',
+                      }}
+                    >
+                      + New Chart
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <div className="chart-action-wrap" style={{ display: isMobile ? 'none' : 'flex' }}>
                   {status === 'authenticated' && (
                     <div className="chart-action-row">
                       <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
@@ -818,13 +940,27 @@ function HomeContent() {
                      tithiNumber={tithiNumber}
                      varaNumber={varaNumber}
                      onActiveVargaChange={setActiveVarga}
+                     mobileSelectedVarga={activeVarga}
+                     onMobileSelectedVargaChange={setActiveVarga}
+                     hideMobileSelector={isMobile}
                      transitGrahas={transitGrahas ?? undefined}
                      chart={chart}
                      transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
 
                   {activeTab === 'dashboard' && isMobile && (
-                    <div className="card fade-up" style={{ padding: '0.9rem' }}>
+                    <div
+                      className="card fade-up"
+                      style={{
+                        padding: '0.75rem',
+                        borderRadius: 14,
+                        border: '1px solid var(--border-soft)',
+                        background: 'linear-gradient(180deg, var(--surface-1), var(--surface-2))',
+                      }}
+                    >
+                      <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0.2rem 0.35rem 0.55rem' }}>
+                        Sections
+                      </div>
                       <div
                         style={{
                           display: 'flex',
@@ -844,13 +980,14 @@ function HomeContent() {
                               whiteSpace: 'nowrap',
                               borderRadius: 999,
                               border: mobileDashCategory === t.id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)',
-                              background: mobileDashCategory === t.id ? 'var(--gold-faint)' : 'var(--surface-2)',
+                              background: mobileDashCategory === t.id ? 'linear-gradient(180deg, var(--gold-faint), rgba(201,168,76,0.08))' : 'var(--surface-2)',
                               color: mobileDashCategory === t.id ? 'var(--text-gold)' : 'var(--text-muted)',
-                              padding: '0.38rem 0.72rem',
-                              fontSize: '0.72rem',
+                              padding: '0.42rem 0.76rem',
+                              fontSize: '0.71rem',
                               fontWeight: 700,
                               letterSpacing: '0.02em',
                               cursor: 'pointer',
+                              boxShadow: mobileDashCategory === t.id ? '0 2px 8px rgba(201,168,76,0.18)' : 'none',
                             }}
                           >
                             {t.label}
@@ -858,6 +995,9 @@ function HomeContent() {
                         ))}
                       </div>
 
+                      <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0.15rem 0.35rem 0.5rem' }}>
+                        Options
+                      </div>
                       <div
                         style={{
                           display: 'flex',
@@ -880,8 +1020,8 @@ function HomeContent() {
                                   border: '1px solid var(--border-soft)',
                                   background: 'var(--surface-2)',
                                   color: 'var(--text-muted)',
-                                  padding: '0.38rem 0.72rem',
-                                  fontSize: '0.72rem',
+                                  padding: '0.4rem 0.7rem',
+                                  fontSize: '0.71rem',
                                   fontWeight: 700,
                                   letterSpacing: '0.02em',
                                   textDecoration: 'none',
@@ -900,13 +1040,14 @@ function HomeContent() {
                                 whiteSpace: 'nowrap',
                                 borderRadius: 999,
                                 border: mobileDashTab === t.id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)',
-                                background: mobileDashTab === t.id ? 'var(--gold-faint)' : 'var(--surface-2)',
+                                background: mobileDashTab === t.id ? 'linear-gradient(180deg, var(--gold-faint), rgba(201,168,76,0.08))' : 'var(--surface-2)',
                                 color: mobileDashTab === t.id ? 'var(--text-gold)' : 'var(--text-muted)',
-                                padding: '0.38rem 0.72rem',
-                                fontSize: '0.72rem',
+                                padding: '0.4rem 0.7rem',
+                                fontSize: '0.71rem',
                                 fontWeight: 700,
                                 letterSpacing: '0.02em',
                                 cursor: 'pointer',
+                                boxShadow: mobileDashTab === t.id ? '0 2px 8px rgba(201,168,76,0.18)' : 'none',
                               }}
                             >
                               {t.label}

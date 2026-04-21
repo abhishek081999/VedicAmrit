@@ -405,20 +405,13 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
       </section>
 
       {data.personalBala && (
-        <section
-          style={{
-            padding: '1.1rem 1.2rem',
-            borderRadius: 'var(--r-lg)',
-            border: '1px solid rgba(13, 148, 136, 0.28)',
-            background: 'linear-gradient(165deg, rgba(13, 148, 136, 0.07), var(--surface-1))',
-          }}
-        >
+        <section className={styles.personalBalaWrap}>
           <div className={styles.sectionHeading}>Tārā & Chandra bala (your Moon)</div>
           <p className={styles.advNote} style={{ marginTop: 0 }}>
             Compared to your <strong>birth nakṣatra</strong> (and natal Moon sign — exact or estimated from the star). Transit uses today’s Moon from this pañcāṅga.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.85rem' }}>
-            <div style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+          <div className={styles.personalBalaGrid}>
+            <div className={styles.personalBalaCard}>
               <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Tārā bala</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', color: data.personalBala.tara.favorable ? 'var(--teal)' : 'var(--rose)' }}>
                 {data.personalBala.tara.nameSa} <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.85rem' }}>({data.personalBala.tara.nameEn})</span>
@@ -427,7 +420,7 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
                 Distance {data.personalBala.tara.distance}/27 from birth star → tāra {data.personalBala.tara.taraIndex}/9. {data.personalBala.tara.hint}
               </div>
             </div>
-            <div style={{ padding: '0.85rem 1rem', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface-1)' }}>
+            <div className={styles.personalBalaCard}>
               <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Chandra bala</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '1.05rem', color: data.personalBala.chandra.favorable ? 'var(--teal)' : 'var(--rose)' }}>
                 House {data.personalBala.chandra.houseFromNatalMoon} from natal Moon
@@ -608,13 +601,13 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
       </section>
 
       {/* Nakṣatra of luminaries */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem' }}>
-        <div style={{ padding: '1rem 1.15rem', borderRadius: 'var(--r-md)', border: '1px solid rgba(232,167,48,0.28)', background: 'linear-gradient(165deg, rgba(232,167,48,0.08), var(--surface-1))' }}>
+      <section className={styles.nakshatraGrid}>
+        <div className={styles.nakshatraCardSun}>
           <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#b8860b', fontFamily: 'var(--font-display)', marginBottom: 6 }}>Sūrya nakṣatra</div>
           <div className={styles.limbValue} style={{ fontSize: '1.12rem' }}>{data.sunNakshatra.name}</div>
           <div className={styles.limbDetail} style={{ marginTop: 6 }}>Pada {data.sunNakshatra.pada} · lord {data.sunNakshatra.lord}</div>
         </div>
-        <div style={{ padding: '1rem 1.15rem', borderRadius: 'var(--r-md)', border: '1px solid rgba(124, 156, 191, 0.35)', background: 'linear-gradient(165deg, rgba(124, 156, 191, 0.1), var(--surface-1))' }}>
+        <div className={styles.nakshatraCardMoon}>
           <div style={{ fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#64748b', fontFamily: 'var(--font-display)', marginBottom: 6 }}>Chandra nakṣatra</div>
           <div className={styles.limbValue} style={{ fontSize: '1.12rem' }}>{data.nakshatra.name}</div>
           <div className={styles.limbDetail} style={{ marginTop: 6 }}>Pada {data.nakshatra.pada} · lord {data.nakshatra.lord}</div>
@@ -656,8 +649,8 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
         <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0 0 0.75rem', maxWidth: 720, lineHeight: 1.5 }}>
           Rāhu / Gulikā / Yamagaṇḍa are avoided for new undertakings; Abhijit is a brief favourable window around local solar noon. Dur muhūrta uses the 6th and 10th of fifteen equal daytime divisions (common North Indian convention). Gōdhūli is taken here as ~24 minutes before sunset.
         </p>
-        <div style={{ borderRadius: 'var(--r-md)', border: '1px solid var(--border)', overflow: 'hidden', background: 'var(--surface-1)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <div className={styles.muhurtaTableWrap}>
+          <table className={styles.muhurtaTable}>
             <thead>
               <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
                 <th style={{ textAlign: 'left', padding: '0.55rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>Muhūrta</th>
@@ -817,14 +810,14 @@ export function DailyPanchangView({ data }: { data: PanchangApiData }) {
         </button>
         {horaOpen && (
           <div style={{ background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--border-soft)' }}>
+            <div className={styles.horaHeadRow}>
               {['Day horās', 'Night horās'].map(label => (
                 <div key={label} style={{ padding: '0.5rem 0.85rem', fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', borderRight: label === 'Day horās' ? '1px solid var(--border-soft)' : 'none' }}>
                   {label}
                 </div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+            <div className={styles.horaColumns}>
               <div style={{ borderRight: '1px solid var(--border-soft)' }}>{horaRows.filter(h => h.isDaytime).map((h, i) => <HoraRow key={`d-${i}`} hora={h} tz={tz} />)}</div>
               <div>{horaRows.filter(h => !h.isDaytime).map((h, i) => <HoraRow key={`n-${i}`} hora={h} tz={tz} />)}</div>
             </div>

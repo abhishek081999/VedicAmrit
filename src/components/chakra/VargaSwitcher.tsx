@@ -29,6 +29,14 @@ const VARGA_META: VargaMeta[] = [
   { name:'D81', full:'Navamsha D81',    topic:'Detailed karmic analysis — sub-divisions of D9',      tier:'free' },
 ]
 
+const VARGA_SHORT_LABEL: Record<string, string> = {
+  D1: 'Rashi',
+  D9: 'Navamsha',
+  D10: 'Dasamsha',
+  D7: 'Saptamsha',
+  D60: 'Shastyamsha',
+}
+
 function planLevel(plan: UserPlan) { return plan==='platinum'?2:plan==='gold'?1:0 }
 function tierLevel(tier: VargaMeta['tier']) { return tier==='platinum'?2:tier==='gold'?1:0 }
 function isUnlocked(meta: VargaMeta, plan: UserPlan) { return planLevel(plan)>=tierLevel(meta.tier) }
@@ -41,6 +49,9 @@ interface Props {
   transitGrahas?: GrahaData[]; direction?: 'grid'|'column'
   comparisonGrahas?: GrahaData[] // partner chart
   onActiveVargaChange?: (v: string) => void
+  mobileSelectedVarga?: string
+  onMobileSelectedVargaChange?: (v: string) => void
+  hideMobileSelector?: boolean
   chart?: ChartOutput
   transitMoonLon?: number
 }
@@ -94,6 +105,9 @@ export function VargaSwitcher({
   vargas, vargaLagnas, ascRashi, arudhas, userPlan='free', lagnas,
   size=500, moonNakIndex=0, tithiNumber=1, varaNumber=0,
   transitGrahas=[], direction='grid', onActiveVargaChange,
+  mobileSelectedVarga,
+  onMobileSelectedVargaChange,
+  hideMobileSelector = false,
   chart, transitMoonLon, comparisonGrahas = [],
 }: Props) {
   const [selected, setSelected] = useState<string[]>(['D1', 'D9'])
@@ -115,6 +129,7 @@ export function VargaSwitcher({
     
     if (isMobile) {
       setSelected([name])
+      if (onMobileSelectedVargaChange) onMobileSelectedVargaChange(name)
       if (onActiveVargaChange) onActiveVargaChange(name)
       return
     }
@@ -136,6 +151,10 @@ export function VargaSwitcher({
   // Logic for which charts to render
   const chartsToDisplay = React.useMemo(() => {
     if (isMobile) {
+      const mobileCandidate = mobileSelectedVarga || selected[0]
+      const mobileMeta = mobileCandidate ? VARGA_META.find(v => v.name === mobileCandidate) : null
+      const mobileUnlocked = mobileMeta ? isUnlocked(mobileMeta, userPlan) : false
+      if (mobileCandidate && mobileUnlocked) return [mobileCandidate]
       const firstVisible = selected.find(name => {
         const meta = VARGA_META.find(v => v.name === name)
         return meta ? isUnlocked(meta, userPlan) : true
@@ -147,13 +166,13 @@ export function VargaSwitcher({
     const p1 = selected[0] || 'D1'
     const p2 = selected[1] || 'D9'
     return [p1, p2]
-  }, [selected, isMobile, userPlan])
+  }, [selected, isMobile, userPlan, mobileSelectedVarga])
 
   return (
     <div style={{ display:'flex',flexDirection:'column',gap:'1.25rem' }}>
       
       {/* ── Mobile Dropdown — (Desktop Pills Removed per request) ── */}
-      {isMobile ? (
+      {isMobile && !hideMobileSelector ? (
         <div style={{
           padding: '0.75rem 1rem', background: 'var(--surface-2)',
           border: '1px solid var(--gold-soft)', borderRadius: '12px',
@@ -166,7 +185,7 @@ export function VargaSwitcher({
             SELECT DIVISIONAL CHART
           </label>
           <select 
-            value={chartsToDisplay[0]} 
+            value={mobileSelectedVarga || chartsToDisplay[0]} 
             onChange={(e) => {
               const meta = VARGA_META.find(v => v.name === e.target.value)
               if (meta) handleClick(meta)
@@ -216,7 +235,7 @@ export function VargaSwitcher({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-soft)', paddingBottom: '0.5rem' }}>
                 <ChartLabel meta={meta} accent={idx===0 ? 'gold' : 'blue'} />
                 
-                {(isMobile || idx === 0) && (
+                {!isMobile && idx === 0 && (
                   <button
                     type="button"
                     onClick={() =>
@@ -241,6 +260,58 @@ export function VargaSwitcher({
                     <span aria-hidden>⚙️</span>
                     <span>{chartSettingsOpen[name] ? 'Hide Panel' : 'Chart Settings'}</span>
                   </button>
+                )}
+
+                {isMobile && (
+                  <div style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <select
+                      value={name}
+                      onChange={(e) => {
+                        const m = VARGA_META.find(v => v.name === e.target.value)
+                        if (m) handleClick(m)
+                      }}
+                      style={{
+                        padding: '0.3rem 0.5rem',
+                        fontSize: '0.76rem',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--gold-soft)',
+                        borderRadius: 6,
+                        fontFamily: 'var(--font-display)',
+                        maxWidth: 150,
+                      }}
+                    >
+                      {available.map(v => (
+                        <option key={v.name} value={v.name} disabled={!isUnlocked(v, userPlan)}>
+                          {v.name} — {VARGA_SHORT_LABEL[v.name] ?? v.full}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))
+                      }
+                      aria-label={chartSettingsOpen[name] ? 'Hide chart settings' : 'Show chart settings'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 6,
+                        border: '1px solid var(--border-soft)',
+                        background: chartSettingsOpen[name] ? 'var(--gold-faint)' : 'transparent',
+                        color: chartSettingsOpen[name] ? 'var(--gold)' : 'var(--text-muted)',
+                        cursor: 'pointer',
+                        boxShadow: 'var(--shadow-sm)',
+                      }}
+                    >
+                      <span aria-hidden style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                        ⚙️
+                      </span>
+                    </button>
+                  </div>
                 )}
 
                 {!isMobile && idx === 1 && (

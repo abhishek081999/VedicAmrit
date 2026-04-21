@@ -393,3 +393,134 @@
   font-size: 0.65rem;
   transition: transform 0.15s;
 }
+
+.personalBalaWrap {
+  padding: 1.1rem 1.2rem;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(13, 148, 136, 0.28);
+  background: linear-gradient(165deg, rgba(13, 148, 136, 0.07), var(--surface-1));
+}
+
+.personalBalaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.personalBalaCard {
+  padding: 0.85rem 1rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  min-width: 0;
+}
+
+.nakshatraGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.nakshatraCardSun,
+.nakshatraCardMoon {
+  padding: 1rem 1.15rem;
+  border-radius: var(--r-md);
+  min-width: 0;
+}
+
+.nakshatraCardSun {
+  border: 1px solid rgba(232, 167, 48, 0.28);
+  background: linear-gradient(165deg, rgba(232, 167, 48, 0.08), var(--surface-1));
+}
+
+.nakshatraCardMoon {
+  border: 1px solid rgba(124, 156, 191, 0.35);
+  background: linear-gradient(165deg, rgba(124, 156, 191, 0.1), var(--surface-1));
+}
+
+.muhurtaTableWrap {
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  background: var(--surface-1);
+}
+
+.muhurtaTable {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+}
+
+.horaHeadRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.horaColumns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 720px) {
+  .root {
+    gap: 1.25rem;
+  }
+
+  .hero {
+    padding: 1rem 0.95rem;
+  }
+
+  .heroBody {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .ephemeris,
+  .calendarStrip {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .limbCard {
+    padding: 0.95rem;
+    min-height: 116px;
+  }
+
+  .limbValue {
+    font-size: 1.1rem;
+  }
+
+  .dataTableWrap {
+    overflow-x: auto;
+  }
+
+  .dataTable {
+    min-width: 560px;
+  }
+
+  .chogRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .horaHeadRow,
+  .horaColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .personalBalaWrap {
+    padding: 0.9rem;
+  }
+
+  .personalBalaGrid,
+  .nakshatraGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .personalBalaCard,
+  .nakshatraCardSun,
+  .nakshatraCardMoon {
+    padding: 0.85rem 0.9rem;
+  }
+}
