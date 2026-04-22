@@ -164,7 +164,7 @@ function AccountContent() {
               defaultHouseSystem: 'whole_sign',
               defaultNodeMode:    'mean',
               karakaScheme:       8,
-              showDegrees:        true,
+              showDegrees:        false,
               showNakshatra:      false,
               showKaraka:         false,
             })

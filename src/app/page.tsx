@@ -257,6 +257,13 @@ function HomeContent() {
   const [dashExpandYogas, setDashExpandYogas] = useState(false)
   const [expandGraha, setExpandGraha] = useState(false)
   const [expandAstro, setExpandAstro] = useState(false)
+  const [desktopDashboardCardOrder, setDesktopDashboardCardOrder] = useState<Array<'summary' | 'cosmic' | 'planetary' | 'astronomical'>>([
+    'planetary',
+    'summary',
+    'astronomical',
+    'cosmic',
+  ])
+  const [draggingDashboardCard, setDraggingDashboardCard] = useState<'summary' | 'cosmic' | 'planetary' | 'astronomical' | null>(null)
 
   const [isMobile, setIsMobile] = useState(false)
   const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false)
@@ -699,6 +706,224 @@ function HomeContent() {
   ]
 
   const [landingFaqOpen, setLandingFaqOpen] = useState(0)
+
+  const moveDashboardCard = (
+    sourceCard: 'summary' | 'cosmic' | 'planetary' | 'astronomical',
+    targetCard: 'summary' | 'cosmic' | 'planetary' | 'astronomical',
+  ) => {
+    if (sourceCard === targetCard) return
+    setDesktopDashboardCardOrder((current) => {
+      const sourceIndex = current.indexOf(sourceCard)
+      const targetIndex = current.indexOf(targetCard)
+      if (sourceIndex < 0 || targetIndex < 0) return current
+      const updated = [...current]
+      updated.splice(sourceIndex, 1)
+      updated.splice(targetIndex, 0, sourceCard)
+      return updated
+    })
+  }
+
+  const makeDesktopCardContainerProps = (
+    cardId: 'summary' | 'cosmic' | 'planetary' | 'astronomical',
+  ) => ({
+    draggable: true,
+    onDragStart: () => setDraggingDashboardCard(cardId),
+    onDragEnd: () => setDraggingDashboardCard(null),
+    onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+    },
+    onDrop: (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault()
+      if (!draggingDashboardCard) return
+      moveDashboardCard(draggingDashboardCard, cardId)
+      setDraggingDashboardCard(null)
+    },
+    style: {
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '0.5rem',
+      cursor: 'grab',
+      opacity: draggingDashboardCard === cardId ? 0.6 : 1,
+    },
+  })
+
+  const renderDesktopDashboardCard = (
+    cardId: 'summary' | 'cosmic' | 'planetary' | 'astronomical',
+    dashboardChart: ChartOutput,
+  ) => {
+    if (cardId === 'planetary') {
+      return (
+        <div className="card fade-up" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Planetary Micro-Details</h3>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.7rem' }}
+              onClick={() => setExpandGraha(!expandGraha)}
+            >
+              {expandGraha ? 'Show less' : 'Show more'}
+            </button>
+          </div>
+          <GrahaTable
+            grahas={dashboardChart.grahas}
+            vargas={dashboardChart.vargas}
+            vargaLagnas={dashboardChart.vargaLagnas}
+            lagnas={dashboardChart.lagnas}
+            upagrahas={dashboardChart.upagrahas}
+            activeVarga={activeVarga}
+            onVargaChange={setActiveVarga}
+            limited={!expandGraha}
+          />
+        </div>
+      )
+    }
+
+    if (cardId === 'astronomical') {
+      return (
+        <div className="card fade-up" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
+            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Astronomical Depth</h3>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: '0.7rem' }}
+              onClick={() => setExpandAstro(!expandAstro)}
+            >
+              {expandAstro ? 'Show less' : 'Show more'}
+            </button>
+          </div>
+          <div style={{ maxHeight: expandAstro ? 'none' : '260px', overflow: 'hidden', position: 'relative' }}>
+            <AstroDetailsPanel chart={dashboardChart} />
+            {!expandAstro && (
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px',
+                background: 'linear-gradient(transparent, var(--surface-1))',
+                pointerEvents: 'none'
+              }} />
+            )}
+          </div>
+        </div>
+      )
+    }
+
+    if (cardId === 'summary') {
+      return (
+        <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-bright)' }}>
+          <div style={{
+            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
+            background: 'linear-gradient(to bottom, var(--surface-2), var(--surface-1))',
+            borderBottom: '1px solid var(--border-soft)',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem'
+          }}>
+            <div>
+              <div className="label-caps" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Summary Card</div>
+              <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '1.75rem' }}>Today at a glance</h2>
+            </div>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <ProgressionWidget birthDate={dashboardChart.meta.birthDate} />
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', padding: '0.4rem 0.8rem', background: 'var(--surface-3)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
+                Moon: {dashboardChart.panchang.nakshatra.name}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: isMobile ? '1rem' : '1.25rem', background: 'var(--surface-1)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
+              <div className="card" style={{ padding: '1.1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Active Timeline</h3>
+                  <select
+                    value={dashaSystem}
+                    onChange={(e) => setDashaSystem(e.target.value as any)}
+                    style={{
+                      padding: '0.2rem 0.5rem', fontSize: '0.72rem',
+                      background: 'var(--surface-3)', color: 'var(--text-primary)',
+                      border: '1px solid var(--border-soft)', borderRadius: '4px',
+                      fontFamily: 'inherit', cursor: 'pointer'
+                    }}
+                  >
+                    <option value="vimshottari">Viṁśottarī (120y)</option>
+                    <option value="ashtottari">Aṣṭottarī (108y)</option>
+                    <option value="yogini">Yoginī (36y)</option>
+                    <option value="chara">Chara (12s)</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  {(() => {
+                    const nodes = dashaSystem === 'vimshottari'
+                      ? (vimshottariTara === 'Mo' ? dashboardChart.dashas.vimshottari : (altVimshottari ?? dashboardChart.dashas.vimshottari))
+                      : (dashboardChart.dashas[dashaSystem] ?? [])
+                    if (!nodes || nodes.length === 0) {
+                      return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
+                    }
+                    return <DashaTree nodes={nodes} birthDate={new Date(dashboardChart.meta.birthDate)} />
+                  })()}
+                </div>
+              </div>
+              <div style={{ height: '100%' }}>
+                <ActiveHousesCard
+                  chart={dashboardChart}
+                  transitMoonLon={todayPanchang?.moonLongitudeSidereal}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
+        <div style={{
+          padding: isMobile ? '0.9rem 1rem' : '1rem 1.25rem',
+          background: 'var(--surface-2)',
+          borderBottom: '1px solid var(--border-soft)'
+        }}>
+          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Cosmic Weather & Daily Suitability</h3>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(300px, 1.2fr) 1fr', gap: '1px', background: 'var(--border-soft)' }}>
+          <div style={{ background: 'var(--surface-1)' }}>
+            <PersonalDayCard
+              birthMoonNakIdx={dashboardChart.panchang.nakshatra.index}
+              birthMoonName={dashboardChart.panchang.nakshatra.name}
+              latitude={dashboardChart.meta.latitude}
+              longitude={dashboardChart.meta.longitude}
+              timezone={dashboardChart.meta.timezone}
+              todayPanchang={todayPanchang}
+            />
+          </div>
+          <div style={{ background: 'var(--surface-1)', padding: '1rem 1.25rem' }}>
+            <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.62rem', color: 'var(--text-muted)' }}>Daily Suitability</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.25rem', rowGap: '0.6rem' }}>
+              {[
+                { label: 'Spiritual', icon: '🧘', rating: 95, color: 'var(--teal)' },
+                { label: 'Wellness', icon: '🌿', rating: 82, color: 'var(--teal)' },
+                { label: 'Learning', icon: '📚', rating: 78, color: 'var(--gold)' },
+                { label: 'Business', icon: '💼', rating: 45, color: 'var(--rose)' },
+                { label: 'Travel', icon: '✈️', rating: 30, color: 'var(--rose)' },
+                { label: 'Property', icon: '🏠', rating: 15, color: 'var(--rose)' },
+              ].map((act, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.75rem' }}>{act.icon}</span>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 600 }}>{act.label}</span>
+                    </div>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color }}>{act.rating}%</span>
+                  </div>
+                  <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const leftDashboardCards = desktopDashboardCardOrder.slice(0, 2)
+  const rightDashboardCards = desktopDashboardCardOrder.slice(2)
 
   return (
     <div className="main-responsive-padding" style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -1269,53 +1494,14 @@ function HomeContent() {
 
                   {activeTab === 'dashboard' && !isMobile && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                      {/* Planetary Details */}
-                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Planetary Micro-Details</h3>
-                          <button 
-                            className="btn btn-ghost btn-sm" 
-                            style={{ fontSize: '0.7rem' }}
-                            onClick={() => setExpandGraha(!expandGraha)}
-                          >
-                            {expandGraha ? 'Show less' : 'Show more'}
-                          </button>
+                      {leftDashboardCards.map((cardId) => (
+                        <div key={cardId} {...makeDesktopCardContainerProps(cardId)}>
+                          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                            Drag to reposition
+                          </div>
+                          {renderDesktopDashboardCard(cardId, chart)}
                         </div>
-                        <GrahaTable 
-                          grahas={chart.grahas} 
-                          vargas={chart.vargas} 
-                          vargaLagnas={chart.vargaLagnas} 
-                          lagnas={chart.lagnas} 
-                          upagrahas={chart.upagrahas} 
-                          activeVarga={activeVarga} 
-                          onVargaChange={setActiveVarga}
-                          limited={!expandGraha} 
-                        />
-                      </div>
-
-                      {/* Astro Details */}
-                      <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-                          <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Astronomical Depth</h3>
-                          <button 
-                            className="btn btn-ghost btn-sm" 
-                            style={{ fontSize: '0.7rem' }}
-                            onClick={() => setExpandAstro(!expandAstro)}
-                          >
-                            {expandAstro ? 'Show less' : 'Show more'}
-                          </button>
-                        </div>
-                        <div style={{ maxHeight: expandAstro ? 'none' : '260px', overflow: 'hidden', position: 'relative' }}>
-                          <AstroDetailsPanel chart={chart} />
-                          {!expandAstro && (
-                            <div style={{ 
-                              position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', 
-                              background: 'linear-gradient(transparent, var(--surface-1))',
-                              pointerEvents: 'none'
-                            }} />
-                          )}
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
                </div>
@@ -1333,118 +1519,14 @@ function HomeContent() {
                }}>
                   {activeTab === 'dashboard' && !isMobile && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                      
-                      {/* 1. TOP SUMMARY: Active Timeline + Active Houses */}
-                      <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-bright)' }}>
-                        <div style={{ 
-                          padding: isMobile ? '1rem' : '1.25rem 1.5rem', 
-                          background: 'linear-gradient(to bottom, var(--surface-2), var(--surface-1))',
-                          borderBottom: '1px solid var(--border-soft)',
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem'
-                        }}>
-                          <div>
-                            <div className="label-caps" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Summary Card</div>
-                            <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '1.75rem' }}>Today at a glance</h2>
+                      {rightDashboardCards.map((cardId) => (
+                        <div key={cardId} {...makeDesktopCardContainerProps(cardId)}>
+                          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textAlign: 'right' }}>
+                            Drag to reposition
                           </div>
-                          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                            <ProgressionWidget birthDate={chart.meta.birthDate} />
-                            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', padding: '0.4rem 0.8rem', background: 'var(--surface-3)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
-                              Moon: {chart.panchang.nakshatra.name}
-                            </div>
-                          </div>
+                          {renderDesktopDashboardCard(cardId, chart)}
                         </div>
-
-                        <div style={{ padding: isMobile ? '1rem' : '1.25rem', background: 'var(--surface-1)' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
-                            <div className="card" style={{ padding: '1.1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Active Timeline</h3>
-                                <select 
-                                  value={dashaSystem}
-                                  onChange={(e) => setDashaSystem(e.target.value as any)}
-                                  style={{ 
-                                    padding: '0.2rem 0.5rem', fontSize: '0.72rem', 
-                                    background: 'var(--surface-3)', color: 'var(--text-primary)',
-                                    border: '1px solid var(--border-soft)', borderRadius: '4px',
-                                    fontFamily: 'inherit', cursor: 'pointer'
-                                  }}
-                                >
-                                  <option value="vimshottari">Viṁśottarī (120y)</option>
-                                  <option value="ashtottari">Aṣṭottarī (108y)</option>
-                                  <option value="yogini">Yoginī (36y)</option>
-                                  <option value="chara">Chara (12s)</option>
-                                </select>
-                              </div>
-                              <div style={{ flex: 1 }}>
-                                {(() => {
-                                  const nodes = dashaSystem === 'vimshottari' 
-                                    ? (vimshottariTara === 'Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari))
-                                    : (chart.dashas[dashaSystem] ?? [])
-                                  if (!nodes || nodes.length === 0) {
-                                    return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
-                                  }
-                                  return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
-                                })()}
-                              </div>
-                            </div>
-                            <div style={{ height: '100%' }}>
-                              <ActiveHousesCard 
-                                chart={chart} 
-                                transitMoonLon={todayPanchang?.moonLongitudeSidereal}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. SECOND ROW: Cosmic Weather + Daily Suitability */}
-                      <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
-                        <div style={{ 
-                          padding: isMobile ? '0.9rem 1rem' : '1rem 1.25rem', 
-                          background: 'var(--surface-2)',
-                          borderBottom: '1px solid var(--border-soft)'
-                        }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Cosmic Weather & Daily Suitability</h3>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(300px, 1.2fr) 1fr', gap: '1px', background: 'var(--border-soft)' }}>
-                           <div style={{ background: 'var(--surface-1)' }}>
-                            <PersonalDayCard
-                               birthMoonNakIdx={chart.panchang.nakshatra.index} 
-                               birthMoonName={chart.panchang.nakshatra.name} 
-                               latitude={chart.meta.latitude}
-                               longitude={chart.meta.longitude}
-                               timezone={chart.meta.timezone}
-                               todayPanchang={todayPanchang}
-                             />
-                           </div>
-                           <div style={{ background: 'var(--surface-1)', padding: '1rem 1.25rem' }}>
-                             <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.62rem', color: 'var(--text-muted)' }}>Daily Suitability</h3>
-                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.25rem', rowGap: '0.6rem' }}>
-                               {[
-                                 { label: 'Spiritual',  icon: '🧘', rating: 95, color: 'var(--teal)' },
-                                 { label: 'Wellness',   icon: '🌿', rating: 82, color: 'var(--teal)' },
-                                 { label: 'Learning',   icon: '📚', rating: 78, color: 'var(--gold)' },
-                                 { label: 'Business',   icon: '💼', rating: 45, color: 'var(--rose)' },
-                                 { label: 'Travel',     icon: '✈️', rating: 30, color: 'var(--rose)' },
-                                 { label: 'Property',   icon: '🏠', rating: 15, color: 'var(--rose)' },
-                               ].map((act, i) => (
-                                 <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                        <span style={{ fontSize: '0.75rem' }}>{act.icon}</span>
-                                        <span style={{ fontSize: '0.68rem', fontWeight: 600 }}>{act.label}</span>
-                                      </div>
-                                      <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color }}>{act.rating}%</span>
-                                   </div>
-                                   <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
-                                     <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
-                                   </div>
-                                 </div>
-                               ))}
-                             </div>
-                           </div>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   )}
 
