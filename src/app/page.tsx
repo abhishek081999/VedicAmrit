@@ -225,7 +225,7 @@ import { Suspense } from 'react'
 
 function HomeContent() {
   const { data: session, status } = useSession()
-  const { chart, setChart, isFormOpen, setIsFormOpen } = useChart()
+  const { chart, setChart, isFormOpen, setIsFormOpen, pendingDestination, setPendingDestination } = useChart()
   const { activeTab } = useAppLayout()
   
   const userPlan = ((session?.user as any)?.plan ?? 'free') as 'free' | 'gold' | 'platinum'
@@ -580,6 +580,22 @@ function HomeContent() {
     router.push('/astrology?new=true')
   }, [router])
 
+  const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLAnchorElement>) => {
+    const isAstrologyTarget = href.startsWith('/astrology')
+    if (!chart && !isAstrologyTarget) {
+      e?.preventDefault()
+      setPendingDestination(href)
+      setIsFormOpen(true)
+      router.push('/astrology?new=true')
+      return
+    }
+    if (!chart && isAstrologyTarget) {
+      e?.preventDefault()
+      setIsFormOpen(true)
+      router.push('/astrology?new=true')
+    }
+  }, [chart, router, setIsFormOpen, setPendingDestination])
+
   const openMyDefaultChart = React.useCallback(async () => {
     if (!defaultChart) {
       router.push('/astrology?new=true')
@@ -625,6 +641,105 @@ function HomeContent() {
     { step: '01', title: 'Enter Birth Details', text: 'Open Astrology app and submit date, time, and place.' },
     { step: '02', title: 'Generate Deep Chart', text: 'Instantly compute grahas, houses, dasha, and divisional charts.' },
     { step: '03', title: 'Read & Act', text: 'Move from insights to timing windows, remedies, and consultation.' },
+  ]
+
+  const landingMajorSections = [
+    {
+      title: 'Your Chart',
+      subtitle: 'Dashboard',
+      text: 'Open your chart dashboard for complete graha, house, and interpretation overview.',
+      href: '/astrology',
+      ctaName: 'major_sections_your_chart',
+      icon: '🧿',
+    },
+    {
+      title: 'Panchang',
+      subtitle: 'Daily',
+      text: 'Check tithi, nakshatra, yoga, karana and day guidance from one clean section.',
+      href: '/panchang',
+      ctaName: 'major_sections_panchang',
+      icon: '📆',
+    },
+    {
+      title: 'Nakshatra',
+      subtitle: 'Lunar',
+      text: 'Explore nakshatra-focused insights and details for deeper day-by-day understanding.',
+      href: '/nakshatra',
+      ctaName: 'major_sections_nakshatra',
+      icon: '✨',
+    },
+    {
+      title: 'Jaimini Astrology',
+      subtitle: 'Advanced',
+      text: 'Apply Jaimini principles with focused tools for deeper karmic and life-direction reading.',
+      href: '/astrology?new=true',
+      ctaName: 'major_sections_jaimini',
+      icon: '💠',
+    },
+    {
+      title: 'Astro Vastu',
+      subtitle: 'Space',
+      text: 'Blend Vastu guidance with astrology signals for home and workplace harmony.',
+      href: '/vastu',
+      ctaName: 'major_sections_astro_vastu',
+      icon: '🏠',
+    },
+    {
+      title: 'AstroCartography',
+      subtitle: 'Location',
+      text: 'Discover geography-based planetary influence for relocation, travel, and opportunities.',
+      href: '/acg',
+      ctaName: 'major_sections_astrocartography',
+      icon: '🌍',
+    },
+    {
+      title: 'Sarvatobhadra Chakra',
+      subtitle: 'Classical',
+      text: 'Access traditional S.B. Chakra style timing and influence mapping for advanced study.',
+      href: '/roadmap',
+      ctaName: 'major_sections_sarvatobhadra',
+      icon: '◼',
+    },
+    {
+      title: 'Muhurta Finder',
+      subtitle: 'Timing',
+      text: 'Find auspicious windows for important actions with practical muhurta support.',
+      href: '/muhurta',
+      ctaName: 'major_sections_muhurta_finder',
+      icon: '🕒',
+    },
+    {
+      title: 'Prashna',
+      subtitle: 'Query',
+      text: 'Get focused question-based guidance through Prashna-oriented interpretation flow.',
+      href: '/roadmap',
+      ctaName: 'major_sections_prashna',
+      icon: '🎯',
+    },
+    {
+      title: 'Synastry Overlay',
+      subtitle: 'Compatibility',
+      text: 'Overlay two charts and inspect relational patterns for compatibility and dynamics.',
+      href: '/roadmap',
+      ctaName: 'major_sections_synastry',
+      icon: '∞',
+    },
+    {
+      title: 'Cosmic Roadmap',
+      subtitle: 'Guidance',
+      text: 'Turn chart insights into a structured personal roadmap for long-term growth.',
+      href: '/roadmap',
+      ctaName: 'major_sections_cosmic_roadmap',
+      icon: '🛣',
+    },
+    {
+      title: 'Time Scrubber',
+      subtitle: 'Transit',
+      text: 'Scrub through time and inspect planetary movement windows before making decisions.',
+      href: '/scrubber',
+      ctaName: 'major_sections_time_scrubber',
+      icon: '⏳',
+    },
   ]
 
   const trustedBy = ['Jyotish Practitioners', 'Consultants', 'Learners', 'Seekers', 'Vedic Families', 'Wellness Guides']
@@ -2180,6 +2295,38 @@ function HomeContent() {
                 </div>
               </section>
 
+              <section className="card fade-up-1" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Major sections</div>
+                <h3 style={{ margin: '0 0 0.45rem 0' }}>Explore all major Vedaansh features from one place</h3>
+                <p style={{ margin: '0 0 0.9rem 0', color: 'var(--text-secondary)', maxWidth: 900 }}>
+                  Pick your next step instantly - Panchang, advanced astrology engine, transits, consultation workspace,
+                  and premium learning modules.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.8rem' }}>
+                  {landingMajorSections.map((section) => (
+                    <Link
+                      key={section.title}
+                      href={section.href}
+                      onClick={(e) => {
+                        trackLandingCta(section.ctaName)
+                        openSectionWithChartGate(section.href, e)
+                      }}
+                      className="landing-portal-card"
+                      style={{ textDecoration: 'none', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-lg)', padding: '0.95rem' }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                        <span style={{ fontSize: '1.1rem' }}>{section.icon}</span>
+                        <span className="badge badge-gold">{section.subtitle}</span>
+                      </div>
+                      <h4 style={{ margin: '0 0 0.35rem 0', fontSize: '1.02rem' }}>{section.title}</h4>
+                      <p style={{ margin: 0, fontSize: '0.86rem', lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                        {section.text}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
               <section className="card fade-up-1 landing-compare-card" style={{ marginBottom: '1.25rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Why Vedaansh</div>
                 <h3 style={{ margin: '0 0 0.7rem 0' }}>Designed for depth + clarity, not just daily horoscope content</h3>
@@ -2444,7 +2591,10 @@ function HomeContent() {
           opacity: isFormOpen ? 1 : 0, pointerEvents: isFormOpen ? 'auto' : 'none',
           transition: 'opacity 0.3s ease'
         }}
-        onClick={() => setIsFormOpen(false)}
+        onClick={() => {
+          setIsFormOpen(false)
+          setPendingDestination(null)
+        }}
       />
       <div className="form-drawer" style={{ 
         position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 1101, 
@@ -2465,7 +2615,10 @@ function HomeContent() {
              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', letterSpacing: '0.05em' }}>Janma Kāla Entry</span>
           </div>
           <button 
-            onClick={() => setIsFormOpen(false)}
+            onClick={() => {
+              setIsFormOpen(false)
+              setPendingDestination(null)
+            }}
             style={{ 
               background: 'var(--surface-3)', 
               border: '1px solid var(--border-soft)', 
@@ -2489,7 +2642,14 @@ function HomeContent() {
               <BirthForm
                 onResult={(data) => { 
                   setChart(data);
-                  setTimeout(() => setIsFormOpen(false), 300);
+                  setTimeout(() => {
+                    setIsFormOpen(false)
+                    if (pendingDestination) {
+                      const destination = pendingDestination
+                      setPendingDestination(null)
+                      router.push(destination)
+                    }
+                  }, 300);
                 }}
                 onLoading={setLoading}
                 autoSubmit={!!searchParams.get('name')}

@@ -117,7 +117,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { isSidenavOpen, setIsSidenavOpen, activeTab, setActiveTab, language, setLanguage } = useAppLayout()
-  const { chart, isFormOpen, setIsFormOpen, setChart } = useChart()
+  const { chart, isFormOpen, setIsFormOpen, setChart, setPendingDestination } = useChart()
   const [isAstroOpen, setIsAstroOpen] = useState(true)
   const [isAdvancedAstroOpen, setIsAdvancedAstroOpen] = useState(false)
   const [isPanchangOpen, setIsPanchangOpen] = useState(false)
@@ -211,7 +211,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         setIsNavigating(true)
       }
 
-      if (isAstrologyTab && !chart) {
+      if (!chart && t.path && !isAstrologyTab) {
+        e.preventDefault()
+        setPendingDestination(t.path)
+        setIsFormOpen(true)
+        router.push('/astrology?new=true')
+      } else if (isAstrologyTab && !chart) {
         setIsFormOpen(true)
       }
       setActiveTab(t.id)

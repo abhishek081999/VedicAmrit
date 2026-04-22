@@ -46,7 +46,7 @@ export default function RoadmapPage() {
           Your Cosmic Roadmap
         </h1>
         <p style={{ color: 'var(--text-muted)', marginTop: '0.6rem', fontSize: isMobile ? '0.9rem' : '1.1rem', maxWidth: '700px', margin: '0.6rem auto 0' }}>
-          A personalized 12-month journey tracking the movements of Jupiter, Saturn, and the Nodes relative to your natal houses.
+          A personalized chart-based roadmap showing major and all transits for every graha across rashi, nakshatra, and pada.
         </p>
       </header>
 

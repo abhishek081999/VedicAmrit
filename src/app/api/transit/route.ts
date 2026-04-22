@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { NextResponse } from 'next/server'
-import { calculatePersonalTransits } from '@/lib/engine/transits'
+import { calculatePersonalTransits, getCurrentTransitPositions } from '@/lib/engine/transits'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -18,10 +18,12 @@ export async function GET(request: Request) {
 
   try {
     const transits = calculatePersonalTransits(ascRashi, startDate, months)
+    const currentPositions = getCurrentTransitPositions(ascRashi, startDate)
     
     return NextResponse.json({
       success: true,
-      data: transits
+      data: transits,
+      currentPositions,
     })
   } catch (error: any) {
     return NextResponse.json({
