@@ -620,7 +620,7 @@ export default function PrashnaPage() {
                             <h2 style={{ fontSize: isMobile ? '1.4rem' : '1.6rem', margin: '0 0 0.25rem', color: verdictColor, fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
                               {r.headline}
                             </h2>
-                            {questionText && <p style={{ fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', margin: '0 0 0.5rem' }}>"{questionText}"</p>}
+                            {questionText && <p style={{ fontSize: '0.78rem', opacity: 0.7, fontStyle: 'italic', margin: '0 0 0.5rem' }}>&quot;{questionText}&quot;</p>}
                           </div>
                           <div style={{ textAlign: 'center', flexShrink: 0 }}>
                             <div style={{ fontSize: '2.5rem', fontWeight: 900, color: verdictColor, lineHeight: 1, fontFamily: 'var(--font-display)' }}>{r.verdict}</div>
@@ -779,7 +779,7 @@ export default function PrashnaPage() {
                           ))}
                         </div>
                       ) : (
-                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>Select "What" or "Lost Article" or "Who" category for detailed material analysis</div>
+                        <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)' }}>Select &quot;What&quot; or &quot;Lost Article&quot; or &quot;Who&quot; category for detailed material analysis</div>
                       )}
                       {/* DMJ dry/wet */}
                       <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'var(--surface-2)', borderRadius: 6, fontSize: '0.72rem', color: 'var(--teal)' }}>

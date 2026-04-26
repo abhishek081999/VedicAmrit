@@ -430,7 +430,7 @@ export default function SBCPage() {
                   <span style={{ fontSize: '1rem' }}>⭐</span>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'var(--gold)' }}>{NAKSHATRA_NAMES[birthNakIdx]}</div>
-                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Moon's Janma Nakshatra</div>
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>Moon&apos;s Janma Nakshatra</div>
                   </div>
                   {analysis?.birthNakAffected && <span style={{ marginLeft: 'auto', fontSize: '0.8rem' }}>⚠️</span>}
                 </div>
@@ -864,7 +864,7 @@ export default function SBCPage() {
                 </span>
               </div>
               <p style={{ margin: '3px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                Muhurta assessment · Prashna Q&A · Category predictions — all driven by today's transit vedha
+                Muhurta assessment · Prashna Q&A · Category predictions — all driven by today&apos;s transit vedha
               </p>
             </div>
 
@@ -1047,13 +1047,13 @@ export default function SBCPage() {
           {/* Search results info */}
           {searchQuery && advisorResults.length > 0 && (
             <div style={{ marginTop: '1rem', fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-              Showing {advisorResults.length} results for "<b style={{ color: 'var(--text-primary)' }}>{searchQuery}</b>"
+              Showing {advisorResults.length} results for &quot;<b style={{ color: 'var(--text-primary)' }}>{searchQuery}</b>&quot;
             </div>
           )}
           {searchQuery && advisorResults.length === 0 && (
             <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>🔍</div>
-              No use cases found for "{searchQuery}"
+              No use cases found for &quot;{searchQuery}&quot;
             </div>
           )}
 
