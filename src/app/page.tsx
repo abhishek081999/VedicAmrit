@@ -273,6 +273,12 @@ function HomeContent() {
     if (!isMobile && mobileHeaderMenuOpen) setMobileHeaderMenuOpen(false)
   }, [isMobile, mobileHeaderMenuOpen])
 
+  useEffect(() => {
+    if (!isMobile) return
+    const main = document.querySelector('.main-content')
+    if (main) main.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [mobileDashTab, isMobile])
+
 
   const dashboardAshtakSummary = useMemo(() => {
     if (!chart?.ashtakavarga) return null
@@ -982,8 +988,46 @@ function HomeContent() {
                     top: 0,
                     right: 0,
                     zIndex: 5,
+                    display: 'flex',
+                    gap: '0.4rem',
+                    alignItems: 'center',
                   }}
                 >
+                  {status === 'authenticated' && (
+                    <button
+                      type="button"
+                      onClick={() => handleSave('regular')}
+                      disabled={saving || saveDone}
+                      aria-label="Save chart"
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 8,
+                        border: `1px solid ${saveDone ? 'var(--accent)' : 'var(--border-soft)'}`,
+                        background: saveDone ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)',
+                        color: saveDone ? 'var(--accent)' : 'var(--text-primary)',
+                        fontSize: '1rem',
+                        lineHeight: 1,
+                        cursor: saving || saveDone ? 'default' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      {saving ? (
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, opacity: 0.7 }}>…</span>
+                      ) : saveDone ? (
+                        <span style={{ fontSize: '0.85rem' }}>✓</span>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                          <polyline points="17 21 17 13 7 13 7 21"/>
+                          <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                      )}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => setMobileHeaderMenuOpen((s) => !s)}
@@ -1419,7 +1463,7 @@ function HomeContent() {
                   )}
 
                   {activeTab === 'astro-details' && (
-                    <div className="panel fade-up">
+                    <div className="panel fade-up" style={{ flexShrink: 0 }}>
                       <div className="panel-header"><span>Astro Details</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}><AstroDetailsPanel chart={chart} /></div>
                     </div>
@@ -2249,8 +2293,8 @@ function HomeContent() {
                   alignItems: 'center', justifyContent: 'center',
                   gap: '0.12rem', padding: '0.5rem 0.15rem 0.6rem',
                   border: 'none', background: 'none', cursor: 'pointer',
-                  borderTop: active ? '2px solid var(--gold)' : '2px solid transparent',
-                  color: active ? 'var(--text-gold)' : 'var(--text-muted)',
+                  borderTop: active ? '2px solid var(--accent)' : '2px solid transparent',
+                  color: active ? 'var(--accent)' : 'var(--text-muted)',
                   transition: 'color 0.15s',
                 }}>
                 <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{icon}</span>

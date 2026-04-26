@@ -339,11 +339,11 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span 
                 className={`fade-in logo-title-header ${isSidenavOpen ? 'hide-mobile' : ''}`}
-                style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--logo-border)', letterSpacing: '0.04em' }}
+                style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.04em' }}
               >
                 Vedaansh
               </span>
-              <span style={{ fontSize: '0.55rem', color: 'var(--logo-border)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9, whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '0.55rem', color: 'var(--logo-text-sub)', letterSpacing: '0.05em', fontWeight: 600, opacity: 0.9, whiteSpace: 'nowrap' }}>
                 ॥ श्री गणेशाय नमः ॥
               </span>
             </div>
@@ -366,16 +366,17 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '0.32rem 0.62rem',
+              padding: '0.2rem 0.45rem',
               borderRadius: '999px',
               border: '1px solid var(--border-soft)',
               color: 'var(--header-text-muted)',
               textDecoration: 'none',
-              fontSize: '0.63rem',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
+              fontSize: '0.5rem',
+              fontWeight: 500,
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
               marginRight: '0.5rem',
+              opacity: 0.7,
             }}
             className="show-mobile-only"
           >

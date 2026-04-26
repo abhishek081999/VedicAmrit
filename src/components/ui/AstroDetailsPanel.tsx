@@ -90,7 +90,8 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
   }, [chart.lagnas.ascRashi])
 
   const moonNak1 = (moon?.nakshatraIndex ?? 0) + 1
-  const fmtLon = (lon: number) => {
+  const fmtLon = (lon: number | undefined | null): string => {
+    if (lon == null || !Number.isFinite(lon)) return '—'
     const f = formatSiderealLongitude(lon)
     return fmtDeg(f.rashi, f.degInSign)
   }
@@ -100,7 +101,7 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
   }
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', fontSize: '0.72rem' }}>
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', fontSize: '0.72rem', paddingBottom: '0.5rem' }}>
 
       {/* ── Birth + Panchang merged ── */}
       <Sec title="Birth data &amp; Pañcāṅga">
@@ -151,7 +152,11 @@ export function AstroDetailsPanel({ chart }: { chart: ChartOutput }) {
           <Row label="Bhrigu Bindu" value={`${fmtDeg(bhriguFmt.rashi, bhriguFmt.degInSign)}`} />
         )}
         {chart.yogiPoint && (
-          <Row label="Yogi / Avayogi" value={`${GRAHA_NAMES[chart.yogiPoint.yogiGraha]} / ${GRAHA_NAMES[chart.yogiPoint.avayogiGraha]}`} />
+          <>
+            <Row label="Yogi"      value={GRAHA_NAMES[chart.yogiPoint.yogiGraha]} />
+            <Row label="Sahayogi"  value={GRAHA_NAMES[chart.yogiPoint.sahayogiGraha]} />
+            <Row label="Avayogi"   value={GRAHA_NAMES[chart.yogiPoint.avayogiGraha]} />
+          </>
         )}
         <Row label="Hora Lagna"   value={fmtLon(chart.lagnas.horaLagna)} />
         <Row label="Ghati Lagna"  value={fmtLon(chart.lagnas.ghatiLagna)} />
