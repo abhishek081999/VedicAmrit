@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
+import Image                   from 'next/image'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -346,7 +347,7 @@ function AccountContent() {
           {/* Birth Chart */}
           <section className="card card-gold" style={{ padding: '1.25rem' }}>
             <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <img src="/veda-icon.png" alt="Icon" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+              <Image src="/veda-icon.png" alt="Vedaansh" width={22} height={22} style={{ objectFit: 'contain' }} />
               My Birth Details
             </h2>
             {personalChart ? (

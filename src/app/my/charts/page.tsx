@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { ChartNotes } from '@/components/ui/ChartNotes'
 import { BulkImport } from '@/components/ui/BulkImport'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
@@ -655,7 +656,7 @@ export default function MyChartsPage() {
       {!loading && !error && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 64, height: 64, objectFit: 'contain', opacity: 0.8 }} />
+            <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ objectFit: 'contain', opacity: 0.8 }} />
           </div>
           <p style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
             {search ? 'No charts match your search' : 'No saved charts yet'}

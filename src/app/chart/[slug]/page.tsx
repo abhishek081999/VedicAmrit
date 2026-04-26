@@ -211,7 +211,7 @@ export default function PublicChartPage() {
             />
           ) : (
             <>
-              <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+              <Image src="/veda-icon.png" alt="Vedaansh" width={24} height={24} style={{ objectFit: 'contain' }} />
               <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-gold)' }}>
                 Vedaansh
               </span>
@@ -250,7 +250,7 @@ export default function PublicChartPage() {
         {error && !loading && (
           <div style={{ maxWidth: 480, margin: '5rem auto', textAlign: 'center' }}>
             <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-              <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 64, height: 64, objectFit: 'contain', opacity: 0.8 }} />
+              <Image src="/veda-icon.png" alt="Vedaansh" width={64} height={64} style={{ objectFit: 'contain', opacity: 0.8 }} />
             </div>
             <h2 style={{ fontFamily: 'var(--font-display)', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               Chart not found

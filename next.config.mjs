@@ -19,8 +19,8 @@ const contentSecurityPolicy = [
   "font-src 'self' data: https:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // ffmpeg.wasm loads core from unpkg and needs wasm compile (Chrome)
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://checkout.razorpay.com${isDev ? " 'unsafe-eval'" : ''}`,
-  `connect-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com${isDev ? ' http: ws: wss:' : ''}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://unpkg.com https://checkout.razorpay.com https://www.googletagmanager.com https://www.google-analytics.com${isDev ? " 'unsafe-eval'" : ''}`,
+  `connect-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net${isDev ? ' http: ws: wss:' : ''}`,
   "frame-src 'self' https: https://api.razorpay.com https://checkout.razorpay.com",
   ...(isDev ? [] : ['upgrade-insecure-requests']),
 ].join('; ')
@@ -39,6 +39,27 @@ const nextConfig = {
     serverComponentsExternalPackages: ['sweph'],
   },
   transpilePackages: ['next-auth', 'remotion', '@remotion/player'],
+
+  // Permanent redirects
+  async redirects() {
+    return [
+      {
+        source:      '/asrology',
+        destination: '/astrology',
+        permanent:   true,
+      },
+      {
+        source:      '/asrology/:path*',
+        destination: '/astrology/:path*',
+        permanent:   true,
+      },
+      {
+        source:      '/home',
+        destination: '/',
+        permanent:   true,
+      },
+    ]
+  },
 
   // Security headers
   async headers() {
