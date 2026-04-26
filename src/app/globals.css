@@ -1412,6 +1412,7 @@ select.input {
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
+    scrollbar-color: var(--border-soft) transparent;
   }
 
   .sticky-desktop::-webkit-scrollbar {

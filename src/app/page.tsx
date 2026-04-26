@@ -1463,7 +1463,7 @@ function HomeContent() {
                   )}
 
                   {activeTab === 'astro-details' && (
-                    <div className="panel fade-up">
+                    <div className="panel fade-up" style={{ flexShrink: 0 }}>
                       <div className="panel-header"><span>Astro Details</span></div>
                       <div style={{ padding: '0.5rem 0.65rem' }}><AstroDetailsPanel chart={chart} /></div>
                     </div>
