@@ -122,9 +122,12 @@ export const metadata: Metadata = {
 
   // ── Icons ────────────────────────────────────────────────────
   icons: {
-    icon:        [{ url: '/veda-icon.png', type: 'image/png' }],
-    shortcut:    '/veda-icon.png',
-    apple:       '/veda-icon.png',
+    icon:        [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/veda-icon.png', type: 'image/png' },
+    ],
+    shortcut:    '/favicon.ico',
+    apple:       '/apple-touch-icon.png',
     other:       [{ rel: 'mask-icon', url: '/veda-icon.png' }],
   },
 }
@@ -189,9 +192,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Google Analytics 4 */}
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
         <script dangerouslySetInnerHTML={{ __html: gaScript }} />
-        <link rel="icon" type="image/png" href="/veda-icon.png" />
-        <link rel="shortcut icon" href="/veda-icon.png" />
-        <link rel="apple-touch-icon" href="/veda-icon.png" />
+        <link rel="icon" type="image/png" href="/veda-icon.png" sizes="any" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
