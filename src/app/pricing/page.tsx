@@ -2,6 +2,7 @@
 // src/app/pricing/page.tsx — Subscription tiers
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
@@ -163,7 +164,7 @@ export default function PricingPage() {
       {/* Header */}
       <header className="pricing-header">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+          <Image src="/veda-icon.png" alt="Vedaansh" width={24} height={24} style={{ objectFit: 'contain' }} />
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
         </Link>
         <div className="pricing-header-actions">
@@ -196,7 +197,7 @@ export default function PricingPage() {
 
         {/* Brand Icon Hero */}
         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-          <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 80, height: 80, objectFit: 'contain' }} />
+          <Image src="/veda-icon.png" alt="Vedaansh" width={80} height={80} style={{ objectFit: 'contain' }} />
         </div>
 
         {/* Billing toggle */}
@@ -368,7 +369,7 @@ export default function PricingPage() {
             { icon: '🔒', text: 'Secure payments via Razorpay' },
             { icon: '↩', text: '7-day money-back guarantee' },
             { icon: '❌', text: 'Cancel anytime, no lock-in' },
-            { icon: <img src="/veda-icon.png" style={{ width: 16, height: 16, objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
+            { icon: <Image src="/veda-icon.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />, text: 'Swiss Ephemeris precision' },
           ].map(({ icon, text }) => (
             <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
               <span>{icon}</span> {text}

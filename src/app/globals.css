@@ -5,7 +5,7 @@
    Palette: Indigo cosmos / Sandalwood parchment
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap');
+/* Fonts are loaded via next/font/google in layout.tsx — no @import needed */
 
 @tailwind base;
 @tailwind components;
@@ -382,10 +382,10 @@
 /* ── Typography constants ───────────────────────────────────── */
 
 :root {
-  --font-display: 'Playfair Display', serif;
-  --font-body: 'Inter', 'Outfit', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-chart-planets: 'Inter', sans-serif;
+  --font-display: var(--font-playfair), 'Playfair Display', serif;
+  --font-body: var(--font-inter), var(--font-outfit), 'Inter', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
+  --font-chart-planets: var(--font-inter), 'Inter', sans-serif;
 
   --r-xs: 4px;
   --r-sm: 6px;

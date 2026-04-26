@@ -8,13 +8,13 @@
   "theme_color": "#0b0b14",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/veda-icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/veda-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -24,12 +24,12 @@
     {
       "name": "New Chart",
       "url": "/?new=true",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/veda-icon.png", "sizes": "192x192" }]
     },
     {
       "name": "Daily Panchang",
       "url": "/panchang",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/veda-icon.png", "sizes": "192x192" }]
     }
   ]
 }

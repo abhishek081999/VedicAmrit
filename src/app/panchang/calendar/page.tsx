@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { useChart } from '@/components/providers/ChartProvider'
 import { LocationPicker, getSavedLocation, type LocationValue } from '@/components/ui/LocationPicker'
@@ -320,7 +321,7 @@ export default function MonthlyPanchangPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+            <Image src="/veda-icon.png" alt="Vedaansh" width={22} height={22} style={{ objectFit: 'contain' }} />
             <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)', fontSize: '1rem' }}>|</span>

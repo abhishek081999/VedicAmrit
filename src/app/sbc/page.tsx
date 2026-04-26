@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ThemeToggle }  from '@/components/ui/ThemeToggle'
 import { useChart }     from '@/components/providers/ChartProvider'
 import { SarvatobhadraChakra } from '@/components/ui/SarvatobhadraChakra'
@@ -169,7 +170,7 @@ export default function SBCPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <img src="/veda-icon.png" alt="Vedaansh" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+            <Image src="/veda-icon.png" alt="Vedaansh" width={22} height={22} style={{ objectFit: 'contain' }} />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-gold)' }}>Vedaansh</span>
           </Link>
           <span style={{ color: 'var(--border)' }}>|</span>
