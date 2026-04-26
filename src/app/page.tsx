@@ -7,6 +7,7 @@
 
 import dynamic from 'next/dynamic'
 import React, { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSession } from 'next-auth/react'
@@ -69,86 +70,37 @@ function ArudhaPanel({ arudhas }: { arudhas: ChartOutput['arudhas'] }) {
   const keys = ['AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12'] as const
 
   return (
-    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <p style={{ fontSize: '0.82rem', fontStyle: 'italic', color: 'var(--text-muted)', margin: 0 }}>
-        Bhāva Āruḍhas — mirror of worldly reality, calculated by the BPHS algorithm.
-      </p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '0.55rem' }}>
-        {keys.map((key, i) => {
+    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.35rem' }}>
+        {keys.map((key) => {
           const rashi = arudhas[key] as Rashi | undefined
           if (!rashi) return null
-          const isAL  = key === 'AL'
+          const isAL = key === 'AL'
           return (
-            <div
-              key={key}
-              style={{
-                padding: '0.7rem 1rem',
-                background: isAL ? 'rgba(201,168,76,0.08)' : 'var(--surface-2)',
-                border: `1px solid ${isAL ? 'var(--border-bright)' : 'var(--border-soft)'}`,
-                borderRadius: 'var(--r-md)',
-                display: 'flex', gap: '0.65rem', alignItems: 'flex-start',
-                transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
-                cursor: 'default',
-                animationDelay: `${i * 0.03}s`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--border-bright)'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = 'var(--glow-gold)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = isAL ? 'var(--border-bright)' : 'var(--border-soft)'
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
-              }}
-            >
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.72rem',
-                color: isAL ? 'var(--gold)' : 'var(--text-muted)',
-                minWidth: 28,
-                paddingTop: 3,
-                fontWeight: 600,
-              }}>
+            <div key={key} style={{
+              padding: '0.35rem 0.55rem',
+              background: isAL ? 'rgba(201,168,76,0.08)' : 'var(--surface-2)',
+              border: `1px solid ${isAL ? 'var(--border-bright)' : 'var(--border-soft)'}`,
+              borderRadius: 'var(--r-sm)',
+              display: 'flex', gap: '0.5rem', alignItems: 'center',
+            }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: isAL ? 'var(--gold)' : 'var(--text-muted)', minWidth: 24, fontWeight: 700 }}>
                 {key}
               </span>
               <div>
-                <div style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '1.02rem',
-                  color: 'var(--text-primary)',
-                  fontWeight: isAL ? 500 : 400,
-                }}>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-primary)', fontWeight: isAL ? 600 : 400 }}>
                   {RASHI_NAMES[rashi]}
-                  <span style={{ marginLeft: 6, fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                    {RASHI_SHORT[rashi]}
-                  </span>
+                  <span style={{ marginLeft: 4, fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>{RASHI_SHORT[rashi]}</span>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 1 }}>
-                  {ARUDHA_TOPICS[key]}
-                </div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{ARUDHA_TOPICS[key]}</div>
               </div>
             </div>
           )
         })}
       </div>
-
-      <div style={{
-        display: 'flex', gap: '1rem', flexWrap: 'wrap',
-        paddingTop: '0.75rem',
-        borderTop: '1px solid var(--border-soft)',
-        fontSize: '0.82rem',
-        color: 'var(--text-muted)',
-      }}>
-        <span>
-          <span style={{ color: 'var(--gold)' }}>Upapada (A12): </span>
-          {arudhas.A12 ? RASHI_NAMES[arudhas.A12] : '—'} · quality of marriage
-        </span>
-        <span>
-          <span style={{ color: 'var(--gold)' }}>Darapada (A7): </span>
-          {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · partner&apos;s image
-        </span>
+      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', paddingTop: '0.4rem', borderTop: '1px solid var(--border-soft)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <span><span style={{ color: 'var(--gold)' }}>A12:</span> {arudhas.A12 ? RASHI_NAMES[arudhas.A12] : '—'} · Upapada</span>
+        <span><span style={{ color: 'var(--gold)' }}>A7:</span> {arudhas.A7 ? RASHI_NAMES[arudhas.A7] : '—'} · Darapada</span>
       </div>
     </div>
   )
@@ -201,18 +153,16 @@ function DashboardMetricChip({
   valueColor?: string
 }) {
   return (
-    <div
-      className="card"
-      style={{
-        padding: '0.65rem 0.85rem',
-        background: 'var(--surface-2)',
-        border: '1px solid var(--border-bright)',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800 }}>{label}</div>
-      <div style={{ fontSize: '1.05rem', fontWeight: 800, color: valueColor }}>{value}</div>
-      {sub ? <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{sub}</div> : null}
+    <div style={{
+      padding: '0.3rem 0.5rem',
+      background: 'var(--surface-2)',
+      border: '1px solid var(--border-soft)',
+      borderRadius: 'var(--r-sm)',
+      textAlign: 'center',
+    }}>
+      <div style={{ fontSize: '0.57rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.06em' }}>{label}</div>
+      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: valueColor, lineHeight: 1.3 }}>{value}</div>
+      {sub ? <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: 1 }}>{sub}</div> : null}
     </div>
   )
 }
@@ -258,9 +208,9 @@ function HomeContent() {
   const [expandGraha, setExpandGraha] = useState(false)
   const [expandAstro, setExpandAstro] = useState(false)
   const [desktopDashboardCardOrder, setDesktopDashboardCardOrder] = useState<Array<'summary' | 'cosmic' | 'planetary' | 'astronomical'>>([
-    'planetary',
     'summary',
     'astronomical',
+    'planetary',
     'cosmic',
   ])
   const [draggingDashboardCard, setDraggingDashboardCard] = useState<'summary' | 'cosmic' | 'planetary' | 'astronomical' | null>(null)
@@ -844,9 +794,7 @@ function HomeContent() {
     draggable: true,
     onDragStart: () => setDraggingDashboardCard(cardId),
     onDragEnd: () => setDraggingDashboardCard(null),
-    onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
-      e.preventDefault()
-    },
+    onDragOver: (e: React.DragEvent<HTMLDivElement>) => { e.preventDefault() },
     onDrop: (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       if (!draggingDashboardCard) return
@@ -854,11 +802,8 @@ function HomeContent() {
       setDraggingDashboardCard(null)
     },
     style: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: '0.5rem',
+      opacity: draggingDashboardCard === cardId ? 0.55 : 1,
       cursor: 'grab',
-      opacity: draggingDashboardCard === cardId ? 0.6 : 1,
     },
   })
 
@@ -868,52 +813,42 @@ function HomeContent() {
   ) => {
     if (cardId === 'planetary') {
       return (
-        <div className="card fade-up" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Planetary Micro-Details</h3>
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: '0.7rem' }}
-              onClick={() => setExpandGraha(!expandGraha)}
-            >
-              {expandGraha ? 'Show less' : 'Show more'}
+        <div className="panel fade-up">
+          <div className="panel-header">
+            <span>Planetary Details</span>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }} onClick={() => setExpandGraha(!expandGraha)}>
+              {expandGraha ? '▴ Less' : '▾ More'}
             </button>
           </div>
-          <GrahaTable
-            grahas={dashboardChart.grahas}
-            vargas={dashboardChart.vargas}
-            vargaLagnas={dashboardChart.vargaLagnas}
-            lagnas={dashboardChart.lagnas}
-            upagrahas={dashboardChart.upagrahas}
-            activeVarga={activeVarga}
-            onVargaChange={setActiveVarga}
-            limited={!expandGraha}
-          />
+          <div style={{ padding: '0.4rem 0' }}>
+            <GrahaTable
+              grahas={dashboardChart.grahas}
+              vargas={dashboardChart.vargas}
+              vargaLagnas={dashboardChart.vargaLagnas}
+              lagnas={dashboardChart.lagnas}
+              upagrahas={dashboardChart.upagrahas}
+              activeVarga={activeVarga}
+              onVargaChange={setActiveVarga}
+              limited={!expandGraha}
+            />
+          </div>
         </div>
       )
     }
 
     if (cardId === 'astronomical') {
       return (
-        <div className="card fade-up" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
-            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-gold)' }}>Astronomical Depth</h3>
-            <button
-              className="btn btn-ghost btn-sm"
-              style={{ fontSize: '0.7rem' }}
-              onClick={() => setExpandAstro(!expandAstro)}
-            >
-              {expandAstro ? 'Show less' : 'Show more'}
+        <div className="panel fade-up">
+          <div className="panel-header">
+            <span>Astronomical Details</span>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }} onClick={() => setExpandAstro(!expandAstro)}>
+              {expandAstro ? '▴ Less' : '▾ More'}
             </button>
           </div>
-          <div style={{ maxHeight: expandAstro ? 'none' : '260px', overflow: 'hidden', position: 'relative' }}>
+          <div style={{ maxHeight: expandAstro ? 'none' : '220px', overflow: 'hidden', position: 'relative', padding: '0.4rem 0.5rem' }}>
             <AstroDetailsPanel chart={dashboardChart} />
             {!expandAstro && (
-              <div style={{
-                position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px',
-                background: 'linear-gradient(transparent, var(--surface-1))',
-                pointerEvents: 'none'
-              }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '48px', background: 'linear-gradient(transparent, var(--surface-1))', pointerEvents: 'none' }} />
             )}
           </div>
         </div>
@@ -922,64 +857,35 @@ function HomeContent() {
 
     if (cardId === 'summary') {
       return (
-        <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-bright)' }}>
-          <div style={{
-            padding: isMobile ? '1rem' : '1.25rem 1.5rem',
-            background: 'linear-gradient(to bottom, var(--surface-2), var(--surface-1))',
-            borderBottom: '1px solid var(--border-soft)',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem'
-          }}>
-            <div>
-              <div className="label-caps" style={{ marginBottom: '0.4rem', fontSize: '0.65rem' }}>Summary Card</div>
-              <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: isMobile ? '1.5rem' : '1.75rem' }}>Today at a glance</h2>
-            </div>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-              <ProgressionWidget birthDate={dashboardChart.meta.birthDate} />
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', padding: '0.4rem 0.8rem', background: 'var(--surface-3)', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)' }}>
-                Moon: {dashboardChart.panchang.nakshatra.name}
-              </div>
+        <div className="panel fade-up">
+          <div className="panel-header">
+            <span>Today&apos;s Timeline</span>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
+              <select
+                value={dashaSystem}
+                onChange={(e) => setDashaSystem(e.target.value as any)}
+                style={{ padding: '0.1rem 0.3rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit', cursor: 'pointer' }}
+              >
+                <option value="vimshottari">Viṁśottarī</option>
+                <option value="ashtottari">Aṣṭottarī</option>
+                <option value="yogini">Yoginī</option>
+                <option value="chara">Chara</option>
+              </select>
             </div>
           </div>
-
-          <div style={{ padding: isMobile ? '1rem' : '1.25rem', background: 'var(--surface-1)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1.25rem', alignItems: 'start' }}>
-              <div className="card" style={{ padding: '1.1rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Active Timeline</h3>
-                  <select
-                    value={dashaSystem}
-                    onChange={(e) => setDashaSystem(e.target.value as any)}
-                    style={{
-                      padding: '0.2rem 0.5rem', fontSize: '0.72rem',
-                      background: 'var(--surface-3)', color: 'var(--text-primary)',
-                      border: '1px solid var(--border-soft)', borderRadius: '4px',
-                      fontFamily: 'inherit', cursor: 'pointer'
-                    }}
-                  >
-                    <option value="vimshottari">Viṁśottarī (120y)</option>
-                    <option value="ashtottari">Aṣṭottarī (108y)</option>
-                    <option value="yogini">Yoginī (36y)</option>
-                    <option value="chara">Chara (12s)</option>
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  {(() => {
-                    const nodes = dashaSystem === 'vimshottari'
-                      ? (vimshottariTara === 'Mo' ? dashboardChart.dashas.vimshottari : (altVimshottari ?? dashboardChart.dashas.vimshottari))
-                      : (dashboardChart.dashas[dashaSystem] ?? [])
-                    if (!nodes || nodes.length === 0) {
-                      return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
-                    }
-                    return <DashaTree nodes={nodes} birthDate={new Date(dashboardChart.meta.birthDate)} />
-                  })()}
-                </div>
-              </div>
-              <div style={{ height: '100%' }}>
-                <ActiveHousesCard
-                  chart={dashboardChart}
-                  transitMoonLon={todayPanchang?.moonLongitudeSidereal}
-                />
-              </div>
+          <div style={{ padding: '0.5rem', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '0.5rem' }}>
+            <div>
+              {(() => {
+                const nodes = dashaSystem === 'vimshottari'
+                  ? (vimshottariTara === 'Mo' ? dashboardChart.dashas.vimshottari : (altVimshottari ?? dashboardChart.dashas.vimshottari))
+                  : (dashboardChart.dashas[dashaSystem] ?? [])
+                if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.5rem' }}>No data.</div>
+                return <DashaTree nodes={nodes} birthDate={new Date(dashboardChart.meta.birthDate)} />
+              })()}
+            </div>
+            <div>
+              <ActiveHousesCard chart={dashboardChart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
             </div>
           </div>
         </div>
@@ -987,51 +893,53 @@ function HomeContent() {
     }
 
     return (
-      <div className="card" style={{ padding: '0', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
-        <div style={{
-          padding: isMobile ? '0.9rem 1rem' : '1rem 1.25rem',
-          background: 'var(--surface-2)',
-          borderBottom: '1px solid var(--border-soft)'
-        }}>
-          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Cosmic Weather & Daily Suitability</h3>
+      <div className="panel fade-up">
+        <div className="panel-header">
+          <span>Cosmic Weather</span>
+          <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            ☽ {dashboardChart.panchang.nakshatra.name}
+          </span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'minmax(300px, 1.2fr) 1fr', gap: '1px', background: 'var(--border-soft)' }}>
-          <div style={{ background: 'var(--surface-1)' }}>
-            <PersonalDayCard
-              birthMoonNakIdx={dashboardChart.panchang.nakshatra.index}
-              birthMoonName={dashboardChart.panchang.nakshatra.name}
-              latitude={dashboardChart.meta.latitude}
-              longitude={dashboardChart.meta.longitude}
-              timezone={dashboardChart.meta.timezone}
-              todayPanchang={todayPanchang}
-            />
-          </div>
-          <div style={{ background: 'var(--surface-1)', padding: '1rem 1.25rem' }}>
-            <h3 className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.62rem', color: 'var(--text-muted)' }}>Daily Suitability</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1.25rem', rowGap: '0.6rem' }}>
+        <div style={{ padding: '0.45rem 0.55rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+
+          {/* Cosmic weather compact block */}
+          <PersonalDayCard
+            birthMoonNakIdx={dashboardChart.panchang.nakshatra.index}
+            birthMoonName={dashboardChart.panchang.nakshatra.name}
+            latitude={dashboardChart.meta.latitude}
+            longitude={dashboardChart.meta.longitude}
+            timezone={dashboardChart.meta.timezone}
+            todayPanchang={todayPanchang}
+          />
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid var(--border-soft)' }} />
+
+          {/* Daily Suitability */}
+          <div>
+            <div style={{ fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>Daily Suitability</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '0.65rem', rowGap: '0.28rem' }}>
               {[
-                { label: 'Spiritual', icon: '🧘', rating: 95, color: 'var(--teal)' },
-                { label: 'Wellness', icon: '🌿', rating: 82, color: 'var(--teal)' },
-                { label: 'Learning', icon: '📚', rating: 78, color: 'var(--gold)' },
-                { label: 'Business', icon: '💼', rating: 45, color: 'var(--rose)' },
-                { label: 'Travel', icon: '✈️', rating: 30, color: 'var(--rose)' },
-                { label: 'Property', icon: '🏠', rating: 15, color: 'var(--rose)' },
+                { label: 'Spiritual', icon: '✦', rating: 95, color: 'var(--teal)' },
+                { label: 'Wellness',  icon: '✦', rating: 82, color: 'var(--teal)' },
+                { label: 'Learning',  icon: '✦', rating: 78, color: 'var(--gold)' },
+                { label: 'Business',  icon: '✦', rating: 45, color: 'var(--rose)' },
+                { label: 'Travel',    icon: '✦', rating: 30, color: 'var(--rose)' },
+                { label: 'Property',  icon: '✦', rating: 15, color: 'var(--rose)' },
               ].map((act, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span style={{ fontSize: '0.75rem' }}>{act.icon}</span>
-                      <span style={{ fontSize: '0.68rem', fontWeight: 600 }}>{act.label}</span>
-                    </div>
-                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color }}>{act.rating}%</span>
+                    <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{act.label}</span>
+                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color, fontFamily: 'var(--font-mono)' }}>{act.rating}%</span>
                   </div>
-                  <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: 2, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
         </div>
       </div>
     )
@@ -1053,38 +961,18 @@ function HomeContent() {
       ) : chart ? (
          <div className="fade-up" style={{ minWidth: 0 }}>
             
-            {/* Headings Row & Birth Summary Strip */}
+            {/* Compact Header Strip */}
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                 <div>
-                    <span className="label-caps" style={{ color: 'var(--text-gold)', marginBottom: '0.25rem', display: 'block', fontSize: '0.65rem' }}>Astrological Portrait</span>
-                    <h1 className="chart-name" style={{ fontFamily: 'var(--font-display)', fontWeight: 400, margin: '0', color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-                      {chart.meta.name}
-                    </h1>
-                 </div>
-
-                 {/* Compact Birth Summary Strip */}
-                 <div className="birth-summary-strip">
-                    <div className="birth-summary-item">
-                       <span className="birth-summary-label">Born</span>
-                       <span className="birth-summary-value">{chart.meta.birthDate}</span>
-                       <span className="summary-sep" style={{ color: 'var(--border-bright)' }}>•</span>
-                       <span className="birth-summary-value">{chart.meta.birthTime}</span>
-                    </div>
-                    <div className="summary-sep" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
-                    <div className="birth-summary-item">
-                       <span className="birth-summary-label">In</span>
-                       <span className="birth-summary-value" style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart.meta.birthPlace}</span>
-                       <span className="birth-summary-value hide-mobile" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>({chart.meta.latitude.toFixed(2)}N, {chart.meta.longitude.toFixed(2)}E)</span>
-                    </div>
-                    <div className="summary-sep" style={{ width: 1, height: 16, background: 'var(--border-soft)' }} />
-                    <div className="birth-summary-item">
-                       <span className="birth-summary-label">Ascendant</span>
-                       <span className="birth-summary-value" style={{ fontWeight: 600, color: 'var(--text-gold)', fontFamily: 'var(--font-display)' }}>
-                          {RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
-                       </span>
-                    </div>
-                 </div>
+              <div className="chart-name-strip">
+                <span className="name-primary">{chart.meta.name}</span>
+                <span className="name-sep hide-mobile">·</span>
+                <span className="name-detail hide-mobile">{chart.meta.birthDate} {chart.meta.birthTime}</span>
+                <span className="name-sep hide-mobile">·</span>
+                <span className="name-detail hide-mobile" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chart.meta.birthPlace}</span>
+                <span className="name-sep hide-mobile">·</span>
+                <span className="name-asc hide-mobile">
+                  {RASHI_NAMES[chart.lagnas.ascRashi as Rashi]} {chart.lagnas.ascDegreeInRashi.toFixed(1)}°
+                </span>
               </div>
 
               {isMobile && (
@@ -1203,46 +1091,28 @@ function HomeContent() {
                 </>
               )}
 
-              <div className="chart-action-wrap" style={{ display: isMobile ? 'none' : 'flex' }}>
+              <div className="chart-actions-compact" style={{ display: isMobile ? 'none' : 'flex' }}>
                   {status === 'authenticated' && (
-                    <div className="chart-action-row">
-                      <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
-                        {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
-                      </button>
-                      
-                      {userPlan === 'platinum' && (
-                        <button 
-                          onClick={handleSaveToCRM} 
-                          disabled={crmSaving || crmDone} 
-                          className={`btn ${crmDone ? 'btn-ghost' : 'btn-secondary'} btn-sm`}
-                          style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}
-                        >
-                          {crmSaving ? 'Adding…' : crmDone ? '✓ In CRM' : '👥 Add to CRM'}
-                        </button>
-                      )}
-                    </div>
+                    <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
+                      {saving ? '…' : saveDone ? '✓ Saved' : '+ Save'}
+                    </button>
                   )}
-                  {false && status === 'authenticated' && (
-                   <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
-                     {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
-                   </button>
-                 )}
-                 <div className="chart-action-row">
-                   <ExportPdfButton chart={chart} compact />
-                   <EmailChartButton chart={chart} compact />
-                 </div>
-                 <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm" style={{ background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-bright)' }}>
-                   ✎ Edit Details
-                 </button>
-                 <button onClick={() => { setChart(null); setIsFormOpen(true) }} className="btn btn-primary btn-sm" style={{ background: 'var(--gold-faint)', color: 'var(--text-gold)', border: '1px solid var(--gold)' }}>
-                   + New Chart
-                 </button>
+                  {status === 'authenticated' && userPlan === 'platinum' && (
+                    <button onClick={handleSaveToCRM} disabled={crmSaving || crmDone} className={`btn ${crmDone ? 'btn-ghost' : 'btn-secondary'} btn-sm`}
+                      style={{ borderColor: 'var(--gold)', color: crmDone ? 'var(--text-muted)' : 'var(--gold)' }}>
+                      {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
+                    </button>
+                  )}
+                  <ExportPdfButton chart={chart} compact />
+                  <EmailChartButton chart={chart} compact />
+                  <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
+                  <button onClick={() => { setChart(null); setIsFormOpen(true) }} className="btn btn-primary btn-sm">+ New</button>
               </div>
             </div>
            
             {/* ── Full-width workspaces (replaces two-column layout) ── */}
             {(activeTab === 'varshaphal' || activeTab === 'planets' || activeTab === 'house' || activeTab === 'interpretation' || activeTab === 'kp-stellar') && (
-              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '' : 'card'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '0' : '1.25rem', width: '100%' }}>
+              <div className={`${(activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '' : 'panel'} fade-up`} style={{ padding: (activeTab === 'planets' || activeTab === 'house' || activeTab === 'kp-stellar') ? '0' : '0.65rem', width: '100%' }}>
                 {activeTab === 'planets' ? (
                     <PlanetsWorkspace chart={chart} />
                   ) : activeTab === 'house' ? (
@@ -1261,12 +1131,12 @@ function HomeContent() {
              {activeTab !== 'varshaphal' && activeTab !== 'planets' && activeTab !== 'house' && activeTab !== 'kp-stellar' && <div className="chart-layout-grid">
                {/* LEFT: Dominant chart area (Primary Focus) */}
                <div style={{ 
-                 flex: '1 1 600px', 
-                 minWidth: 'min(100%, 600px)', 
+                 flex: '1 1 460px', 
+                 minWidth: 'min(100%, 380px)', 
                  display: 'flex', 
                  flexDirection: 'column', 
-                 gap: '1.5rem',
-                 order: 1 // Chart stays 1st
+                 gap: '0.75rem',
+                 order: 1
                }}>
                   <TransitOverlay natalChart={chart} onTransitLoad={setTransitGrahas} />
                   <VargaSwitcher
@@ -1288,332 +1158,181 @@ function HomeContent() {
                      transitMoonLon={todayPanchang?.moonLongitudeSidereal}
                   />
 
+                  {/* ── MOBILE DASHBOARD CONTENT ─────────────────────── */}
                   {activeTab === 'dashboard' && isMobile && (
-                    <div
-                      className="card fade-up"
-                      style={{
-                        padding: '0.75rem',
-                        borderRadius: 14,
-                        border: '1px solid var(--border-soft)',
-                        background: 'linear-gradient(180deg, var(--surface-1), var(--surface-2))',
-                      }}
-                    >
-                      <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0.2rem 0.35rem 0.55rem' }}>
-                        Sections
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '0.45rem',
-                          overflowX: 'auto',
-                          paddingBottom: '0.35rem',
-                          marginBottom: '0.55rem',
-                          WebkitOverflowScrolling: 'touch',
-                        }}
-                      >
-                        {mobileDashboardCategories.map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setMobileDashCategory(t.id)}
-                            style={{
-                              whiteSpace: 'nowrap',
-                              borderRadius: 999,
-                              border: mobileDashCategory === t.id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)',
-                              background: mobileDashCategory === t.id ? 'linear-gradient(180deg, var(--gold-faint), rgba(201,168,76,0.08))' : 'var(--surface-2)',
-                              color: mobileDashCategory === t.id ? 'var(--text-gold)' : 'var(--text-muted)',
-                              padding: '0.42rem 0.76rem',
-                              fontSize: '0.71rem',
-                              fontWeight: 700,
-                              letterSpacing: '0.02em',
-                              cursor: 'pointer',
-                              boxShadow: mobileDashCategory === t.id ? '0 2px 8px rgba(201,168,76,0.18)' : 'none',
-                            }}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '4.5rem' }}>
 
-                      <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0.15rem 0.35rem 0.5rem' }}>
-                        Options
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '0.45rem',
-                          overflowX: 'auto',
-                          paddingBottom: '0.35rem',
-                          marginBottom: '0.9rem',
-                          WebkitOverflowScrolling: 'touch',
-                        }}
-                      >
-                        {mobileDashboardOptions[mobileDashCategory].map((t) => {
-                          if ('path' in t) {
-                            return (
-                              <Link
-                                key={t.id}
-                                href={t.path}
-                                style={{
-                                  whiteSpace: 'nowrap',
-                                  borderRadius: 999,
-                                  border: '1px solid var(--border-soft)',
-                                  background: 'var(--surface-2)',
-                                  color: 'var(--text-muted)',
-                                  padding: '0.4rem 0.7rem',
-                                  fontSize: '0.71rem',
-                                  fontWeight: 700,
-                                  letterSpacing: '0.02em',
-                                  textDecoration: 'none',
-                                }}
-                              >
-                                {t.label}
-                              </Link>
-                            )
-                          }
-                          return (
-                            <button
-                              key={t.id}
-                              type="button"
-                              onClick={() => setMobileDashTab(t.id)}
-                              style={{
-                                whiteSpace: 'nowrap',
-                                borderRadius: 999,
-                                border: mobileDashTab === t.id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)',
-                                background: mobileDashTab === t.id ? 'linear-gradient(180deg, var(--gold-faint), rgba(201,168,76,0.08))' : 'var(--surface-2)',
-                                color: mobileDashTab === t.id ? 'var(--text-gold)' : 'var(--text-muted)',
-                                padding: '0.4rem 0.7rem',
-                                fontSize: '0.71rem',
-                                fontWeight: 700,
-                                letterSpacing: '0.02em',
-                                cursor: 'pointer',
-                                boxShadow: mobileDashTab === t.id ? '0 2px 8px rgba(201,168,76,0.18)' : 'none',
-                              }}
-                            >
-                              {t.label}
-                            </button>
-                          )
-                        })}
-                      </div>
-
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'astro' && <AstroDetailsPanel chart={chart} />}
-
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'planetary' && (
-                        <GrahaTable
-                          grahas={chart.grahas}
-                          vargas={chart.vargas}
-                          vargaLagnas={chart.vargaLagnas}
-                          lagnas={chart.lagnas}
-                          upagrahas={chart.upagrahas}
-                          activeVarga={activeVarga}
-                          onVargaChange={setActiveVarga}
-                          limited={!expandGraha}
-                        />
-                      )}
-
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'dashas' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.68rem' }}>Dashas</h3>
-                            <select
-                              value={dashaSystem}
-                              onChange={(e) => setDashaSystem(e.target.value as any)}
-                              style={{
-                                padding: '0.2rem 0.5rem',
-                                fontSize: '0.72rem',
-                                background: 'var(--surface-3)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--border-soft)',
-                                borderRadius: '4px',
-                                fontFamily: 'inherit',
-                              }}
-                            >
-                              <option value="vimshottari">Viṁśottarī (120y)</option>
-                              <option value="ashtottari">Aṣṭottarī (108y)</option>
-                              <option value="yogini">Yoginī (36y)</option>
-                              <option value="chara">Chara (12s)</option>
-                            </select>
-                          </div>
-                          {(() => {
-                            const nodes = dashaSystem === 'vimshottari'
-                              ? (vimshottariTara === 'Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari))
-                              : (chart.dashas[dashaSystem] ?? [])
-                            if (!nodes || nodes.length === 0) {
-                              return <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>{dashaSystem.toUpperCase()} data unavailable.</div>
-                            }
-                            return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
-                          })()}
+                      {/* ── Tab content ── */}
+                      {mobileDashTab === 'astro' && (
+                        <div className="panel">
+                          <div className="panel-header"><span>Astro Details</span></div>
+                          <div style={{ padding: '0.4rem 0.55rem' }}><AstroDetailsPanel chart={chart} /></div>
                         </div>
                       )}
 
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'today' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                          <PersonalDayCard
-                            birthMoonNakIdx={chart.panchang.nakshatra.index}
-                            birthMoonName={chart.panchang.nakshatra.name}
-                            latitude={chart.meta.latitude}
-                            longitude={chart.meta.longitude}
-                            timezone={chart.meta.timezone}
-                            todayPanchang={todayPanchang}
-                          />
-                          <div className="card" style={{ padding: '0.85rem' }}>
-                            <h3 className="label-caps" style={{ marginBottom: '0.65rem', fontSize: '0.62rem', color: 'var(--text-muted)' }}>Daily Suitability</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: '1rem', rowGap: '0.55rem' }}>
+                      {mobileDashTab === 'planetary' && (
+                        <GrahaTable
+                          grahas={chart.grahas} vargas={chart.vargas} vargaLagnas={chart.vargaLagnas}
+                          lagnas={chart.lagnas} upagrahas={chart.upagrahas}
+                          activeVarga={activeVarga} onVargaChange={setActiveVarga} limited={!expandGraha}
+                        />
+                      )}
+
+                      {mobileDashTab === 'dashas' && (
+                        <div className="panel">
+                          <div className="panel-header">
+                            <span>Dasha Timeline</span>
+                            <select value={dashaSystem} onChange={(e) => setDashaSystem(e.target.value as any)}
+                              style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}>
+                              <option value="vimshottari">Viṁśottarī</option>
+                              <option value="ashtottari">Aṣṭottarī</option>
+                              <option value="yogini">Yoginī</option>
+                              <option value="chara">Chara</option>
+                            </select>
+                          </div>
+                          <div style={{ padding: '0.4rem 0.55rem' }}>
+                            {(() => {
+                              const nodes = dashaSystem === 'vimshottari'
+                                ? (vimshottariTara === 'Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari))
+                                : (chart.dashas[dashaSystem] ?? [])
+                              if (!nodes?.length) return <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Data unavailable.</p>
+                              return <DashaTree nodes={nodes} birthDate={new Date(chart.meta.birthDate)} />
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      {mobileDashTab === 'today' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          <div className="panel">
+                            <div className="panel-header"><span>Cosmic Weather</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              <PersonalDayCard
+                                birthMoonNakIdx={chart.panchang.nakshatra.index}
+                                birthMoonName={chart.panchang.nakshatra.name}
+                                latitude={chart.meta.latitude} longitude={chart.meta.longitude}
+                                timezone={chart.meta.timezone} todayPanchang={todayPanchang}
+                              />
+                            </div>
+                          </div>
+                          <div className="panel">
+                            <div className="panel-header"><span>Active Houses</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              <ActiveHousesCard chart={chart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
+                            </div>
+                          </div>
+                          <div className="panel">
+                            <div className="panel-header"><span>Daily Suitability</span></div>
+                            <div style={{ padding: '0.4rem 0.55rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem' }}>
                               {[
-                                { label: 'Spiritual', icon: '🧘', rating: 95, color: 'var(--teal)' },
-                                { label: 'Wellness', icon: '🌿', rating: 82, color: 'var(--teal)' },
-                                { label: 'Learning', icon: '📚', rating: 78, color: 'var(--gold)' },
-                                { label: 'Business', icon: '💼', rating: 45, color: 'var(--rose)' },
-                                { label: 'Travel', icon: '✈️', rating: 30, color: 'var(--rose)' },
-                                { label: 'Property', icon: '🏠', rating: 15, color: 'var(--rose)' },
-                              ].map((act, i) => (
-                                <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                      <span style={{ fontSize: '0.74rem' }}>{act.icon}</span>
-                                      <span style={{ fontSize: '0.68rem', fontWeight: 600 }}>{act.label}</span>
-                                    </div>
-                                    <span style={{ fontSize: '0.6rem', fontWeight: 700, color: act.color }}>{act.rating}%</span>
+                                { label: 'Spiritual', rating: 95, color: 'var(--teal)' },
+                                { label: 'Wellness',  rating: 82, color: 'var(--teal)' },
+                                { label: 'Learning',  rating: 78, color: 'var(--gold)' },
+                                { label: 'Business',  rating: 45, color: 'var(--rose)' },
+                                { label: 'Travel',    rating: 30, color: 'var(--rose)' },
+                                { label: 'Property',  rating: 15, color: 'var(--rose)' },
+                              ].map((act) => (
+                                <div key={act.label} style={{ display: 'flex', flexDirection: 'column', gap: '0.12rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{act.label}</span>
+                                    <span style={{ fontSize: '0.62rem', fontWeight: 700, color: act.color, fontFamily: 'var(--font-mono)' }}>{act.rating}%</span>
                                   </div>
-                                  <div style={{ height: 4, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
+                                  <div style={{ height: 3, background: 'var(--surface-3)', borderRadius: 2, overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${act.rating}%`, background: act.color }} />
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          <ActiveHousesCard chart={chart} transitMoonLon={todayPanchang?.moonLongitudeSidereal} />
                         </div>
                       )}
 
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'panchang' && <NatalPanchangPanel p={chart.panchang} />}
+                      {mobileDashTab === 'panchang' && (
+                        <div className="panel">
+                          <div className="panel-header"><span>Natal Panchang</span></div>
+                          <div style={{ padding: '0.4rem 0.55rem' }}><NatalPanchangPanel p={chart.panchang} /></div>
+                        </div>
+                      )}
 
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'strengths' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                          <select
-                            value={mobileStrengthTab}
-                            onChange={(e) => setMobileStrengthTab(e.target.value as typeof mobileStrengthTab)}
-                            style={{
-                              width: '100%',
-                              padding: '0.5rem 0.6rem',
-                              borderRadius: 8,
-                              border: '1px solid var(--border-soft)',
-                              background: 'var(--surface-2)',
-                              color: 'var(--text-primary)',
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
-                            }}
-                          >
-                            <option value="shadbala">Strengths: Ṣaḍbala</option>
-                            <option value="bhava">Strengths: Bhāva Bala</option>
-                            <option value="vimsopaka">Strengths: Viṁśopaka</option>
-                            <option value="ashtakavarga">Strengths: Aṣṭakavarga</option>
-                          </select>
-                          {mobileStrengthTab === 'shadbala' ? (
-                            chart.shadbala ? (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
-                                  <div style={{ border: '1px solid var(--border-soft)', borderRadius: 10, padding: '0.7rem', background: 'var(--surface-2)' }}>
-                                    <div className="label-caps" style={{ fontSize: '0.56rem', marginBottom: '0.28rem' }}>Strongest</div>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--teal)' }}>
-                                      {GRAHA_NAMES[chart.shadbala.strongest as GrahaId] ?? chart.shadbala.strongest}
+                      {mobileDashTab === 'strengths' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {/* Sub-tabs */}
+                          <div style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                            {([
+                              { id: 'shadbala', label: 'Ṣaḍbala' },
+                              { id: 'bhava', label: 'Bhāva' },
+                              { id: 'vimsopaka', label: 'Viṁśopaka' },
+                              { id: 'ashtakavarga', label: 'Aṣṭaka' },
+                            ] as const).map(({ id, label }) => (
+                              <button key={id} type="button" onClick={() => setMobileStrengthTab(id)}
+                                style={{ whiteSpace: 'nowrap', padding: '0.3rem 0.7rem', fontSize: '0.65rem', fontWeight: 700, borderRadius: 999, cursor: 'pointer', border: mobileStrengthTab === id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)', background: mobileStrengthTab === id ? 'var(--gold-faint)' : 'var(--surface-2)', color: mobileStrengthTab === id ? 'var(--text-gold)' : 'var(--text-muted)' }}>
+                                {label}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="panel">
+                            <div style={{ padding: '0.4rem 0.55rem' }}>
+                              {mobileStrengthTab === 'shadbala' && (
+                                chart.shadbala ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.68rem' }}>
+                                      <span>⬆ <b style={{ color: 'var(--teal)' }}>{GRAHA_NAMES[chart.shadbala.strongest as GrahaId] ?? chart.shadbala.strongest}</b> {(chart.shadbala.planets[chart.shadbala.strongest as GrahaId]?.total ?? 0).toFixed(1)}R</span>
+                                      <span>⬇ <b style={{ color: 'var(--rose)' }}>{GRAHA_NAMES[chart.shadbala.weakest as GrahaId] ?? chart.shadbala.weakest}</b> {(chart.shadbala.planets[chart.shadbala.weakest as GrahaId]?.total ?? 0).toFixed(1)}R</span>
                                     </div>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                                      {(chart.shadbala.planets[chart.shadbala.strongest as GrahaId]?.total ?? 0).toFixed(2)} R
-                                    </div>
-                                  </div>
-                                  <div style={{ border: '1px solid var(--border-soft)', borderRadius: 10, padding: '0.7rem', background: 'var(--surface-2)' }}>
-                                    <div className="label-caps" style={{ fontSize: '0.56rem', marginBottom: '0.28rem' }}>Weakest</div>
-                                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--rose)' }}>
-                                      {GRAHA_NAMES[chart.shadbala.weakest as GrahaId] ?? chart.shadbala.weakest}
-                                    </div>
-                                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                                      {(chart.shadbala.planets[chart.shadbala.weakest as GrahaId]?.total ?? 0).toFixed(2)} R
-                                    </div>
-                                  </div>
-                                </div>
-                                <div style={{ border: '1px solid var(--border-soft)', borderRadius: 10, padding: '0.7rem', background: 'var(--surface-2)' }}>
-                                  <div className="label-caps" style={{ fontSize: '0.56rem', marginBottom: '0.45rem' }}>7-graha strength bars</div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                                    {(['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa'] as GrahaId[])
-                                      .map((id) => ({
-                                        id,
-                                        name: GRAHA_NAMES[id] ?? id,
-                                        total: chart.shadbala.planets[id]?.total ?? 0,
-                                        ratio: chart.shadbala.planets[id]?.ratio ?? 0,
-                                      }))
-                                      .sort((a, b) => b.total - a.total)
-                                      .map((row) => (
-                                        <div key={row.id}>
-                                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                                            <span style={{ fontSize: '0.73rem', color: 'var(--text-primary)', fontWeight: 600 }}>{row.name}</span>
-                                            <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                                              {row.total.toFixed(2)} R
-                                            </span>
+                                    {(['Su','Mo','Ma','Me','Ju','Ve','Sa'] as GrahaId[])
+                                      .map(id => ({ id, name: GRAHA_NAMES[id], total: chart.shadbala.planets[id]?.total ?? 0, ratio: chart.shadbala.planets[id]?.ratio ?? 0 }))
+                                      .sort((a,b) => b.total - a.total)
+                                      .map(row => (
+                                        <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>{row.name}</span>
+                                          <div style={{ flex: 1, height: 5, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${Math.max(8, Math.min(100, row.ratio * 100))}%`, background: 'var(--teal)', borderRadius: 2 }} />
                                           </div>
-                                          <div style={{ height: 5, borderRadius: 999, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${Math.max(10, Math.min(100, row.ratio * 100))}%`, borderRadius: 999, background: 'var(--teal)' }} />
-                                          </div>
+                                          <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2.8rem', textAlign: 'right', flexShrink: 0 }}>{row.total.toFixed(1)}R</span>
                                         </div>
                                       ))}
+                                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: '0.3rem' }}>
+                                      <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
+                                    </div>
                                   </div>
-                                </div>
-                                <div style={{ border: '1px solid var(--border-soft)', borderRadius: 10, padding: '0.55rem', background: 'var(--surface-1)' }}>
-                                  <div className="label-caps" style={{ fontSize: '0.56rem', margin: '0.1rem 0 0.55rem' }}>
-                                    Component-wise bala charts
-                                  </div>
-                                  <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
-                                </div>
-                              </div>
-                            ) : (
-                              <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Shadbala data unavailable.</p>
-                            )
-                          ) : mobileStrengthTab === 'bhava' ? (
-                            chart.bhavaBala ? (
-                              <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
-                            ) : (
-                              <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Bhāva Bala data unavailable.</p>
-                            )
-                          ) : mobileStrengthTab === 'vimsopaka' ? (
-                            chart.vimsopaka ? (
-                              <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                            ) : (
-                              <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Viṁśopaka data unavailable.</p>
-                            )
-                          ) : chart.ashtakavarga ? (
-                            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                              <div style={{ minWidth: 320 }}>
-                                <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                              </div>
+                                ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                              )}
+                              {mobileStrengthTab === 'bhava' && (
+                                chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                              )}
+                              {mobileStrengthTab === 'vimsopaka' && (
+                                chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                              )}
+                              {mobileStrengthTab === 'ashtakavarga' && (
+                                chart.ashtakavarga
+                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} /></div>
+                                  : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
+                              )}
                             </div>
-                          ) : (
-                            <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Aṣṭakavarga data unavailable.</p>
-                          )}
+                          </div>
                         </div>
                       )}
 
-                      {mobileDashCategory === 'astrology' && mobileDashTab === 'yogas' && (
-                        chart.yogas ? (
-                          <YogaList yogas={chart.yogas} />
-                        ) : (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Yoga data unavailable.</p>
-                        )
+                      {mobileDashTab === 'yogas' && (
+                        <div className="panel">
+                          <div className="panel-header"><span>Graha Yogas</span></div>
+                          <div style={{ padding: '0.4rem 0.55rem' }}>
+                            {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>}
+                          </div>
+                        </div>
                       )}
-                      {mobileDashCategory !== 'astrology' && (
-                        <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.78rem' }}>
-                          Select an option above to open that section.
-                        </p>
-                      )}
+
                     </div>
                   )}
 
+                  {/* Bottom tab bar rendered via portal — see below */}
+
                   {activeTab === 'dashboard' && !isMobile && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {leftDashboardCards.map((cardId) => (
                         <div key={cardId} {...makeDesktopCardContainerProps(cardId)}>
-                          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                            Drag to reposition
-                          </div>
                           {renderDesktopDashboardCard(cardId, chart)}
                         </div>
                       ))}
@@ -1624,21 +1343,16 @@ function HomeContent() {
                {/* RIGHT: Active Tab Content (Sidebar Analysis) — hidden on mobile dashboard */}
                {!(isMobile && activeTab === 'dashboard') && (
                <div className="sticky-desktop" style={{ 
-                 flex: `1 1 650px`, 
-                 maxWidth: '1400px',
-                 minWidth: `min(100%, 650px)`,
+                 flex: `1 1 420px`, 
+                 minWidth: `min(100%, 360px)`,
                  display: 'flex', flexDirection: 'column', 
-                 gap: '1.5rem', 
-                 paddingRight: '4px',
+                 gap: '0.75rem', 
                  order: 2 
                }}>
                   {activeTab === 'dashboard' && !isMobile && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       {rightDashboardCards.map((cardId) => (
                         <div key={cardId} {...makeDesktopCardContainerProps(cardId)}>
-                          <div className="label-caps" style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-                            Drag to reposition
-                          </div>
                           {renderDesktopDashboardCard(cardId, chart)}
                         </div>
                       ))}
@@ -1647,216 +1361,134 @@ function HomeContent() {
 
 
                   {activeTab === 'dasha' && (
-                     <div className="card fade-up" style={{ padding: '1.5rem', minHeight: '600px', display: 'flex', flexDirection: 'column' }}>
-                       <div style={{ 
-                         display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
-                         marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem',
-                         paddingBottom: '1rem', borderBottom: '1px solid var(--border-soft)'
-                       }}>
-                         <div>
-                           <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', letterSpacing: '0.12em', fontSize: '0.7rem' }}>Time Sequence Analysis</h3>
-                           <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>Dynamic planetary cycles</div>
-                         </div>
-
-                         <div style={{ 
-                           display: 'flex', background: 'var(--surface-3)', 
-                           padding: '3px', borderRadius: '8px',
-                           border: '1px solid var(--border-soft)'
-                         }}>
-                           {([
-                             { id: 'vimshottari' as const, label: 'Viṁśottarī', desc: '120y' },
-                             { id: 'ashtottari'  as const, label: 'Aṣṭottarī',  desc: '108y' },
-                             { id: 'yogini'      as const, label: 'Yoginī',     desc: '36y' },
-                             { id: 'chara'       as const, label: 'Chara',      desc: '12s' },
-                           ]).map(({ id, label, desc }) => (
-                             <button 
-                               key={id} 
-                               onClick={() => setDashaSystem(id)} 
-                               style={{
-                                 padding: '0.35rem 0.6rem',
-                                 background: dashaSystem === id ? 'var(--surface-1)' : 'transparent',
-                                 border: 'none',
-                                 borderRadius: '6px',
-                                 cursor: 'pointer',
-                                 transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                 display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                 minWidth: '75px',
-                                 boxShadow: dashaSystem === id ? '0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px var(--border-bright)' : 'none',
-                               }}
-                             >
-                               <span style={{ 
-                                 fontSize: '0.75rem', 
-                                 fontWeight: dashaSystem === id ? 700 : 500,
+                     <div className="panel fade-up">
+                       <div className="panel-header">
+                         <span>Daśā Timeline</span>
+                         <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                           {(['vimshottari','ashtottari','yogini','chara'] as const).map((id) => {
+                             const shortLabel: Record<string,string> = { vimshottari:'Viṁ', ashtottari:'Aṣṭ', yogini:'Yog', chara:'Cha' }
+                             return (
+                               <button key={id} onClick={() => setDashaSystem(id)} style={{
+                                 padding: '0.15rem 0.4rem', fontSize: '0.62rem', fontFamily: 'inherit',
+                                 background: dashaSystem === id ? 'var(--gold-faint)' : 'transparent',
+                                 border: `1px solid ${dashaSystem === id ? 'var(--gold)' : 'var(--border-soft)'}`,
+                                 borderRadius: 3, cursor: 'pointer',
                                  color: dashaSystem === id ? 'var(--text-gold)' : 'var(--text-muted)',
-                                 fontFamily: 'var(--font-display)'
-                               }}>{label}</span>
-                               <span style={{ fontSize: '0.55rem', opacity: 0.5 }}>{desc}</span>
-                             </button>
-                           ))}
+                               }}>{shortLabel[id]}</button>
+                             )
+                           })}
                          </div>
                        </div>
-
-                       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                       <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                          {dashaSystem === 'vimshottari' && (
-                           <div style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
-                             <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap' }}>
-                               <span style={{ fontSize:'0.65rem', color:'var(--text-muted)', fontWeight:600,
-                                 letterSpacing:'0.08em', textTransform:'uppercase' }}>
-                                 Starting Tara
-                               </span>
+                           <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem' }}>
+                             <div style={{ display:'flex', alignItems:'center', gap:'0.35rem', flexWrap:'wrap' }}>
+                               <span style={{ fontSize:'0.6rem', color:'var(--text-muted)', fontWeight:600, letterSpacing:'0.08em', textTransform:'uppercase' }}>Tara:</span>
                                {(['Mo','As','Su','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as const).map(id => {
                                  const locked = userPlan === 'free' && id !== 'Mo'
-                                 const labels: Record<string,string> = {
-                                   Mo:'Moon', As:'Lagna', Su:'Sun', Ma:'Mars', Me:'Mercury',
-                                   Ju:'Jupiter', Ve:'Venus', Sa:'Saturn', Ra:'Rahu', Ke:'Ketu',
-                                 }
+                                 const labels: Record<string,string> = { Mo:'Mo', As:'As', Su:'Su', Ma:'Ma', Me:'Me', Ju:'Ju', Ve:'Ve', Sa:'Sa', Ra:'Ra', Ke:'Ke' }
                                  return (
-                                   <button key={id}
-                                     onClick={() => locked ? (window.location.href='/pricing') : setVimshottariTara(id)}
-                                     title={locked ? 'Requires Gold plan' : `Start from ${labels[id]} nakshatra`}
-                                     style={{
-                                       padding:'0.2rem 0.55rem', fontSize:'0.7rem', fontFamily:'inherit',
+                                   <button key={id} onClick={() => locked ? (window.location.href='/pricing') : setVimshottariTara(id)}
+                                     title={locked ? 'Requires Gold plan' : undefined}
+                                     style={{ padding:'0.1rem 0.3rem', fontSize:'0.65rem', fontFamily:'inherit',
                                        background: vimshottariTara===id ? 'var(--gold-faint)' : 'var(--surface-3)',
                                        border: `1px solid ${vimshottariTara===id ? 'var(--gold)' : 'var(--border-soft)'}`,
-                                       borderRadius:'var(--r-sm)', cursor:'pointer', transition:'all 0.12s',
-                                       color: locked ? 'var(--text-muted)' : (vimshottariTara===id ? 'var(--text-gold)' : 'var(--text-secondary)'),
+                                       borderRadius:3, cursor:'pointer', color: locked ? 'var(--text-muted)' : (vimshottariTara===id ? 'var(--text-gold)' : 'var(--text-secondary)'),
                                        opacity: locked ? 0.5 : 1,
-                                       display:'inline-flex', alignItems:'center', gap:'0.2rem',
                                      }}>
-                                     {locked && <span style={{fontSize:'0.6rem'}}>&#x1F512;</span>}
-                                     {labels[id]}
+                                     {locked ? '🔒' : ''}{labels[id]}
                                    </button>
                                  )
                                })}
                              </div>
-                             <DashaTree
-                               nodes={vimshottariTara==='Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari)}
-                               birthDate={new Date(chart.meta.birthDate)}
-                             />
+                             <DashaTree nodes={vimshottariTara==='Mo' ? chart.dashas.vimshottari : (altVimshottari ?? chart.dashas.vimshottari)} birthDate={new Date(chart.meta.birthDate)} />
                            </div>
                          )}
-                         {dashaSystem === 'ashtottari' && (
-                           chart.dashas.ashtottari?.length 
-                             ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> 
-                             : <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Aṣṭottarī computation required.</div>
-                         )}
-                         {dashaSystem === 'yogini' && (
-                           chart.dashas.yogini?.length 
-                             ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> 
-                             : <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Yoginī computation required.</div>
-                         )}
-                         {dashaSystem === 'chara' && (
-                           chart.dashas.chara?.length 
-                             ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> 
-                             : <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Chara computation required.</div>
-                         )}
+                         {dashaSystem === 'ashtottari' && (chart.dashas.ashtottari?.length ? <DashaTree nodes={chart.dashas.ashtottari} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Aṣṭottarī computation required.</div>)}
+                         {dashaSystem === 'yogini' && (chart.dashas.yogini?.length ? <DashaTree nodes={chart.dashas.yogini} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Yoginī computation required.</div>)}
+                         {dashaSystem === 'chara' && (chart.dashas.chara?.length ? <DashaTree nodes={chart.dashas.chara} birthDate={new Date(chart.meta.birthDate)} /> : <div style={{ fontSize:'0.75rem', color:'var(--text-muted)', padding:'0.75rem', textAlign:'center' }}>Chara computation required.</div>)}
                        </div>
                      </div>
                   )}
 
                   {activeTab === 'panchang' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Daily Pañcāṅga Analysis</h3>
-                        <NatalPanchangPanel p={chart.panchang} />
+                     <div className="panel fade-up">
+                        <div className="panel-header"><span>Natal Pañcāṅga</span></div>
+                        <div style={{ padding: '0.5rem 0.65rem' }}><NatalPanchangPanel p={chart.panchang} /></div>
                      </div>
                   )}
 
                   {activeTab === 'astro-details' && (
-                    <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                      <AstroDetailsPanel chart={chart} />
+                    <div className="panel fade-up">
+                      <div className="panel-header"><span>Astro Details</span></div>
+                      <div style={{ padding: '0.5rem 0.65rem' }}><AstroDetailsPanel chart={chart} /></div>
                     </div>
                   )}
 
                   {activeTab === 'yogas' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Graha Yogas</h3>
-                        {chart.yogas
-                          ? <YogaList yogas={chart.yogas} />
-                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Recalculate chart to see Yogas.</p>
-                        }
+                     <div className="panel fade-up">
+                        <div className="panel-header"><span>Graha Yogas</span></div>
+                        <div style={{ padding: '0.5rem 0.65rem' }}>
+                          {chart.yogas ? <YogaList yogas={chart.yogas} /> : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem', margin: 0 }}>Recalculate chart to see Yogas.</p>}
+                        </div>
                      </div>
                   )}
 
                   {activeTab === 'arudhas' && (
-                     <div className="card fade-up" style={{ padding: '1.25rem' }}>
-                        <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Bhāva Āruḍhas</h3>
-                        <ArudhaPanel arudhas={chart.arudhas} />
+                     <div className="panel fade-up">
+                        <div className="panel-header"><span>Bhāva Āruḍhas</span></div>
+                        <div style={{ padding: '0.5rem 0.65rem' }}><ArudhaPanel arudhas={chart.arudhas} /></div>
                      </div>
                   )}
 
                   {activeTab === 'shadbala' && (
-                    <div className="card fade-up" style={{ padding: '1rem' }}>
-                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
-                        Ṣaḍbala Quick Widget
+                    <div className="panel fade-up">
+                      <div className="panel-header"><span>Ṣaḍbala</span></div>
+                      <div style={{ padding: '0.5rem 0.65rem' }}>
+                        {chart.shadbala
+                          ? <ShadbalaTable shadbala={chart.shadbala} hideDetails={true} preferClassicCharts={true} variant="widget" />
+                          : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Shadbala data unavailable.</p>}
                       </div>
-                      {chart.shadbala ? (
-                        <ShadbalaTable
-                          shadbala={chart.shadbala}
-                          hideDetails={true}
-                          preferClassicCharts={true}
-                          variant="widget"
-                        />
-                      ) : (
-                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
-                          Shadbala data unavailable.
-                        </p>
-                      )}
                     </div>
                   )}
 
                    {activeTab === 'bhava-bala' && (
-                    <div className="card fade-up" style={{ padding: '1rem' }}>
-                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
-                        Bhāva Bala Quick Widget
+                    <div className="panel fade-up">
+                      <div className="panel-header"><span>Bhāva Bala</span></div>
+                      <div style={{ padding: '0.5rem 0.65rem' }}>
+                        {chart.bhavaBala ? (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--teal)' }}>{chart.bhavaBala.houses[chart.bhavaBala.strongestHouse].totalRupa.toFixed(1)} R</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Strongest H{chart.bhavaBala.strongestHouse}</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--rose)' }}>{chart.bhavaBala.houses[chart.bhavaBala.weakestHouse].totalRupa.toFixed(1)} R</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Weakest H{chart.bhavaBala.weakestHouse}</div>
+                            </div>
+                          </div>
+                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Bhava Bala data unavailable.</p>}
                       </div>
-                      {chart.bhavaBala ? (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--teal)' }}>
-                              {chart.bhavaBala.houses[chart.bhavaBala.strongestHouse].totalRupa.toFixed(1)} R
-                            </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Strongest: H{chart.bhavaBala.strongestHouse}</div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--rose)' }}>
-                              {chart.bhavaBala.houses[chart.bhavaBala.weakestHouse].totalRupa.toFixed(1)} R
-                            </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Weakest: H{chart.bhavaBala.weakestHouse}</div>
-                          </div>
-                        </div>
-                      ) : (
-                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
-                          Bhava Bala data unavailable.
-                        </p>
-                      )}
                     </div>
                   )}
 
                   {activeTab === 'vimsopaka' && (
-                    <div className="card fade-up" style={{ padding: '1rem' }}>
-                      <div className="label-caps" style={{ marginBottom: '0.75rem', fontSize: '0.65rem' }}>
-                        Viṁśopaka Quick View
+                    <div className="panel fade-up">
+                      <div className="panel-header"><span>Viṁśopaka</span></div>
+                      <div style={{ padding: '0.5rem 0.65rem' }}>
+                        {chart.vimsopaka ? (
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-gold)' }}>{chart.vimsopaka.planets[chart.vimsopaka.strongest]?.shodasvarga.toFixed(1)}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Strongest: {chart.vimsopaka.strongest}</div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--rose)' }}>{chart.vimsopaka.planets[chart.vimsopaka.weakest]?.shodasvarga.toFixed(1)}</div>
+                              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Weakest: {chart.vimsopaka.weakest}</div>
+                            </div>
+                          </div>
+                        ) : <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0, fontSize: '0.78rem' }}>Vimsopaka data unavailable.</p>}
                       </div>
-                      {chart.vimsopaka ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text-gold)' }}>
-                              {chart.vimsopaka.planets[chart.vimsopaka.strongest]?.shodasvarga.toFixed(1)}
-                            </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Strongest: {chart.vimsopaka.strongest}</div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--rose)' }}>
-                              {chart.vimsopaka.planets[chart.vimsopaka.weakest]?.shodasvarga.toFixed(1)}
-                            </div>
-                            <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Weakest: {chart.vimsopaka.weakest}</div>
-                          </div>
-                        </div>
-                      ) : (
-                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>
-                          Vimsopaka data unavailable.
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>
@@ -1865,351 +1497,271 @@ function HomeContent() {
 
                {/* BOTTOM: Full-width Shadbala below charts */}
                {activeTab === 'shadbala' && (
-                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
-                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Ṣaḍbala Strength</div>
-                   {chart.shadbala
-                     ? <ShadbalaTable shadbala={chart.shadbala} />
-                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Shadbala.</div>
-                   }
+                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                   <div className="panel-header"><span>Ṣaḍbala Strength</span></div>
+                   <div style={{ padding: '0.5rem 0.65rem' }}>
+                     {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>}
+                   </div>
                  </div>
                )}
 
                {/* BOTTOM: Full-width Bhava Bala below charts */}
                {activeTab === 'bhava-bala' && (
-                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
-                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Bhāva Bala — House Strength</div>
-                   {chart.bhavaBala
-                     ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
-                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Bhava Bala.</div>
-                   }
+                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                   <div className="panel-header"><span>Bhāva Bala — House Strength</span></div>
+                   <div style={{ padding: '0.5rem 0.65rem' }}>
+                     {chart.bhavaBala ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Bhava Bala.</div>}
+                   </div>
                  </div>
                )}
 
                {/* BOTTOM: Full-width Ashtakavarga below charts */}
                {activeTab === 'ashtakavarga' && (
-                 <div className="card fade-up" style={{ padding: '1.25rem', marginTop: '1.5rem' }}>
-                   <div className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Aṣṭakavarga Intelligence</div>
-                   {chart.ashtakavarga
-                     ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                     : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Recalculate chart to see Aṣṭakavarga.</div>
-                   }
+                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                   <div className="panel-header"><span>Aṣṭakavarga Intelligence</span></div>
+                   <div style={{ padding: '0.5rem 0.65rem' }}>
+                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Aṣṭakavarga.</div>}
+                   </div>
                  </div>
                )}
 
                 {/* BOTTOM: Full-width Vimsopaka below charts */}
                 {activeTab === 'vimsopaka' && (
-                  <div className="card fade-up" style={{ padding: '0.1rem', marginTop: '1.5rem' }}>
-                    {chart.vimsopaka
-                      ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                      : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1.25rem' }}>Viṁśopaka data unavailable — recalculate chart.</div>
-                    }
+                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                    <div className="panel-header"><span>Viṁśopaka Bala</span></div>
+                    {chart.vimsopaka ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '0.75rem', fontSize: '0.78rem' }}>Viṁśopaka data unavailable — recalculate chart.</div>}
                   </div>
                 )}
 
-               {/* BOTTOM: Dashboard Extended Details (Full width Diagnostics) */}
+               {/* BOTTOM: Dashboard Extended Details */}
                {activeTab === 'dashboard' && (
-                  <div style={{ 
-                    flex: '1 1 100%', 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', 
-                    gap: '1.5rem', 
-                    marginTop: '1.5rem',
-                    order: 3 // Extended details always last
+                  <div style={{
+                    flex: '1 1 100%',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+                    gap: '0.6rem',
+                    marginTop: '0.6rem',
+                    order: 3
                   }}>
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ashtakavarga Grid</h3>
-                          {chart.ashtakavarga ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              onClick={() => setDashExpandAv((e) => !e)}
-                              style={{ fontSize: '0.72rem' }}
-                            >
-                              {dashExpandAv ? 'Show less' : 'Show more'}
-                            </button>
-                          ) : null}
-                        </div>
-                        {!chart.ashtakavarga ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Aṣṭakavarga data unavailable.</p>
-                        ) : dashExpandAv ? (
-                          <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
-                        ) : dashboardAshtakSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
-                              <DashboardMetricChip label="SAV total" value={dashboardAshtakSummary.savTotal} sub="Typical ~337" />
-                              <DashboardMetricChip label="Avg / sign" value={dashboardAshtakSummary.avg} sub="Bindus per house" valueColor="var(--text-gold)" />
+
+                    {/* ── Ashtakavarga ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandAv ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Ashtakavarga</span>
+                        {chart.ashtakavarga && <button type="button" onClick={() => setDashExpandAv(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandAv ? '▴' : '▾ Full'}</button>}
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                        : dashboardAshtakSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                            {/* Key metrics row */}
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
+                              <div>
+                                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-gold)', fontFamily: 'var(--font-mono)' }}>{dashboardAshtakSummary.savTotal}</span>
+                                <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginLeft: 3 }}>SAV · avg {dashboardAshtakSummary.avg}/sign</span>
+                              </div>
                             </div>
-                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-                              <span style={{ color: 'var(--teal)', fontWeight: 700 }}>Peak:</span>{' '}
-                              H{dashboardAshtakSummary.highest.house} ({RASHI_SHORT[dashboardAshtakSummary.highest.rashi]}) —{' '}
-                              {dashboardAshtakSummary.highest.val} bindus ·{' '}
-                              <span style={{ color: 'var(--rose)', fontWeight: 700 }}>Low:</span> H{dashboardAshtakSummary.lowest.house} (
-                              {RASHI_SHORT[dashboardAshtakSummary.lowest.rashi]}) — {dashboardAshtakSummary.lowest.val}
-                            </p>
-                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                              Samudaya (SAV) combines all graha contributions. Open full view for BAV, chart styles, and tables.
-                            </p>
+                            {/* Mini house bar chart */}
+                            <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: 28 }}>
+                              {chart.ashtakavarga.sav.map((val, i) => {
+                                const maxVal = Math.max(...chart.ashtakavarga!.sav)
+                                const pct = (val / maxVal) * 100
+                                const isHigh = val === dashboardAshtakSummary!.highest.val
+                                const isLow = val === dashboardAshtakSummary!.lowest.val
+                                return (
+                                  <div key={i} title={`H${i+1}: ${val}b`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                                    <div style={{ width: '100%', height: `${pct}%`, minHeight: 2, background: isHigh ? 'var(--teal)' : isLow ? 'var(--rose)' : 'var(--border)', borderRadius: '1px 1px 0 0' }} />
+                                  </div>
+                                )
+                              })}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)' }}>
+                              <span style={{ color: 'var(--teal)' }}>▲ H{dashboardAshtakSummary.highest.house} ({RASHI_SHORT[dashboardAshtakSummary.highest.rashi]}) {dashboardAshtakSummary.highest.val}b</span>
+                              <span style={{ color: 'var(--rose)' }}>▼ H{dashboardAshtakSummary.lowest.house} ({RASHI_SHORT[dashboardAshtakSummary.lowest.rashi]}) {dashboardAshtakSummary.lowest.val}b</span>
+                            </div>
                           </div>
                         ) : null}
+                      </div>
                     </div>
 
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Ṣaḍbala Strength Overview</h3>
-                          {chart.shadbala ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              onClick={() => setDashExpandShad((e) => !e)}
-                              style={{ fontSize: '0.72rem' }}
-                            >
-                              {dashExpandShad ? 'Show less' : 'Show more'}
-                            </button>
-                          ) : null}
-                        </div>
-                        {!chart.shadbala ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Shadbala data unavailable.</p>
-                        ) : dashExpandShad ? (
-                          <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
-                        ) : dashboardShadbalaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '0.65rem' }}>
-                              <DashboardMetricChip
-                                label="Strongest"
-                                value={`${dashboardShadbalaSummary.strongestLabel} · ${dashboardShadbalaSummary.strongTotal} R`}
-                                sub="Ṣaḍbala total (rupas)"
-                              />
-                              <DashboardMetricChip
-                                label="Weakest"
-                                value={`${dashboardShadbalaSummary.weakestLabel} · ${dashboardShadbalaSummary.weakTotal} R`}
-                                sub="Ṣaḍbala total (rupas)"
-                                valueColor="var(--rose)"
-                              />
+                    {/* ── Shadbala ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandShad ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Ṣaḍbala</span>
+                        {chart.shadbala && <button type="button" onClick={() => setDashExpandShad(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandShad ? '▴' : '▾ Full'}</button>}
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {!chart.shadbala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        : dashExpandShad ? <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
+                        : dashboardShadbalaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem' }}>
+                              <span>⬆ <b style={{ color: 'var(--teal)' }}>{dashboardShadbalaSummary.strongestLabel}</b> {dashboardShadbalaSummary.strongTotal}R</span>
+                              <span>⬇ <b style={{ color: 'var(--rose)' }}>{dashboardShadbalaSummary.weakestLabel}</b> {dashboardShadbalaSummary.weakTotal}R</span>
                             </div>
-                            <div style={{ padding: '0.75rem 0.85rem', borderRadius: 'var(--r-md)', background: 'var(--surface-2)', border: '1px solid var(--border-soft)' }}>
-                              <div className="label-caps" style={{ fontSize: '0.58rem', marginBottom: '0.45rem' }}>Top 3 by total rupas</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                                {dashboardShadbalaSummary.top3.map((row, idx) => {
-                                  const width = Math.max(10, Math.min(100, row.ratio * 100))
+                            {dashboardShadbalaSummary.top3.map((row, idx) => {
+                              const width = Math.max(8, Math.min(100, row.ratio * 100))
+                              const barColor = idx === 0 ? 'var(--teal)' : idx === 1 ? 'var(--text-gold)' : 'var(--accent)'
+                              return (
+                                <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>#{idx+1} {row.name}</span>
+                                  <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${width}%`, background: barColor, borderRadius: 2 }} />
+                                  </div>
+                                  <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2.5rem', textAlign: 'right', flexShrink: 0 }}>{row.total.toFixed(1)}R</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {/* ── Vimsopaka ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandVim ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Viṁśopaka (16 Vargas)</span>
+                        {chart.vimsopaka && <button type="button" onClick={() => setDashExpandVim(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandVim ? '▴' : '▾ Full'}</button>}
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {!chart.vimsopaka ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        : dashExpandVim ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
+                        : dashboardVimsopakaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem', alignItems: 'baseline' }}>
+                              <span>⬆ <b style={{ color: 'var(--teal)' }}>{dashboardVimsopakaSummary.strongest}</b> {dashboardVimsopakaSummary.strongScore}/20</span>
+                              <span>⬇ <b style={{ color: 'var(--rose)' }}>{dashboardVimsopakaSummary.weakest}</b> {dashboardVimsopakaSummary.weakScore}/20</span>
+                              {dashboardVimsopakaSummary.avg && <span style={{ color: 'var(--text-muted)' }}>avg {dashboardVimsopakaSummary.avg}</span>}
+                            </div>
+                            {dashboardVimsopakaSummary.top3.length > 0 && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                {dashboardVimsopakaSummary.top3.map((row, idx) => {
+                                  const score = typeof row.score === 'number' ? row.score : 0
+                                  const pct = Math.max(8, Math.min(100, (score / 20) * 100))
                                   return (
-                                    <div key={row.id}>
-                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-                                        <span style={{ fontSize: '0.77rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                                          #{idx + 1} {row.name}
-                                        </span>
-                                        <span style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
-                                          {row.total.toFixed(2)} R
-                                        </span>
+                                    <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>#{idx+1} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}</span>
+                                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
+                                        <div style={{ height: '100%', width: `${pct}%`, background: idx === 0 ? 'var(--teal)' : 'var(--text-gold)', borderRadius: 2 }} />
                                       </div>
-                                      <div style={{ height: 5, borderRadius: 999, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                                        <div
-                                          style={{
-                                            height: '100%',
-                                            width: `${width}%`,
-                                            borderRadius: 999,
-                                            background: idx === 0 ? 'var(--teal)' : idx === 1 ? 'var(--text-gold)' : 'var(--accent)',
-                                          }}
-                                        />
-                                      </div>
+                                      <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2rem', textAlign: 'right', flexShrink: 0 }}>{score.toFixed(1)}</span>
                                     </div>
                                   )
                                 })}
                               </div>
-                            </div>
-                            <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                              Mean strength ratio (7 grahas):{' '}
-                              <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-gold)' }}>{dashboardShadbalaSummary.meanRatio}×</strong>{' '}
-                              vs required minimum.
-                            </p>
-                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                              Expand for per-metric mini charts (Sthāna, Kāla, Dig, Cheshta, Drik, totals).
-                            </p>
+                            )}
                           </div>
                         ) : null}
+                      </div>
                     </div>
 
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Viṁśopaka Bala (16 Vargas)</h3>
-                          {chart.vimsopaka ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              onClick={() => setDashExpandVim((e) => !e)}
-                              style={{ fontSize: '0.72rem' }}
-                            >
-                              {dashExpandVim ? 'Show less' : 'Show more'}
-                            </button>
-                          ) : null}
-                        </div>
-                        {!chart.vimsopaka ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Viṁśopaka data unavailable.</p>
-                        ) : dashExpandVim ? (
-                          <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
-                        ) : dashboardVimsopakaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
-                              <DashboardMetricChip
-                                label="Leader (16 vargas)"
-                                value={`${dashboardVimsopakaSummary.strongest}`}
-                                sub={`${dashboardVimsopakaSummary.strongScore} / 20`}
-                              />
-                              <DashboardMetricChip
-                                label="Lowest"
-                                value={`${dashboardVimsopakaSummary.weakest}`}
-                                sub={`${dashboardVimsopakaSummary.weakScore} / 20`}
-                                valueColor="var(--rose)"
-                              />
-                              {dashboardVimsopakaSummary.avg ? (
-                                <DashboardMetricChip label="Chart average" value={dashboardVimsopakaSummary.avg} sub="Mean · 16-varga" valueColor="var(--text-gold)" />
-                              ) : null}
+                    {/* ── Bhava Bala ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandBhava ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Bhāva Bala</span>
+                        {chart.bhavaBala && <button type="button" onClick={() => setDashExpandBhava(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandBhava ? '▴' : '▾ Full'}</button>}
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {!chart.bhavaBala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        : dashExpandBhava ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
+                        : dashboardBhavaBalaSummary ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem' }}>
+                              <span>⬆ <b style={{ color: 'var(--teal)' }}>H{dashboardBhavaBalaSummary.strongestHouse}</b> {dashboardBhavaBalaSummary.strongTotal}R</span>
+                              <span>⬇ <b style={{ color: 'var(--rose)' }}>H{dashboardBhavaBalaSummary.weakestHouse}</b> {dashboardBhavaBalaSummary.weakTotal}R</span>
+                              <span style={{ color: 'var(--text-muted)' }}>avg {dashboardBhavaBalaSummary.avgRupa}R</span>
                             </div>
-                            {dashboardVimsopakaSummary.top3.length > 0 ? (
-                              <div>
-                                <div className="label-caps" style={{ marginBottom: '0.35rem', fontSize: '0.6rem' }}>Top 3</div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                                  {dashboardVimsopakaSummary.top3.map((row) => (
-                                    <span
-                                      key={row.id}
-                                      style={{
-                                        fontSize: '0.78rem',
-                                        padding: '0.35rem 0.55rem',
-                                        borderRadius: 'var(--r-sm)',
-                                        border: '1px solid var(--border)',
-                                        background: 'var(--surface-2)',
-                                        fontFamily: 'var(--font-mono)',
-                                      }}
-                                    >
-                                      #{row.rank} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}{' '}
-                                      <span style={{ color: 'var(--teal)' }}>{row.score.toFixed(2)}</span>
-                                    </span>
-                                  ))}
-                                </div>
+                            {/* House strength mini-bars for all 12 */}
+                            {chart.bhavaBala.houses && (
+                              <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: 24 }}>
+                                {Array.from({ length: 12 }, (_, i) => {
+                                  const h = chart.bhavaBala!.houses[i + 1]
+                                  const val = h?.totalRupa ?? 0
+                                  const allVals = Object.values(chart.bhavaBala!.houses).map(x => x.totalRupa)
+                                  const maxVal = Math.max(...allVals)
+                                  const pct = maxVal > 0 ? (val / maxVal) * 100 : 0
+                                  const isS = i + 1 === dashboardBhavaBalaSummary!.strongestHouse
+                                  const isW = i + 1 === dashboardBhavaBalaSummary!.weakestHouse
+                                  return (
+                                    <div key={i} title={`H${i+1}: ${val.toFixed(1)}R`} style={{ flex: 1, height: `${Math.max(6, pct)}%`, background: isS ? 'var(--teal)' : isW ? 'var(--rose)' : 'var(--border)', borderRadius: '1px 1px 0 0', alignSelf: 'flex-end' }} />
+                                  )
+                                })}
                               </div>
-                            ) : null}
-                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                              Full panel includes heatmaps, dignity matrix, schemes (ṣaḍ/sapta/daśa/ṣoḍaśa), and remedies.
-                            </p>
-                          </div>
-                        ) : null}
-                    </div>
-
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Bhāva Bala (House Strength)</h3>
-                          {chart.bhavaBala ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              onClick={() => setDashExpandBhava((e) => !e)}
-                              style={{ fontSize: '0.72rem' }}
-                            >
-                              {dashExpandBhava ? 'Show less' : 'Show more'}
-                            </button>
-                          ) : null}
-                        </div>
-                        {!chart.bhavaBala ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Bhāva Bala data unavailable.</p>
-                        ) : dashExpandBhava ? (
-                          <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
-                        ) : dashboardBhavaBalaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.65rem' }}>
-                              <DashboardMetricChip
-                                label="Strongest house"
-                                value={`H${dashboardBhavaBalaSummary.strongestHouse} · ${dashboardBhavaBalaSummary.strongTotal} R`}
-                                sub="Total rupas"
-                              />
-                              <DashboardMetricChip
-                                label="Weakest house"
-                                value={`H${dashboardBhavaBalaSummary.weakestHouse} · ${dashboardBhavaBalaSummary.weakTotal} R`}
-                                sub="Total rupas"
-                                valueColor="var(--rose)"
-                              />
-                              <DashboardMetricChip
-                                label="Average"
-                                value={`${dashboardBhavaBalaSummary.avgRupa} R`}
-                                sub="12-house mean"
-                                valueColor="var(--text-gold)"
-                              />
+                            )}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'var(--text-muted)' }}>
+                              <span>H1</span><span>H6</span><span>H12</span>
                             </div>
-                            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                              House spread: <strong style={{ fontFamily: 'var(--font-mono)' }}>{dashboardBhavaBalaSummary.spreadRupa} R</strong>{' '}
-                              between strongest and weakest houses.
-                            </p>
-                            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                              Expand for full Dig Bala, Bhava Adhipati Bala, and supportive factor breakdown.
-                            </p>
                           </div>
                         ) : null}
+                      </div>
                     </div>
 
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Natal Panchang</h3>
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => setDashExpandPanchang((e) => !e)}
-                            style={{ fontSize: '0.72rem' }}
-                          >
-                            {dashExpandPanchang ? 'Show less' : 'Show more'}
-                          </button>
-                        </div>
-                        <div style={{ maxHeight: dashExpandPanchang ? 'none' : '300px', overflow: 'hidden', position: 'relative' }}>
+                    {/* ── Natal Panchang ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandPanchang ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Natal Panchang</span>
+                        <button type="button" onClick={() => setDashExpandPanchang(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandPanchang ? '▴' : '▾ Full'}</button>
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {dashExpandPanchang ? (
                           <NatalPanchangPanel p={chart.panchang} />
-                          {!dashExpandPanchang && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                height: '64px',
-                                background: 'linear-gradient(transparent, var(--surface-1))',
-                                pointerEvents: 'none',
-                              }}
-                            />
-                          )}
-                        </div>
+                        ) : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                            {[
+                              { label: 'Vāra',     value: `${chart.panchang.vara.name} · lord ${GRAHA_NAMES[chart.panchang.vara.lord as GrahaId] ?? chart.panchang.vara.lord}` },
+                              { label: 'Tithi',    value: `${chart.panchang.tithi.name} (${chart.panchang.tithi.number}/30) · ${chart.panchang.tithi.paksha === 'shukla' ? 'Śukla' : 'Kṛṣṇa'}` },
+                              { label: 'Nakṣatra', value: `${chart.panchang.nakshatra.name} · Pada ${chart.panchang.nakshatra.pada}` },
+                              { label: 'Yoga',     value: chart.panchang.yoga.name },
+                              { label: 'Karaṇa',  value: chart.panchang.karana.name },
+                              { label: 'Sunrise',  value: new Date(chart.panchang.sunrise).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) },
+                            ].map(({ label, value }) => (
+                              <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0.18rem 0', borderBottom: '1px solid var(--border-soft)', gap: '0.5rem' }}>
+                                <span style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', flexShrink: 0 }}>{label}</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-primary)', textAlign: 'right' }}>{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="card fade-up" style={{ padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                          <h3 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)', fontSize: '0.7rem' }}>Graha Yogas</h3>
-                          {chart.yogas ? (
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-sm"
-                              onClick={() => setDashExpandYogas((e) => !e)}
-                              style={{ fontSize: '0.72rem' }}
-                            >
-                              {dashExpandYogas ? 'Show less' : 'Show more'}
-                            </button>
-                          ) : null}
-                        </div>
-                        {!chart.yogas ? (
-                          <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Yoga data unavailable.</p>
-                        ) : (
-                          <div style={{ maxHeight: dashExpandYogas ? 'none' : '320px', overflow: 'hidden', position: 'relative' }}>
-                            <YogaList yogas={chart.yogas} />
-                            {!dashExpandYogas && (
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  height: '64px',
-                                  background: 'linear-gradient(transparent, var(--surface-1))',
-                                  pointerEvents: 'none',
-                                }}
-                              />
+                    {/* ── Graha Yogas ── */}
+                    <div className="panel fade-up" style={{ gridColumn: dashExpandYogas ? '1 / -1' : undefined }}>
+                      <div className="panel-header">
+                        <span>Graha Yogas</span>
+                        {chart.yogas && <button type="button" onClick={() => setDashExpandYogas(e => !e)} style={{ fontSize: '0.6rem', border: 'none', background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>{dashExpandYogas ? '▴' : '▾ Full'}</button>}
+                      </div>
+                      <div style={{ padding: '0.35rem 0.55rem' }}>
+                        {!chart.yogas ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
+                        : dashExpandYogas ? <YogaList yogas={chart.yogas} />
+                        : (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                            {/* Summary line */}
+                            <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.15rem' }}>
+                              {chart.yogas.length} yoga{chart.yogas.length !== 1 ? 's' : ''} · {chart.yogas.filter((y: any) => y.strength === 'strong' || y.strength === 'Strong').length} strong
+                            </div>
+                            {/* Compact yoga list */}
+                            {chart.yogas.slice(0, 6).map((yoga: any, idx: number) => {
+                              const isStrong = yoga.strength === 'strong' || yoga.strength === 'Strong'
+                              return (
+                                <div key={idx} style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', padding: '0.15rem 0', borderBottom: '1px solid var(--border-soft)' }}>
+                                  <span style={{ fontSize: '0.68rem', fontWeight: 600, color: 'var(--text-primary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {yoga.name}
+                                  </span>
+                                  {isStrong && <span style={{ fontSize: '0.55rem', fontWeight: 700, padding: '0 4px', borderRadius: 2, background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', border: '1px solid rgba(78,205,196,0.3)', flexShrink: 0 }}>Strong</span>}
+                                  {yoga.category && <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', flexShrink: 0 }}>{yoga.category}</span>}
+                                </div>
+                              )
+                            })}
+                            {chart.yogas.length > 6 && (
+                              <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>+{chart.yogas.length - 6} more — click ▾ Full</div>
                             )}
                           </div>
                         )}
+                      </div>
                     </div>
+
                  </div>
                )}
              </div>
@@ -2669,6 +2221,47 @@ function HomeContent() {
            {chart && <ChartSummary chart={chart} />}
         </div>
       </div>
+
+      {/* ── Mobile bottom tab bar — rendered via portal to escape transform contexts ── */}
+      {chart && isMobile && activeTab === 'dashboard' && typeof document !== 'undefined' && createPortal(
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--surface-1)',
+          borderTop: '1px solid var(--border-soft)',
+          display: 'flex', alignItems: 'stretch',
+          boxShadow: '0 -3px 16px rgba(0,0,0,0.14)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}>
+          {([
+            { id: 'planetary', icon: '✦', label: 'Planets'  },
+            { id: 'astro',     icon: '◎', label: 'Details'  },
+            { id: 'dashas',    icon: '⏱', label: 'Dasha'    },
+            { id: 'today',     icon: '☽', label: 'Today'    },
+            { id: 'strengths', icon: '⚡', label: 'Strength' },
+            { id: 'yogas',     icon: '❋', label: 'Yogas'    },
+          ] as const).map(({ id, icon, label }) => {
+            const active = mobileDashTab === id
+            return (
+              <button key={id} type="button"
+                onClick={() => setMobileDashTab(id as typeof mobileDashTab)}
+                style={{
+                  flex: 1, display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', justifyContent: 'center',
+                  gap: '0.12rem', padding: '0.5rem 0.15rem 0.6rem',
+                  border: 'none', background: 'none', cursor: 'pointer',
+                  borderTop: active ? '2px solid var(--gold)' : '2px solid transparent',
+                  color: active ? 'var(--text-gold)' : 'var(--text-muted)',
+                  transition: 'color 0.15s',
+                }}>
+                <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{icon}</span>
+                <span style={{ fontSize: '0.5rem', fontWeight: active ? 700 : 500, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{label}</span>
+              </button>
+            )
+          })}
+        </div>,
+        document.body
+      )}
+
     </div>
   )
 }

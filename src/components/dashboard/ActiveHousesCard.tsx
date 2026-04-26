@@ -1,8 +1,6 @@
 'use client'
 // ─────────────────────────────────────────────────────────────
-//  src/components/dashboard/ActiveHousesCard.tsx
-//  Displays which astrological houses are currently "active"
-//  based on the current dasha and transit moon.
+//  src/components/dashboard/ActiveHousesCard.tsx  — Compact flat list
 // ─────────────────────────────────────────────────────────────
 
 import React from 'react'
@@ -30,16 +28,12 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
     const current = nodes.find(n => n.isCurrent)
     if (current) {
       lords.push(current.lord)
-      if (current.children) {
-        lords = [...lords, ...findCurrentLords(current.children)]
-      }
+      if (current.children) lords = [...lords, ...findCurrentLords(current.children)]
     }
     return lords
   }
 
   const activeLords = findCurrentLords(dashas.vimshottari || [])
-  const mdLord = activeLords[0]
-  const adLord = activeLords[1]
 
   const getHouseOfPlanet = (gid: string) => {
     const g = grahas.find(p => p.id === gid)
@@ -55,90 +49,89 @@ export function ActiveHousesCard({ chart, transitMoonLon }: ActiveHousesCardProp
   const progressionHouse = getProgressionHouse(chart.meta.birthDate)
 
   return (
-    <div className="card fade-up" style={{ padding: '1.25rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-        <div>
-            <h3 className="label-caps" style={{ margin: 0, fontSize: '0.65rem' }}>Currently Active Houses</h3>
-            <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>Areas of life spotlighted by Dasha, Transit & Progression</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem' }}>
+
+      {/* ── Compact header ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.25rem', borderBottom: '1px solid var(--border-soft)' }}>
+        <span style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.07em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Active Houses</span>
+        <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.58rem', color: 'var(--text-muted)', alignItems: 'center' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--gold)', display: 'inline-block' }} /> Dasha
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block' }} /> Transit
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ width: 8, height: 2, background: 'var(--gold)', opacity: 0.6, display: 'inline-block' }} /> Prog
+          </span>
         </div>
-        <div style={{ fontSize: '1.2rem' }}>🏠</div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {activeHouses.length > 0 ? activeHouses.map(h => (
-           <div key={h} style={{ 
-             display: 'flex', gap: '1rem', alignItems: 'center', 
-             padding: '0.75rem', background: 'var(--surface-2)', 
-             borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)',
-             position: 'relative', overflow: 'hidden'
-           }}>
-             {(h === transitMoonHouse) && (
-                 <div style={{ 
-                   position: 'absolute', top: 0, left: 0, bottom: 0, width: 3, 
-                   background: 'var(--teal)' 
-                 }} title="Transit Focus" />
-             )}
-              {activeLords.slice(0,1).some(l => getHouseOfPlanet(l) === h) && (
-                 <div style={{ 
-                   position: 'absolute', top: 0, right: 0, bottom: 0, width: 3, 
-                   background: 'var(--gold)' 
-                 }} title="Dasha Focus" />
-             )}
-             {(h === progressionHouse) && (
-                 <div style={{ 
-                   position: 'absolute', bottom: 0, left: 3, right: 3, height: 2, 
-                   background: 'var(--gold)', opacity: 0.6
-                 }} title="Progression Focus" />
-             )}
+      {/* ── House rows ── */}
+      {activeHouses.length > 0 ? (
+        <div style={{ borderRadius: 6, border: '1px solid var(--border-soft)', overflow: 'hidden', background: 'var(--surface-1)' }}>
+          {activeHouses.map((h, idx) => {
+            const isTransit = h === transitMoonHouse
+            const isProgression = h === progressionHouse
+            const isDasha = activeLords.slice(0, 1).some(l => getHouseOfPlanet(l) === h)
 
-             <div style={{ 
-               width: 32, height: 32, borderRadius: 'var(--r-sm)', 
-               background: 'var(--surface-3)', display: 'flex', 
-               alignItems: 'center', justifyContent: 'center',
-               fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-gold)',
-               fontSize: '0.9rem', border: '1px solid var(--border-soft)'
-             }}>
-               {h}
-             </div>
-             <div style={{ flex: 1 }}>
-               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                 {topics[h]}
-               </div>
-               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '0.5rem', marginTop: '0.1rem', flexWrap: 'wrap' }}>
-                 {h === transitMoonHouse && <span style={{ color: 'var(--teal)' }}>● Transit Moon</span>}
-                 {h === progressionHouse && <span style={{ color: 'var(--text-gold)' }}>● Yearly Progression</span>}
-                 {activeLords.slice(0,2).map((l, idx) => {
-                     const isOccupying = getHouseOfPlanet(l) === h
-                     const rashiOfHouse = ((ascRashi + h - 2) % 12) + 1
-                     const isRuling = RASHI_LORD[rashiOfHouse] === l
-                     if (isOccupying || isRuling) {
-                         return <span key={`${l}-${idx}`} style={{ color: 'var(--gold)' }}>
-                             ● {idx === 0 ? 'MD' : 'AD'} Lord {l} ({isOccupying ? 'in' : 'rules'})
-                         </span>
-                     }
-                     return null
-                 })}
-               </div>
-             </div>
-           </div>
-        )) : (
-            <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Calculate chart to see active houses.
-            </div>
-        )}
-      </div>
+            const indicators: React.ReactNode[] = []
+            if (isTransit) indicators.push(<span key="tr" style={{ color: 'var(--teal)', fontSize: '0.58rem' }}>● Transit Moon</span>)
+            if (isProgression) indicators.push(<span key="pr" style={{ color: 'var(--text-gold)', fontSize: '0.58rem' }}>● Yearly Prog</span>)
+            activeLords.slice(0, 2).forEach((l, li) => {
+              const isOcc = getHouseOfPlanet(l) === h
+              const rashiOfHouse = ((ascRashi + h - 2) % 12) + 1
+              const isRul = RASHI_LORD[rashiOfHouse] === l
+              if (isOcc || isRul) {
+                indicators.push(
+                  <span key={`${l}-${li}`} style={{ color: 'var(--gold)', fontSize: '0.58rem' }}>
+                    ● {li === 0 ? 'MD' : 'AD'} {l} ({isOcc ? 'in' : 'rules'})
+                  </span>
+                )
+              }
+            })
 
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', fontSize: '0.65rem', color: 'var(--text-muted)', padding: '0.5rem 0', borderTop: '1px solid var(--border-soft)' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)' }} /> Dasha
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--teal)' }} /> Transit
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-              <span style={{ width: 6, height: 2, background: 'var(--gold)' }} /> Progression
-          </span>
-      </div>
+            const accentColor = isTransit ? 'var(--teal)' : isDasha ? 'var(--gold)' : isProgression ? 'var(--gold)' : 'var(--border-soft)'
+
+            return (
+              <div key={h} style={{
+                display: 'flex', alignItems: 'flex-start', gap: '0.45rem',
+                padding: '0.28rem 0.55rem',
+                borderBottom: idx === activeHouses.length - 1 ? 'none' : '1px solid var(--border-soft)',
+                borderLeft: `2px solid ${accentColor}`,
+                background: 'transparent',
+              }}>
+                {/* House number badge */}
+                <span style={{
+                  flexShrink: 0, minWidth: '1.4rem', height: '1.4rem',
+                  borderRadius: 4, background: 'var(--surface-2)',
+                  border: '1px solid var(--border-soft)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--font-mono)', fontWeight: 700,
+                  fontSize: '0.65rem', color: 'var(--text-gold)',
+                }}>
+                  {h}
+                </span>
+                {/* Topic + indicators */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                    {topics[h]}
+                  </div>
+                  {indicators.length > 0 && (
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.1rem' }}>
+                      {indicators}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.72rem' }}>
+          Calculate chart to see active houses.
+        </div>
+      )}
     </div>
   )
 }
