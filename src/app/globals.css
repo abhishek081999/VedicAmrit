@@ -2645,22 +2645,156 @@ select.input {
 
 /* ── Advanced Astro Vastu Effects ────────────────────────────── */
 .vastu-compass-container {
-  filter: drop-shadow(0 0 30px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 0 40px rgba(0,0,0,0.4));
   animation: compass-intro 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes compass-intro {
-  from { opacity: 0; transform: scale(0.9) rotate(-15deg); }
-  to { opacity: 1; transform: scale(1) rotate(0deg); }
+  from { opacity: 0; transform: scale(0.88) rotate(-12deg); }
+  to   { opacity: 1; transform: scale(1)    rotate(0deg); }
 }
 
 .zone-segment:hover {
-  filter: brightness(1.5) drop-shadow(0 0 5px var(--gold));
-  opacity: 0.6 !important;
+  filter: brightness(1.6) drop-shadow(0 0 8px var(--gold));
+  opacity: 0.65 !important;
 }
 
 .vastu-zone-card:hover {
-  transform: translateY(-4px) scale(1.015);
+  transform: translateY(-3px) scale(1.012);
   border-color: var(--gold) !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25), 0 0 15px var(--gold-faint);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.25), 0 0 12px var(--gold-faint);
+}
+
+/* Hero header */
+.vastu-hero-header {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: var(--r-lg, 16px);
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface-3) 100%);
+}
+
+.vastu-glow-top-right {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.vastu-glow-bottom-left {
+  position: absolute;
+  bottom: -70px;
+  left: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,124,246,0.09) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Icon ring */
+.vastu-icon-ring {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  background: var(--gold-faint);
+  border: 1px solid var(--border-bright);
+  box-shadow: 0 0 20px rgba(201,168,76,0.2);
+  transition: box-shadow 0.3s;
+}
+.vastu-icon-ring:hover {
+  box-shadow: 0 0 32px rgba(201,168,76,0.4);
+}
+
+/* Grade card */
+.vastu-grade-card {
+  padding: 1.25rem 1.75rem;
+  background: var(--surface-1);
+  border: 1px solid;
+  border-radius: 14px;
+  text-align: center;
+  min-width: 110px;
+  transition: transform 0.2s;
+}
+.vastu-grade-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Stat chips */
+.vastu-stat-chip {
+  padding: 0.75rem 1rem;
+  background: var(--surface-1);
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid;
+  transition: transform 0.2s;
+}
+.vastu-stat-chip:hover {
+  transform: translateY(-2px);
+}
+
+/* Tab buttons */
+.vastu-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  margin-bottom: -1px;
+}
+.vastu-tab-btn:hover {
+  color: var(--text-secondary);
+}
+.vastu-tab-active {
+  color: var(--text-gold) !important;
+  border-bottom-color: var(--gold) !important;
+  font-weight: 600;
+}
+
+/* Dosha accordion card */
+.vastu-dosha-card {
+  background: var(--surface-2);
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.vastu-dosha-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.vastu-dosha-card summary::-webkit-details-marker { display: none; }
+.vastu-dosha-card[open] summary {
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface-3);
+}
+.vastu-dosha-card[open] summary span:last-child {
+  transform: rotate(180deg);
+}
+
+/* Fade-in animation for tab content */
+.fade-up {
+  animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

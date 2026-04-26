@@ -512,3 +512,422 @@ export function getSBCGrid(): SBCCell[][] {
   if (!_cachedGrid) _cachedGrid = buildSBCGrid()
   return _cachedGrid
 }
+
+// ─────────────────────────────────────────────────────────────
+//  Diagonal Vedha (Mars, Jupiter, Saturn, Rahu, Ketu)
+// ─────────────────────────────────────────────────────────────
+
+/** Planets that cast diagonal vedha in addition to row + column */
+export const DIAGONAL_PLANETS = new Set<GrahaId>(['Ma', 'Ju', 'Sa', 'Ra', 'Ke'])
+
+/**
+ * Full vedha for a planet at [row, col]:
+ *   - All planets: row + column
+ *   - Ma, Ju, Sa, Ra, Ke additionally: all four diagonals
+ * Returns affected nakshatras, rashis, varas, plus a Set of diagonal cell keys.
+ */
+export function getFullVedhaCells(
+  planet: GrahaId,
+  row: number,
+  col: number,
+  grid: SBCCell[][],
+): {
+  affectedNakshatras: number[]
+  affectedRashis:     number[]
+  affectedVaras:      GrahaId[]
+  diagonalKeys:       Set<string>
+} {
+  const seen        = new Set<string>()
+  const cells:      SBCCell[] = []
+  const diagonalKeys = new Set<string>()
+
+  // Row + column (all planets)
+  for (let i = 0; i < 9; i++) {
+    if (i !== col) {
+      const k = `${row},${i}`
+      if (!seen.has(k)) { seen.add(k); cells.push(grid[row][i]) }
+    }
+    if (i !== row) {
+      const k = `${i},${col}`
+      if (!seen.has(k)) { seen.add(k); cells.push(grid[i][col]) }
+    }
+  }
+
+  // Diagonals — only for special planets
+  if (DIAGONAL_PLANETS.has(planet)) {
+    for (let i = 1; i < 9; i++) {
+      const deltas: [number, number][] = [[i, i], [i, -i], [-i, i], [-i, -i]]
+      deltas.forEach(([dr, dc]) => {
+        const r = row + dr, c = col + dc
+        if (r >= 0 && r < 9 && c >= 0 && c < 9) {
+          const k = `${r},${c}`
+          if (!seen.has(k)) { seen.add(k); cells.push(grid[r][c]); diagonalKeys.add(k) }
+        }
+      })
+    }
+  }
+
+  return {
+    affectedNakshatras: cells
+      .filter(c => c.type === 'nakshatra' && c.nakshatraIndex !== undefined)
+      .map(c => c.nakshatraIndex!),
+    affectedRashis: cells
+      .filter(c => c.type === 'rashi' && c.rashiIndex !== undefined)
+      .map(c => c.rashiIndex!),
+    affectedVaras: cells
+      .filter(c => c.type === 'vara' && c.varaLord)
+      .map(c => c.varaLord!),
+    diagonalKeys,
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Name Syllable → Nakshatra mapping
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Traditional Sanskrit syllable → nakshatra index (0-26).
+ * Each nakshatra has 4 padas, each starting with a Sanskrit sound.
+ * The name's first syllable determines the birth/name nakshatra.
+ */
+export const NAME_SYLLABLE_NAK: Record<string, number> = {
+  // 0 Ashwini
+  'chu': 0, 'che': 0, 'cho': 0, 'la': 0,
+  // 1 Bharani
+  'li': 1, 'lu': 1, 'le': 1, 'lo': 1,
+  // 2 Krittika
+  'a': 2, 'i': 2, 'u': 2, 'e': 2,
+  // 3 Rohini
+  'o': 3, 'va': 3, 'vi': 3, 'vu': 3,
+  // 4 Mrigashira
+  've': 4, 'vo': 4, 'ka': 4, 'ki': 4,
+  // 5 Ardra
+  'ku': 5, 'gha': 5, 'jha': 5, 'ng': 5,
+  // 6 Punarvasu
+  'ke': 6, 'ko': 6, 'ha': 6, 'hi': 6,
+  // 7 Pushya
+  'hu': 7, 'he': 7, 'ho': 7, 'da': 7,
+  // 8 Ashlesha
+  'di': 8, 'du': 8, 'de': 8, 'do': 8,
+  // 9 Magha
+  'ma': 9, 'mi': 9, 'mu': 9, 'me': 9,
+  // 10 Purva Phalguni
+  'mo': 10, 'ta': 10, 'ti': 10, 'tu': 10,
+  // 11 Uttara Phalguni
+  'te': 11, 'to': 11, 'pa': 11, 'pi': 11,
+  // 12 Hasta
+  'pu': 12, 'sha': 12, 'na': 12, 'tha': 12,
+  // 13 Chitra
+  'pe': 13, 'po': 13, 'ra': 13, 'ri': 13,
+  // 14 Swati
+  'ru': 14, 're': 14, 'ro': 14,
+  // 15 Vishakha
+  'ti2': 15, 'tu2': 15, 'te2': 15, 'to2': 15, // aliased; prefer 2-char lookup
+  // 16 Anuradha
+  'ni': 16, 'nu': 16, 'ne': 16, 'no': 16,
+  // 17 Jyeshtha
+  'ya': 17, 'yi': 17, 'yu': 17, 'ye': 17,
+  // 18 Moola
+  'yo': 18, 'ba': 18, 'bi': 18, 'bu': 18,
+  // 19 Purva Ashadha
+  'bha': 19, 'dha': 19, 'pha': 19, 'bhu': 19,
+  // 20 Uttara Ashadha
+  'be': 20, 'bo': 20, 'ja': 20, 'ji': 20,
+  // 21 Shravana
+  'khi': 21, 'khu': 21, 'khe': 21, 'kho': 21, 'ju': 21,
+  // 22 Dhanishtha
+  'ga': 22, 'gi': 22, 'gu': 22, 'ge': 22,
+  // 23 Shatabhisha
+  'go': 23, 'sa': 23, 'si': 23, 'su': 23,
+  // 24 Purva Bhadrapada
+  'se': 24, 'so': 24, 'daa': 24, 'dee': 24,
+  // 25 Uttara Bhadrapada
+  'du2': 25, 'tha2': 25, 'jha2': 25, 'jna': 25,
+  // 26 Revati
+  'cha': 26, 'chi': 26,
+}
+
+/**
+ * Convert name's first letters to a nakshatra index (0-26).
+ * Tries 3-char, then 2-char, then 1-char prefix (lowercased).
+ * Returns null if no match found.
+ */
+export function nameToNakshatra(name: string): number | null {
+  const n = name.trim().toLowerCase().replace(/[^a-z]/g, '')
+  if (!n) return null
+  const try3 = NAME_SYLLABLE_NAK[n.slice(0, 3)]
+  if (try3 !== undefined) return try3
+  const try2 = NAME_SYLLABLE_NAK[n.slice(0, 2)]
+  if (try2 !== undefined) return try2
+  const try1 = NAME_SYLLABLE_NAK[n.slice(0, 1)]
+  if (try1 !== undefined) return try1
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Life Area Significations
+// ─────────────────────────────────────────────────────────────
+
+export type LifeAreaKey = 'health' | 'wealth' | 'relationships' | 'travel' | 'enemies' | 'career'
+
+export interface LifeAreaPrediction {
+  area:       LifeAreaKey
+  icon:       string
+  label:      string
+  positive:   string[]
+  negative:   string[]
+  score:      number   // -100 to +100
+}
+
+const LIFE_AREA_PLANET_POSITIVE: Record<GrahaId, LifeAreaKey[]> = {
+  Su: ['career', 'health'],
+  Mo: ['health', 'wealth', 'relationships'],
+  Ma: ['health', 'career', 'enemies'],
+  Me: ['wealth', 'career', 'travel'],
+  Ju: ['wealth', 'relationships', 'career'],
+  Ve: ['relationships', 'wealth'],
+  Sa: ['career', 'travel'],
+  Ra: ['wealth', 'travel'],
+  Ke: ['health', 'enemies'],
+  Ur: [], Ne: [], Pl: [],
+}
+
+const LIFE_AREA_PLANET_NEGATIVE: Record<GrahaId, LifeAreaKey[]> = {
+  Su: ['health', 'enemies'],
+  Mo: ['health', 'relationships'],
+  Ma: ['health', 'enemies', 'travel'],
+  Me: ['wealth'],
+  Ju: [],
+  Ve: ['relationships'],
+  Sa: ['health', 'career', 'travel'],
+  Ra: ['health', 'enemies', 'wealth'],
+  Ke: ['health', 'relationships'],
+  Ur: [], Ne: [], Pl: [],
+}
+
+const LIFE_AREA_META: Record<LifeAreaKey, { icon: string; label: string }> = {
+  health:        { icon: '🏥', label: 'Health & Vitality' },
+  wealth:        { icon: '💰', label: 'Wealth & Finance' },
+  relationships: { icon: '💑', label: 'Relationships & Love' },
+  travel:        { icon: '✈️', label: 'Travel & Movement' },
+  enemies:       { icon: '⚔️', label: 'Enemies & Conflict' },
+  career:        { icon: '🏆', label: 'Career & Fame' },
+}
+
+export function getLifeAreaPredictions(
+  activations: SBCActivation[],
+): LifeAreaPrediction[] {
+  const scoreMap: Record<LifeAreaKey, number>   = { health: 0, wealth: 0, relationships: 0, travel: 0, enemies: 0, career: 0 }
+  const positiveMap: Record<LifeAreaKey, string[]> = { health: [], wealth: [], relationships: [], travel: [], enemies: [], career: [] }
+  const negativeMap: Record<LifeAreaKey, string[]> = { health: [], wealth: [], relationships: [], travel: [], enemies: [], career: [] }
+
+  activations.forEach(act => {
+    const tp  = act.transitPlanet
+    const nak = act.nakshatraName.split(' ')[0]
+    if (act.type === 'shubha') {
+      LIFE_AREA_PLANET_POSITIVE[tp]?.forEach(area => {
+        scoreMap[area] = Math.min(100, scoreMap[area] + 30)
+        positiveMap[area].push(`${PLANET_NAME_SBC[tp]} blesses ${area} zone via ${nak}`)
+      })
+    } else {
+      LIFE_AREA_PLANET_NEGATIVE[tp]?.forEach(area => {
+        scoreMap[area] = Math.max(-100, scoreMap[area] - 25)
+        negativeMap[area].push(`${PLANET_NAME_SBC[tp]} afflicts ${area} zone via ${nak}`)
+      })
+    }
+  })
+
+  return (Object.keys(LIFE_AREA_META) as LifeAreaKey[]).map(area => ({
+    area,
+    ...LIFE_AREA_META[area],
+    positive: positiveMap[area].slice(0, 3),
+    negative: negativeMap[area].slice(0, 3),
+    score:    scoreMap[area],
+  }))
+}
+
+const PLANET_NAME_SBC: Record<GrahaId, string> = {
+  Su: 'Sun', Mo: 'Moon', Ma: 'Mars', Me: 'Mercury',
+  Ju: 'Jupiter', Ve: 'Venus', Sa: 'Saturn', Ra: 'Rahu', Ke: 'Ketu',
+  Ur: 'Uranus', Ne: 'Neptune', Pl: 'Pluto',
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Muhurta Assessment
+// ─────────────────────────────────────────────────────────────
+
+export interface MuhurtaEvent {
+  id:          string
+  label:       string
+  icon:        string
+  goodPlanets: GrahaId[]   // These should NOT be malefic-afflicted
+  needStrong:  GrahaId[]   // These should be benefic-aspected
+  score?:      number
+  verdict?:    'excellent' | 'good' | 'neutral' | 'avoid'
+  note?:       string
+}
+
+export const MUHURTA_EVENTS: MuhurtaEvent[] = [
+  { id: 'marriage',    label: 'Marriage',          icon: '💍', goodPlanets: ['Ve', 'Mo'],      needStrong: ['Ve', 'Ju'] },
+  { id: 'business',   label: 'Business Start',     icon: '🏢', goodPlanets: ['Me', 'Ju'],      needStrong: ['Me', 'Ju'] },
+  { id: 'travel',     label: 'Travel / Journey',   icon: '✈️', goodPlanets: ['Mo'],             needStrong: ['Mo', 'Me'] },
+  { id: 'investment', label: 'Investment',          icon: '📈', goodPlanets: ['Ju', 'Ve'],      needStrong: ['Ju'] },
+  { id: 'surgery',    label: 'Surgery / Medical',  icon: '🏥', goodPlanets: ['Ma'],             needStrong: ['Mo'] },
+  { id: 'education',  label: 'Education Start',    icon: '📚', goodPlanets: ['Me', 'Ju'],      needStrong: ['Ju', 'Me'] },
+  { id: 'career',     label: 'Job / Career',       icon: '💼', goodPlanets: ['Su'],             needStrong: ['Su', 'Ju'] },
+  { id: 'legal',      label: 'Legal Matters',      icon: '⚖️', goodPlanets: ['Ju'],             needStrong: ['Ju'] },
+  { id: 'property',   label: 'Property Purchase',  icon: '🏠', goodPlanets: ['Ma', 'Sa'],       needStrong: ['Ju', 'Ma'] },
+  { id: 'religious',  label: 'Religious Ceremony', icon: '🪔', goodPlanets: ['Ju', 'Su'],       needStrong: ['Ju'] },
+]
+
+export function assessMuhurta(
+  events: MuhurtaEvent[],
+  vedhas: VedhaResult[],
+): MuhurtaEvent[] {
+  const maleficSet  = new Set(vedhas.filter(v => v.isMalefic).map(v => v.planet))
+  const beneficSet  = new Set(vedhas.filter(v => !v.isMalefic).map(v => v.planet))
+
+  return events.map(ev => {
+    let score = 50
+    const issues: string[] = []
+
+    ev.goodPlanets.forEach(p => {
+      if (maleficSet.has(p)) { score -= 25; issues.push(`${PLANET_NAME_SBC[p]} is afflicted`) }
+    })
+    ev.needStrong.forEach(p => {
+      if (beneficSet.has(p)) score += 20
+    })
+
+    const verdict: MuhurtaEvent['verdict'] =
+      score >= 80 ? 'excellent' :
+      score >= 60 ? 'good' :
+      score >= 40 ? 'neutral' : 'avoid'
+
+    return {
+      ...ev,
+      score,
+      verdict,
+      note: issues.length ? issues.join('; ') : undefined,
+    }
+  })
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Remedies
+// ─────────────────────────────────────────────────────────────
+
+export interface PlanetRemedy {
+  planet:  GrahaId
+  name:    string
+  color:   string
+  remedy:  string
+  mantra:  string
+  stone:   string
+  day:     string
+  deity:   string
+}
+
+export const PLANET_REMEDIES: PlanetRemedy[] = [
+  { planet: 'Su', name: 'Sun',     color: '#FF8C00', remedy: 'Offer water to the Sun at sunrise daily. Donate wheat & jaggery on Sundays.',                        mantra: 'Om Hraam Hreem Hraum Sah Suryaya Namah',      stone: 'Ruby',           day: 'Sunday',    deity: 'Surya Dev' },
+  { planet: 'Mo', name: 'Moon',    color: '#A8C8E8', remedy: 'Offer milk to Lord Shiva on Mondays. Feed rice to crows. Donate white items.',                       mantra: 'Om Shraam Shreem Shraum Sah Chandraya Namah', stone: 'Pearl',          day: 'Monday',    deity: 'Lord Shiva' },
+  { planet: 'Ma', name: 'Mars',    color: '#E84040', remedy: 'Offer red flowers to Hanuman on Tuesdays. Donate red lentils and copper.',                           mantra: 'Om Kraam Kreem Kraum Sah Bhaumaya Namah',    stone: 'Red Coral',      day: 'Tuesday',   deity: 'Lord Hanuman' },
+  { planet: 'Me', name: 'Mercury', color: '#48C774', remedy: 'Feed green grass to cows on Wednesdays. Donate green clothing and moong dal.',                       mantra: 'Om Braam Breem Braum Sah Budhaya Namah',     stone: 'Emerald',        day: 'Wednesday', deity: 'Lord Vishnu' },
+  { planet: 'Ju', name: 'Jupiter', color: '#FFD700', remedy: 'Feed banana to cows on Thursdays. Donate yellow items and chana dal. Respect teachers.',             mantra: 'Om Graam Greem Graum Sah Gurave Namah',      stone: 'Yellow Sapphire',day: 'Thursday',  deity: 'Lord Brihaspati' },
+  { planet: 'Ve', name: 'Venus',   color: '#FF69B4', remedy: 'Donate white items, perfumes, and sweets on Fridays. Worship Goddess Lakshmi.',                      mantra: 'Om Draam Dreem Draum Sah Shukraya Namah',    stone: 'Diamond',        day: 'Friday',    deity: 'Goddess Lakshmi' },
+  { planet: 'Sa', name: 'Saturn',  color: '#8B9DC3', remedy: 'Feed black sesame to the poor on Saturdays. Light mustard oil lamp under Peepal tree.',              mantra: 'Om Praam Preem Praum Sah Shanaye Namah',     stone: 'Blue Sapphire',  day: 'Saturday',  deity: 'Lord Shani' },
+  { planet: 'Ra', name: 'Rahu',    color: '#8B4513', remedy: 'Donate coconut in flowing water. Feed stray dogs. Recite Durga Kavach on Saturdays.',                mantra: 'Om Bhraam Bhreem Bhraum Sah Rahave Namah',   stone: 'Hessonite',      day: 'Saturday',  deity: 'Goddess Durga' },
+  { planet: 'Ke', name: 'Ketu',    color: '#9B59B6', remedy: 'Feed multi-coloured dogs and stray animals. Donate blankets. Worship Lord Ganesha on Tuesdays.',     mantra: 'Om Sraam Sreem Sraum Sah Ketave Namah',      stone: "Cat's Eye",      day: 'Tuesday',   deity: 'Lord Ganesha' },
+]
+
+// ─────────────────────────────────────────────────────────────
+//  Tithi Quality
+// ─────────────────────────────────────────────────────────────
+
+export type TithiQuality = 'best' | 'good' | 'mixed' | 'bad' | 'special'
+
+export interface TithiInfo {
+  num:     number    // 1-30
+  name:    string
+  type:    string    // Nanda, Bhadra, Jaya, Rikta, Poorna
+  paksha:  'shukla' | 'krishna'
+  quality: TithiQuality
+}
+
+const TITHI_DATA: Array<[string, string, TithiQuality]> = [
+  // [name, type, quality] — 1-15 Shukla Paksha
+  ['Pratipada',   'Nanda',  'mixed'],
+  ['Dwitiya',     'Bhadra', 'good'],
+  ['Tritiya',     'Jaya',   'good'],
+  ['Chaturthi',   'Rikta',  'bad'],
+  ['Panchami',    'Poorna', 'good'],
+  ['Shashthi',    'Nanda',  'good'],
+  ['Saptami',     'Bhadra', 'good'],
+  ['Ashtami',     'Jaya',   'mixed'],
+  ['Navami',      'Rikta',  'bad'],
+  ['Dashami',     'Poorna', 'good'],
+  ['Ekadashi',    'Nanda',  'best'],
+  ['Dwadashi',    'Bhadra', 'good'],
+  ['Trayodashi',  'Jaya',   'good'],
+  ['Chaturdashi', 'Rikta',  'bad'],
+  ['Purnima',     'Poorna', 'best'],
+]
+
+/**
+ * Calculate tithi (1-30) from Sun & Moon sidereal longitudes.
+ * Tithi = floor((Moon - Sun) / 12) + 1
+ */
+export function getTithiIndex(sunLon: number, moonLon: number): number {
+  const diff = ((moonLon - sunLon) + 360) % 360
+  return Math.floor(diff / 12) + 1  // 1 to 30
+}
+
+export function getTithiInfo(sunLon: number, moonLon: number): TithiInfo {
+  const tNum = getTithiIndex(sunLon, moonLon)  // 1-30
+  const idx  = ((tNum - 1) % 15)              // 0-14 (same names in both paksha)
+  const [name, type, quality] = TITHI_DATA[idx]
+  const paksha: 'shukla' | 'krishna' = tNum <= 15 ? 'shukla' : 'krishna'
+
+  // Special cases
+  const finalQuality: TithiQuality =
+    tNum === 30 ? 'special' :        // Amavasya
+    tNum === 15 ? 'best' :           // Purnima
+    quality
+
+  return { num: tNum, name, type, paksha, quality: finalQuality }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Extended SBCAnalysis type (augmented with new fields)
+// ─────────────────────────────────────────────────────────────
+
+export interface SBCAnalysisExtended extends SBCAnalysis {
+  lifeAreas:      LifeAreaPrediction[]
+  muhurta:        MuhurtaEvent[]
+  birthNakAffected: boolean   // Is birth nakshatra in any malefic vedha?
+  nameNakAffected:  boolean
+  birthVedhas:    VedhaResult[]   // Vedhas directly affecting birth nakshatra
+}
+
+export function analyzeSBCExtended(
+  natalGrahas:      SBCGrahaInput[],
+  transitGrahas:    SBCGrahaInput[],
+  grid:             SBCCell[][],
+  birthNakIdx?:     number,
+  nameNakIdx?:      number,
+): SBCAnalysisExtended {
+  const base = analyzeSBC(natalGrahas, transitGrahas, grid)
+
+  const lifeAreas = getLifeAreaPredictions(base.activations)
+  const muhurta   = assessMuhurta(MUHURTA_EVENTS, base.vedhas)
+
+  const birthVedhas = birthNakIdx !== undefined
+    ? base.vedhas.filter(v => v.affectedNakshatras.includes(birthNakIdx))
+    : []
+
+  const birthNakAffected = birthVedhas.some(v => v.isMalefic)
+  const nameNakAffected  = nameNakIdx !== undefined
+    ? base.vedhas.some(v => v.isMalefic && v.affectedNakshatras.includes(nameNakIdx))
+    : false
+
+  return { ...base, lifeAreas, muhurta, birthNakAffected, nameNakAffected, birthVedhas }
+}

@@ -93,9 +93,10 @@ export default function ACGPage() {
           </div>
           
           {!isMobile && (
-            <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem', borderRight: '2px solid var(--gold-faint)' }}>
-                <StatItem label="Active Lines" value={selectedPlanets.size} />
-                <StatItem label="Power Crossings" value={activeParans.length} />
+            <div style={{ display: 'flex', gap: '1.5rem', padding: '1rem 1.25rem', borderLeft: '2px solid var(--gold-faint)', background: 'var(--surface-1)', borderRadius: '12px' }}>
+                <StatItem label="Active Layers" value={selectedPlanets.size} />
+                <StatItem label="Planet Lines" value={selectedPlanets.size * 4} />
+                <StatItem label="Crossings" value={activeParans.length} />
             </div>
           )}
         </div>
@@ -145,13 +146,14 @@ export default function ACGPage() {
             natalData={natalData}
           />
           
-          <div className="card-gold" style={{ padding: '1.25rem', textAlign: 'center' }}>
-            <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 600, fontSize: '0.85rem' }}>
-              💡 Relocation Intelligence
-            </p>
-            <p style={{ margin: '0.5rem 0 0', color: 'var(--text-on-gold)', opacity: 0.8, fontSize: '0.75rem', lineHeight: 1.4 }}>
-              Click any city on the map to see how your personal energy shifts in that specific region.
-            </p>
+          <div className="card-gold" style={{ padding: '1.1rem', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+            <span style={{ fontSize: '1.25rem', flexShrink: 0 }}>💡</span>
+            <div>
+              <p style={{ margin: 0, color: 'var(--text-on-gold)', fontWeight: 700, fontSize: '0.82rem' }}>Relocation Intelligence</p>
+              <p style={{ margin: '0.3rem 0 0', color: 'var(--text-on-gold)', opacity: 0.82, fontSize: '0.73rem', lineHeight: 1.45 }}>
+                Click anywhere on the map to instantly see your relocated Ascendant, nearest planetary line, and life-area interpretation for that location.
+              </p>
+            </div>
           </div>
         </aside>
       </main>

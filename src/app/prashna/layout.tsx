@@ -2,21 +2,21 @@ import type { Metadata } from 'next'
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://vedaansh.com'
 
 export const metadata: Metadata = {
-  title:       'Prashna — Vedic Horary Astrology',
-  description: 'Prashna Jyotish (Vedic horary astrology): cast an instant chart for your question and receive traditional answers using Nakshatra, Ascendant & planetary positions via Swiss Ephemeris.',
+  title:       'Prashna — Krishneeyam Kerala Horary Astrology',
+  description: 'Prashna Jyotish powered by Krishneeyam (Kerala horary): Yes/No verdicts, When timing, What/Who analysis, Lost Article recovery, Health, Pregnancy & Travel queries using traditional Aroodha-Udaya, Seershodaya, Oordhwamukha rules.',
   alternates:  { canonical: `${BASE_URL}/prashna` },
-  keywords:    ['Prashna', 'horary astrology', 'Vedic horary', 'Prashna Jyotish', 'question chart', 'KP horary', 'Prasna'],
+  keywords:    ['Prashna', 'horary astrology', 'Krishneeyam', 'Kerala astrology', 'Prashna Jyotish', 'Aroodha', 'Udaya Lagna', 'Yes No astrology', 'Nashta Prashna', 'KP horary', 'Prasna Marga'],
   openGraph: {
-    title:       'Prashna — Vedic Horary Astrology | Vedaansh',
-    description: 'Cast an instant Prashna (horary) chart for your question — Nakshatra, Ascendant & planetary analysis.',
+    title:       'Prashna — Krishneeyam Kerala Horary | Vedaansh',
+    description: 'Instant Prashna chart with Krishneeyam rules: Yes/No, When, What, Who, Lost Article, Health & more.',
     url:         `${BASE_URL}/prashna`,
     type:        'website',
-    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Prashna Horary Astrology — Vedaansh' }],
+    images:      [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Prashna Kerala Horary Astrology — Vedaansh' }],
   },
   twitter: {
     card:        'summary_large_image',
-    title:       'Prashna — Vedic Horary Astrology | Vedaansh',
-    description: 'Cast an instant Prashna chart for your question — traditional Vedic horary analysis.',
+    title:       'Prashna — Krishneeyam Kerala Horary | Vedaansh',
+    description: 'Instant Prashna chart with traditional Krishneeyam rules for Yes/No, timing, lost articles & more.',
     images:      ['/og-default.png'],
   },
 }
