@@ -93,12 +93,12 @@ export default function VastuPage() {
   // derive key chart stats for the header strip
   const lagnaRashi   = chart.lagnas.ascRashi as number
   const lagnaName    = RASHI_NAMES[lagnaRashi] ?? '—'
-  const atmakaraka   = chart.karakas?.AK?.id ?? ''
+  const atmakaraka   = chart.karakas?.AK ?? ''
   const moonGraha    = chart.grahas.find((g: { id: string }) => g.id === 'Mo')
   const moonRashi    = moonGraha ? (RASHI_NAMES[moonGraha.rashi as number] ?? '—') : '—'
   const moonNakIndex = chart.panchang?.nakshatra?.index ?? 0
-  const tithiNumber  = chart.panchang?.tithi?.index    ?? 1
-  const varaNumber   = chart.panchang?.vara             ?? 0
+  const tithiNumber  = chart.panchang?.tithi?.number ?? 1
+  const varaNumber   = chart.panchang?.vara?.number  ?? 0
 
   return (
     <div className="fade-up" style={{

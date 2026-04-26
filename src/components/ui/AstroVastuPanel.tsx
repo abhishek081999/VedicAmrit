@@ -742,8 +742,8 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
               lagnas={chart.lagnas}
               arudhas={chart.arudhas}
               moonNakIndex={chart.panchang?.nakshatra?.index ?? 0}
-              tithiNumber={chart.panchang?.tithi?.index ?? 1}
-              varaNumber={chart.panchang?.vara ?? 0}
+              tithiNumber={chart.panchang?.tithi?.number ?? 1}
+              varaNumber={chart.panchang?.vara?.number ?? 0}
               defaultStyle="north"
               size={480}
             />
@@ -2015,7 +2015,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                   { priority: 4, zone: 'ENE', action: 'Activate ENE for Career (10th Bhava)', detail: 'Home office or work desk facing ENE or N. Professional awards in ENE zone. Sun yantra in East wall.', color: '#f59e0b', icon: '💼' },
                   { priority: 5, zone: 'SE', action: 'Maintain SE Kitchen (2nd Bhava/Wealth)', detail: 'Kitchen stove in SE. Cooking facing East. Cash locker away from SW only if Rahu is malefic. Agni deepam in SE.', color: '#ef4444', icon: '💰' },
                 ].concat(
-                  (chart.grahas as Array<{ id: string; lon: number; isRetro?: boolean }> || [])
+                  (chart.grahas as Array<{ id: string; lonSidereal: number; isRetro?: boolean }> || [])
                     .filter(g => g.isRetro)
                     .slice(0, 2)
                     .map((g, i) => {

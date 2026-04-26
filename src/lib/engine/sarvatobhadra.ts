@@ -642,7 +642,7 @@ export const NAME_SYLLABLE_NAK: Record<string, number> = {
   // 24 Purva Bhadrapada
   'se': 24, 'so': 24, 'daa': 24, 'dee': 24,
   // 25 Uttara Bhadrapada
-  'du': 25, 'tha2': 25, 'jha2': 25, 'jna': 25,
+  'du2': 25, 'tha2': 25, 'jha2': 25, 'jna': 25,
   // 26 Revati
   'cha': 26, 'chi': 26,
 }
