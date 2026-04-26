@@ -66,11 +66,11 @@ function DignityCell({ dignity }: { dignity: string }) {
   return (
     <span style={{
       display: 'inline-block',
-      padding: '2px 7px',
-      borderRadius: 4,
+      padding: '1px 5px',
+      borderRadius: 3,
       background: s.bg,
       color: s.color,
-      fontSize: '0.68rem',
+      fontSize: '0.62rem',
       fontWeight: 600,
       whiteSpace: 'nowrap',
       border: `1px solid ${s.color}33`,
@@ -225,50 +225,34 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     : ((vargaLagnas && vargaLagnas[selectedVarga]) || (lagnas?.ascRashi || 1))
 
   return (
-    <div style={{ width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
+    <div style={{ width: '100%', borderRadius: 'var(--r-sm)', border: '1px solid var(--border-soft)', overflow: 'hidden' }}>
 
-      {/* ── Header with Varga Selector ─────────────────── */}
+      {/* ── Compact header ─────────────────────────────── */}
       <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.6rem 0.9rem',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '0.28rem 0.6rem',
         background: 'var(--surface-3)',
         borderBottom: '1px solid var(--border-soft)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '0.9rem' }}>✦</span>
-          <span style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)' }}>
-            Micro-Details {selectedVarga !== 'D1' ? ` — ${selectedVarga}` : ''}
-          </span>
-        </div>
-        
+        <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)' }}>
+          ✦ Micro-Details{selectedVarga !== 'D1' ? ` · ${selectedVarga}` : ''}
+        </span>
         {vargas && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Switch Varga:</span>
-            <select 
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
+            <select
               value={selectedVarga}
-              onChange={(e) => {
-                const val = e.target.value
-                setSelectedVarga(val)
-                if (onVargaChange) onVargaChange(val)
-              }}
+              onChange={(e) => { const val = e.target.value; setSelectedVarga(val); if (onVargaChange) onVargaChange(val) }}
               style={{
-                background: 'var(--primary-brand)',
-                color: '#fff',
-                border: '1px solid var(--gold)',
-                borderRadius: '6px',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                padding: '4px 10px',
-                cursor: 'pointer',
-                outline: 'none',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                background: 'var(--primary-brand)', color: '#fff',
+                border: '1px solid var(--gold)', borderRadius: '4px',
+                fontSize: '0.68rem', fontWeight: 600,
+                padding: '2px 6px', cursor: 'pointer', outline: 'none',
               }}
             >
               {vargaOptions.map(opt => (
                 <option key={opt} value={opt}>
-                  {opt} {VARGA_META[opt]?.full ? `(${VARGA_META[opt].full})` : ''}
+                  {opt}{VARGA_META[opt]?.full ? ` (${VARGA_META[opt].full})` : ''}
                 </option>
               ))}
             </select>
@@ -277,22 +261,22 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       </div>
 
       <div style={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{ width: '100%', minWidth: 520, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
+        <table style={{ width: '100%', minWidth: 460, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
           <colgroup>
-            <col style={{ width: '22%' }} />
+            <col style={{ width: '20%' }} />
+            <col style={{ width: '14%' }} />
             <col style={{ width: '15%' }} />
-            <col style={{ width: '16%' }} />
-            <col style={{ width: '18%' }} />
+            <col style={{ width: '17%' }} />
             <col style={{ width: '13%' }} />
-            <col style={{ width: '16%' }} />
+            <col style={{ width: '21%' }} />
           </colgroup>
 
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '2px solid var(--primary-brand)' }}>
-              {['Body', 'Deg  ′  ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi · D9' : 'Natal · Varga', 'Dignity', 'Avasthā'].map((h, idx) => (
+              {['Body', 'Deg ′ ″', 'Nakshatra', selectedVarga === 'D1' ? 'Rashi·D9' : 'Natal→Varga', 'Dignity', 'Avasthā'].map((h, idx) => (
                 <th key={h} style={{
-                  padding: '0.55rem 0.7rem', color: 'var(--primary-brand)', fontSize: '0.6rem', fontWeight: 800,
-                  letterSpacing: '0.1em', textTransform: 'uppercase', textAlign: idx === 0 ? 'left' : 'center',
+                  padding: '0.25rem 0.45rem', color: 'var(--primary-brand)', fontSize: '0.55rem', fontWeight: 800,
+                  letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: idx === 0 ? 'left' : 'center',
                 }}>
                   {h}
                 </th>
@@ -300,20 +284,20 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             </tr>
           </thead>
 
-          <tbody style={{ fontSize: '0.8rem' }}>
+          <tbody style={{ fontSize: '0.72rem' }}>
             {bodies.map((b, i) => {
               const { deg, min, sec, rshort, rashiIdx } = fmtDeg(b.totalDeg)
               const nak = getNak(b.totalDeg)
               const nav = getNav(b.totalDeg)
-              // Lookup natal graha for cross-reference
               const natalGraha = b.id ? grahas.find(g => g.id === b.id) : undefined
               const isMainPlanet = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'].includes(b.id as string)
 
               return (
-                <tr key={`${b.name}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'rgba(0,0,0,0.015)' : 'transparent' }}>
-                  <td style={{ padding: '0.45rem 0.7rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <span 
+                <tr key={`${b.name}-${i}`} style={{ borderBottom: '1px solid var(--border-soft)', background: i % 2 === 0 ? 'rgba(0,0,0,0.012)' : 'transparent' }}>
+                  {/* Body */}
+                  <td style={{ padding: '0.2rem 0.45rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span
                         onMouseEnter={(e) => {
                           if (!isMainPlanet || !natalGraha) return
                           setMousePos({ x: e.clientX, y: e.clientY })
@@ -334,39 +318,45 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                             })
                           }, 200)
                         }}
-                        onMouseLeave={() => {
-                          if (hoverTimer.current) clearTimeout(hoverTimer.current)
-                          setHoveredPlanet(null)
-                        }}
-                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.82rem', cursor: isMainPlanet ? 'help' : 'default' }}>
-                        {b.name} {b.isRetro && <span style={{ fontSize: '0.58rem' }}>℞</span>}
+                        onMouseLeave={() => { if (hoverTimer.current) clearTimeout(hoverTimer.current); setHoveredPlanet(null) }}
+                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.73rem', cursor: isMainPlanet ? 'help' : 'default' }}>
+                        {b.name}{b.isRetro && <sup style={{ fontSize: '0.5rem', marginLeft: 1 }}>℞</sup>}
                       </span>
-                      {b.karaka && <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 3px', background: 'var(--surface-3)', borderRadius: 3 }}>{b.karaka}</span>}
+                      {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{b.karaka}</span>}
+                      {b.conditions && <ConditionBadges graha={b.conditions} />}
                     </div>
-                    {b.conditions && <div style={{ marginTop: '0.15rem' }}><ConditionBadges graha={b.conditions} /></div>}
                   </td>
-                  <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.76rem' }}>
-                    <span style={{ fontWeight: 600 }}>{deg}°</span> {String(min).padStart(2, '0')}′ {String(sec).padStart(2, '0')}″
+                  {/* Degree — single line */}
+                  <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
+                    <b>{deg}°</b>{String(min).padStart(2,'0')}′{String(sec).padStart(2,'0')}″
                   </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <span style={{ fontWeight: 600 }}>{nak.name}</span> <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({nak.pada})</span>
+                  {/* Nakshatra */}
+                  <td style={{ textAlign: 'center', fontSize: '0.68rem' }}>
+                    <b>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
                   </td>
-                  <td style={{ textAlign: 'center' }}>
+                  {/* Rashi · D9 */}
+                  <td style={{ textAlign: 'center', fontSize: '0.68rem' }}>
                     {selectedVarga === 'D1' ? (
                       <>
-                        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--primary-brand)', marginLeft: 4 }}>({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})</span>
+                        <b style={{ color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</b>
+                        <span style={{ fontSize: '0.6rem', color: 'var(--primary-brand)', marginLeft: 3 }}>({isSa ? RASHI_SANSKRIT[nav] : RASHI_SHORT[nav]})</span>
                       </>
                     ) : (
                       <>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{natalGraha ? (isSa ? RASHI_SANSKRIT[natalGraha.rashi] : RASHI_SHORT[natalGraha.rashi]) : '—'}</span>
-                        <span style={{ color: 'var(--border-bright)', margin: '0 4px' }}>→</span>
-                        <span style={{ fontWeight: 700, color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{natalGraha ? (isSa ? RASHI_SANSKRIT[natalGraha.rashi] : RASHI_SHORT[natalGraha.rashi]) : '—'}</span>
+                        <span style={{ color: 'var(--border-bright)', margin: '0 2px' }}>›</span>
+                        <b style={{ color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</b>
                       </>
                     )}
                   </td>
-                  <td style={{ textAlign: 'center' }}>{b.dignity ? <DignityCell dignity={b.dignity} /> : '—'}</td>
-                  <td style={{ textAlign: 'center' }}>{b.avastha ? <div style={{ fontSize: '0.76rem' }}>{b.avastha.baladi}<div style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>{b.avastha.jagradadi}</div></div> : '—'}</td>
+                  {/* Dignity */}
+                  <td style={{ textAlign: 'center' }}>{b.dignity ? <DignityCell dignity={b.dignity} /> : <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>—</span>}</td>
+                  {/* Avastha */}
+                  <td style={{ textAlign: 'center', fontSize: '0.65rem' }}>
+                    {b.avastha
+                      ? <span>{b.avastha.baladi} <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{b.avastha.jagradadi}</span></span>
+                      : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                  </td>
                 </tr>
               )
             })}
@@ -384,23 +374,18 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       )}
 
       {/* ── Legend ── */}
-      <div style={{ padding: '0.5rem 0.9rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '0.6rem', background: 'rgba(244,63,94,0.1)', color: '#fb7185', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(244,63,94,0.3)', fontWeight: 700 }}>G</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Gandanta</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '0.6rem', background: 'rgba(78,205,196,0.1)', color: 'var(--teal)', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(78,205,196,0.3)', fontWeight: 700 }}>P</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Pushkara</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '0.6rem', background: 'rgba(251,146,60,0.1)', color: '#fb923c', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(251,146,60,0.3)', fontWeight: 700 }}>M</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Mrityu Bhaga</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.1)', color: '#818cf8', padding: '1px 4px', borderRadius: 3, border: '1px solid rgba(129,140,248,0.3)', fontWeight: 700 }}>Y</span>
-          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)' }}>Yuddha (War)</span>
-        </div>
+      <div style={{ padding: '0.2rem 0.6rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        {[
+          { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
+          { code: 'P', label: 'Pushkara',    bg: 'rgba(78,205,196,0.1)',  color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
+          { code: 'M', label: 'Mrityu Bh.', bg: 'rgba(251,146,60,0.1)',  color: '#fb923c',  border: 'rgba(251,146,60,0.3)'  },
+          { code: 'Y', label: 'Yuddha',      bg: 'rgba(129,140,248,0.1)', color: '#818cf8',  border: 'rgba(129,140,248,0.3)' },
+        ].map(({ code, label, bg, color, border }) => (
+          <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <span style={{ fontSize: '0.55rem', background: bg, color, padding: '0 3px', borderRadius: 2, border: `1px solid ${border}`, fontWeight: 700 }}>{code}</span>
+            <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{label}</span>
+          </div>
+        ))}
       </div>
       
     </div>

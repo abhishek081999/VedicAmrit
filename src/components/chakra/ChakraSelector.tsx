@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { SouthIndianChakra }     from './SouthIndianChakra'
 import { NorthIndianChakra }     from './NorthIndianChakra'
 import { SarvatobhadraChakra }   from './SarvatobhadraChakra'
@@ -15,6 +15,7 @@ import { CircleChakra }          from './CircleChakra'
 import type { GrahaData, Rashi, ChartStyle, ArudhaData, LagnaData } from '@/types/astrology'
 import { getVargaPosition } from '@/lib/engine/vargas'
 import { getNakshatra } from '@/lib/engine/nakshatra'
+import { useAppLayout } from '@/components/providers/LayoutProvider'
 
 // ── Props ─────────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ export function ChakraSelector({
   const [style, setStyle] = useState<ChartStyle>(
     VALID_STYLES.includes(defaultStyle as ChartStyle) ? defaultStyle as ChartStyle : 'north'
   )
-  const [showDegrees,   setShowDegrees]   = useState(true)
+  const [showDegrees,   setShowDegrees]   = useState(false)
   const [showNakshatra, setShowNakshatra] = useState(false)
   const [showKaraka,    setShowKaraka]    = useState(false)
   const [showArudha,    setShowArudha]    = useState(false)
@@ -102,12 +103,21 @@ export function ChakraSelector({
   const resolvedShowSettings = showSettingsOverride ?? showSettings
   const handleSettingsToggle = onToggleSettings ?? (() => setShowSettings(!showSettings))
 
+  const { isSidenavOpen } = useAppLayout()
+
   // Use smaller scale on mobile initially
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setChartScale(0.9)
     }
   }, [])
+
+  // Adjust chart scale when sidenav opens/closes on desktop
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      setChartScale(isSidenavOpen ? 1.10 : 0.90)
+    }
+  }, [isSidenavOpen])
 
   const isSBC = style === 'sarvatobhadra'
 
@@ -204,11 +214,10 @@ export function ChakraSelector({
 
       {resolvedShowSettings && (
         <div className="fade-in" style={{
-          display: 'flex', flexDirection: 'column', gap: '1.25rem',
-          padding: '1.25rem', background: 'var(--surface-2)', 
-          borderRadius: '12px', border: '1px solid var(--border-soft)',
-          boxShadow: 'var(--shadow-card)',
-          marginBottom: '0.5rem'
+          display: 'flex', flexDirection: 'column', gap: '0.6rem',
+          padding: '0.5rem 0.6rem', background: 'var(--surface-2)', 
+          borderRadius: '6px', border: '1px solid var(--border-soft)',
+          marginBottom: '0.3rem'
         }}>
           
           {/* Style switcher */}

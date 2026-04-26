@@ -1152,18 +1152,18 @@ select.input {
 
 /* ── Responsive Spacing ─────────────────────────────────────── */
 .main-responsive-padding {
-  padding: 2rem;
+  padding: 1rem 1.25rem;
 }
 
 @media (max-width: 768px) {
   .main-responsive-padding {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .main-responsive-padding {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 }
 
@@ -1318,21 +1318,7 @@ select.input {
   }
 }
 
-.main-responsive-padding {
-  padding: 2rem;
-}
-
-@media (max-width: 1023px) {
-  .main-responsive-padding {
-    padding: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .main-responsive-padding {
-    padding: 0.75rem;
-  }
-}
+/* .main-responsive-padding is defined above */
 
 /* ── Extra small (≤ 400px) ──────────────────────────────────── */
 @media (max-width: 400px) {
@@ -1409,19 +1395,32 @@ select.input {
     width: 450px;
   }
 
-  /* 2-col chart grid: chart | tabs */
+  /* 2-col chart grid: chart | tabs — show side-by-side from 1024px */
   .chart-layout-grid {
     display: grid;
-    grid-template-columns: 1fr 650px;
-    gap: 2.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 30vw);
+    gap: 1.25rem;
     align-items: start;
     width: 100%;
   }
 
   .sticky-desktop {
     position: sticky;
-    top: 5.5rem;
+    top: 4rem;
     align-self: flex-start;
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+  }
+
+  .sticky-desktop::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .sticky-desktop::-webkit-scrollbar-thumb {
+    background: var(--border-soft);
+    border-radius: 2px;
   }
 }
 
@@ -1430,38 +1429,28 @@ select.input {
   .chart-layout-grid {
     display: flex !important;
     flex-direction: column !important;
-    gap: 1.5rem !important;
+    gap: 1rem !important;
   }
   
   .sticky-desktop {
     position: static !important;
+    max-height: none !important;
+    overflow-y: visible !important;
   }
 }
 
-/* Keep dashboard stacked on iPad and small laptops (especially with sidenav open) */
-@media (min-width: 1024px) and (max-width: 1439px) {
+/* On larger screens keep right rail at 30% */
+@media (min-width: 1440px) {
   .chart-layout-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1.5rem !important;
-  }
-
-  .sticky-desktop {
-    position: static !important;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 30vw) !important;
+    gap: 1.25rem !important;
   }
 }
 
-/* On larger screens tighten the right tab column */
-@media (min-width: 1440px) and (max-width: 1680px) {
+/* Ultra-wide desktops cap right rail size */
+@media (min-width: 1920px) {
   .chart-layout-grid {
-    grid-template-columns: 1fr 650px !important;
-  }
-}
-
-/* Very wide — give chart even more breathing room */
-@media (min-width: 1400px) {
-  .chart-layout-grid {
-    grid-template-columns: 1fr 650px !important;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 480px) !important;
   }
 }
 
@@ -1469,12 +1458,12 @@ select.input {
 .chart-header-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 2rem;
+  gap: 0.75rem;
   border-bottom: 1px solid var(--border-soft);
-  padding-bottom: 2rem;
-  margin-bottom: 2rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
 }
 
 .chart-action-wrap {
@@ -2167,9 +2156,9 @@ select.input {
   }
 
   .chart-header-row {
-    padding-bottom: 1.25rem;
-    margin-bottom: 1.25rem;
-    gap: 1rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.65rem;
+    gap: 0.6rem;
   }
   .birth-summary-strip {
     gap: 0.75rem 1rem;
@@ -2383,19 +2372,19 @@ select.input {
 
 /* Divisional Chart Grid: Force 1 column on mobile, STRICTLY max 2 on desktop */
 .varga-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1280px) {
   .varga-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
 /* Constraint on very wide screens so the 2 charts don't grow too wide */
 @media (min-width: 1600px) {
   .varga-grid {
-    grid-template-columns: repeat(2, minmax(400px, 600px)) !important;
+    grid-template-columns: repeat(2, minmax(380px, 560px)) !important;
     justify-content: center;
   }
 }
@@ -2490,6 +2479,169 @@ select.input {
     break-before: page;
   }
 }
+/* ══════════════════════════════════════════════════════════════
+   COMPACT DASHBOARD — jhora/deva.guru density
+   ══════════════════════════════════════════════════════════════ */
+
+/* Compact panel replaces padded card in dashboard context */
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.75rem;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-gold);
+  flex-shrink: 0;
+}
+
+.panel-body {
+  padding: 0.6rem 0.75rem;
+}
+
+/* Chart name strip — single line compact */
+.chart-name-strip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.chart-name-strip .name-primary {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+  line-height: 1.2;
+}
+
+.chart-name-strip .name-sep {
+  color: var(--border-bright);
+  font-size: 0.8rem;
+}
+
+.chart-name-strip .name-detail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.chart-name-strip .name-asc {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-gold);
+  white-space: nowrap;
+}
+
+/* Compact action buttons row */
+.chart-actions-compact {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Compact section chip — tight metrics */
+.metric-row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.metric-chip-sm {
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem 0.5rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-sm);
+  min-width: 80px;
+}
+
+.metric-chip-sm .mc-label {
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.metric-chip-sm .mc-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--teal);
+  font-family: var(--font-mono);
+}
+
+/* Compact tab bar for right panel */
+.compact-tab-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.compact-tab-bar::-webkit-scrollbar { display: none; }
+
+.compact-tab-btn {
+  padding: 0.38rem 0.7rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.compact-tab-btn:hover { color: var(--text-secondary); }
+.compact-tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Drag handle hint */
+.drag-hint {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  opacity: 0.5;
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+/* Right panel scroll area */
+.right-panel-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.right-panel-scroll::-webkit-scrollbar { width: 3px; }
+.right-panel-scroll::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
 /* ── Advanced Astro Vastu Effects ────────────────────────────── */
 .vastu-compass-container {
   filter: drop-shadow(0 0 30px rgba(0,0,0,0.3));
