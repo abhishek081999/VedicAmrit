@@ -154,6 +154,8 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   const [lineStyle, setLineStyle]     = useState<'vivid' | 'subtle'>('vivid')
   const [activeTheme, setActiveTheme] = useState('all')
   const mapRef = useRef<L.Map | null>(null)
+  const birthLat = birthCoords?.[0]
+  const birthLng = birthCoords?.[1]
 
   // ── Responsive ──
   useEffect(() => {
@@ -184,15 +186,14 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
   // ── Data fetch ──
   const lastFetch = useRef('')
   useEffect(() => {
-    const lat = birthCoords?.[0], lng = birthCoords?.[1]
-    const key = `${natalJd}-${lat}-${lng}`
+    const key = `${natalJd}-${birthLat}-${birthLng}`
     if (lastFetch.current === key) return
 
     async function fetchAll() {
       setLoading(true)
       try {
-        const hasCoords = lat !== undefined && lng !== undefined
-        const coords   = hasCoords ? `&lat=${lat}&lng=${lng}` : ''
+        const hasCoords = birthLat !== undefined && birthLng !== undefined
+        const coords   = hasCoords ? `&lat=${birthLat}&lng=${birthLng}` : ''
         const nRes     = await fetch(`/api/chart/astrocartography?jd=${natalJd}${coords}`)
         const nJson    = await nRes.json()
         if (nJson.success) { setNatalData(nJson.lines); setNatalParans(nJson.parans) }
@@ -205,7 +206,7 @@ export default function AstroCartographyMap({ jd: natalJd, birthCoords, onVisibl
       finally { setLoading(false) }
     }
     fetchAll()
-  }, [natalJd, birthCoords?.[0], birthCoords?.[1]])
+  }, [natalJd, birthLat, birthLng])
 
   // ── Map click → relocation ──
   const handleMapClick = useCallback(async (lat: number, lng: number) => {

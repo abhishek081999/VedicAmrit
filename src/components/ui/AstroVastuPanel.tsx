@@ -1957,7 +1957,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
                 })}
               </div>
               <div style={{ background: 'rgba(201,168,76,0.07)', borderRadius: 'var(--r-sm)', padding: '0.6rem 0.75rem', fontSize: '0.7rem', color: 'var(--text-gold)', lineHeight: 1.5, marginTop: '0.75rem' }}>
-                💡 Each row shows: which house lord rules the house, which house it sits in, and the resulting quality of that life area's spatial energy.
+                💡 Each row shows: which house lord rules the house, which house it sits in, and the resulting quality of that life area&apos;s spatial energy.
               </div>
             </div>
 
@@ -2131,7 +2131,7 @@ export function AstroVastuPanel({ chart }: AstroVastuPanelProps) {
           <div style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.1), rgba(201,168,76,0.08))', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 'var(--r-lg)', padding: isMobile ? '1.25rem' : '1.75rem' }}>
             <h4 style={{ margin: '0 0 0.75rem', color: 'var(--text-gold)', fontSize: '0.95rem' }}>Core Principle of Vedic Astro Vastu</h4>
             <p style={{ margin: '0 0 0.75rem', fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-              Astro Vastu integrates the principles of Vastu Shastra with insights from Jyotish (Vedic Astrology). The goal is to enhance positive energy and overall well-being by aligning living spaces with both Vastu directional principles and the individual's astrological chart. By mapping planetary influences to spatial zones, we create environments that resonate with each person's unique cosmic blueprint — facilitating smoother energy flow, enhancing positive outcomes, and mitigating adverse influences.
+              Astro Vastu integrates the principles of Vastu Shastra with insights from Jyotish (Vedic Astrology). The goal is to enhance positive energy and overall well-being by aligning living spaces with both Vastu directional principles and the individual&apos;s astrological chart. By mapping planetary influences to spatial zones, we create environments that resonate with each person&apos;s unique cosmic blueprint — facilitating smoother energy flow, enhancing positive outcomes, and mitigating adverse influences.
             </p>
             <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
               — Classical Vedic synthesis: Jyotish Shastra × Vastu Shastra
