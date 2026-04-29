@@ -66,8 +66,8 @@ function Pill({ meta, plan, state, onClick }: {
       onClick={onClick}
       title={unlocked ? `${meta.full} — ${meta.topic}` : `Requires ${tierDisplayName} plan`}
       style={{
-        padding:'0.22rem 0.6rem', fontSize:'0.78rem',
-        fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+        padding:'0.26rem 0.65rem', fontSize:'0.82rem',
+        fontFamily:'var(--font-mono)', cursor:'pointer',
         border:'1px solid', borderRadius:'4px', transition:'all 0.12s',
         background: !unlocked?'transparent':state==='primary'?'var(--gold-faint)':state==='secondary'?'var(--accent-glow)':'transparent',
         borderColor: !unlocked?'var(--border-soft)':state==='primary'?'var(--gold)':state==='secondary'?'var(--accent)':'var(--border)',
@@ -88,10 +88,10 @@ function ChartLabel({ meta, accent }: { meta: VargaMeta; accent: 'gold'|'blue' }
   const isGold = accent === 'gold'
   return (
     <div style={{ display:'flex', alignItems:'center', gap:'0.4rem' }}>
-      <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:'0.72rem', fontWeight:700, color:isGold?'var(--gold)':'var(--accent)' }}>
+      <span style={{ fontFamily:'var(--font-mono)', fontSize:'0.78rem', fontWeight:700, color:isGold?'var(--gold)':'var(--accent)' }}>
         {meta.name}
       </span>
-      <span style={{ fontSize:'0.78rem', color:'var(--text-muted)', fontStyle:'italic' }}>
+      <span style={{ fontSize:'0.84rem', color:'var(--text-muted)', fontStyle:'italic' }}>
         {meta.full}
       </span>
     </div>
@@ -230,7 +230,7 @@ export function VargaSwitcher({
                     onClick={() => setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                      padding: '0.18rem 0.45rem', fontSize: '0.65rem', borderRadius: '4px',
+                      padding: '0.22rem 0.5rem', fontSize: '0.72rem', borderRadius: '4px',
                       border: '1px solid var(--border-soft)',
                       background: chartSettingsOpen[name] ? 'var(--gold-faint)' : 'transparent',
                       color: chartSettingsOpen[name] ? 'var(--gold)' : 'var(--text-muted)',
@@ -304,7 +304,7 @@ export function VargaSwitcher({
               </div>
 
               {/* Topic hint — compact single line */}
-              <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', marginTop: '0.2rem', opacity: 0.7 }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center', marginTop: '0.2rem', opacity: 0.8 }}>
                 {meta.topic.includes(' — ') ? meta.topic.split(' — ')[1] : meta.topic}
               </div>
             </div>

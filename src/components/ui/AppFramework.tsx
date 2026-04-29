@@ -224,7 +224,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     }
 
     const style: React.CSSProperties = {
-      display: 'flex', alignItems: 'center', gap: '0.85rem', padding: '0.7rem 0.75rem',
+      display: 'flex', alignItems: 'center', gap: '0.72rem', padding: '0.56rem 0.65rem',
       background: isActive ? 'var(--gold-faint)' : 'transparent', 
       border: 'none',
       borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
@@ -233,12 +233,12 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
       cursor: 'pointer', 
       textAlign: 'left',
       fontFamily: 'var(--font-body)', 
-      fontSize: '0.9rem', 
+      fontSize: '0.86rem', 
       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       letterSpacing: '0.04em',
       width: '100%', 
       textDecoration: 'none',
-      paddingLeft: isSub ? '2rem' : '0.85rem',
+      paddingLeft: isSub ? '1.75rem' : '0.72rem',
       position: 'relative',
       overflow: 'hidden'
     }
@@ -252,14 +252,14 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         onMouseEnter={(e) => {
           if (!isActive) {
             e.currentTarget.style.background = 'var(--surface-3)'
-            e.currentTarget.style.paddingLeft = isSub ? '2.15rem' : '1rem'
+            e.currentTarget.style.paddingLeft = isSub ? '1.9rem' : '0.85rem'
             e.currentTarget.style.color = 'var(--text-primary)'
           }
         }}
         onMouseLeave={(e) => {
           if (!isActive) {
             e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.paddingLeft = isSub ? '2rem' : '0.85rem'
+            e.currentTarget.style.paddingLeft = isSub ? '1.75rem' : '0.72rem'
             e.currentTarget.style.color = 'var(--text-secondary)'
           }
         }}
@@ -424,7 +424,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         <aside
           className={`sidenav ${isSidenavOpen ? 'open' : ''}`}
           style={{
-            width: 250, flexShrink: 0,
+            width: 232, flexShrink: 0,
             background: 'var(--surface-2)',
             borderRight: '1px solid var(--border)',
             zIndex: 1500, display: 'flex', flexDirection: 'column',
@@ -436,7 +436,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1.45rem 1.5rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
+          <div style={{ padding: '1rem 1rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
               <Link
                 href="/home"
@@ -475,7 +475,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* User Profile Block */}
-          <div style={{ padding: '1.35rem 1.5rem', borderBottom: '1px solid var(--border-soft)' }}>
+          <div style={{ padding: '0.9rem 1rem', borderBottom: '1px solid var(--border-soft)' }}>
             {status === 'loading' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.5 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'var(--surface-3)', animation: 'pulse 1.5s infinite' }} />
@@ -524,22 +524,22 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav style={{ flex: 1, padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <div className="label-caps" style={{ padding: '0.5rem 0.75rem', fontSize: '0.65rem', opacity: 0.5 }}>Navigation</div>
+          <nav style={{ flex: 1, padding: '0.55rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+            <div className="label-caps" style={{ padding: '0.35rem 0.6rem', fontSize: '0.62rem', opacity: 0.5 }}>Navigation</div>
             {TOP_TABS.map(t => renderTab(t))}
             
             <button
               onClick={toggleAstroOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
                 letterSpacing: '0.04em',
                 width: '100%'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
                 <span style={{ fontSize: '1rem', opacity: 0.5 }}>🌌</span>
                 <span>Astrology</span>
               </div>
@@ -560,7 +560,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                     color: 'var(--text-muted)', 
                     textTransform: 'uppercase', 
                     letterSpacing: '0.1em',
-                    padding: '0.4rem 2rem',
+                    padding: '0.35rem 1.75rem',
                     opacity: 0.6
                   }}>
                     {group.label}
@@ -573,15 +573,15 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <button
               onClick={toggleAdvancedAstroOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
                 letterSpacing: '0.04em',
                 width: '100%'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
                 <span style={{ fontSize: '1rem', opacity: 0.5 }}>⚛</span>
                 <span>Advanced Astrology</span>
               </div>
@@ -599,14 +599,14 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <button
               onClick={toggleNakshatraOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'Cormorant Garamond, serif', fontSize: '1.05rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
                 width: '100%'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
                 <span style={{ fontSize: '1.1rem' }}>🌙</span>
                 <span style={{ fontWeight: 600, letterSpacing: '0.01em' }}>Nakṣatra</span>
               </div>
@@ -624,15 +624,15 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             <button
               onClick={togglePanchangOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.75rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
                 background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.9rem', transition: 'all 0.15s',
+                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
                 letterSpacing: '0.04em',
                 width: '100%'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
                 <span style={{ fontSize: '1rem', opacity: 0.5 }}>📅</span>
                 <span>Pañcāṅga</span>
               </div>
@@ -652,7 +652,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Bottom Actions */}
-          <div style={{ padding: '1.25rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ padding: '0.9rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.2, marginBottom: '0.5rem' }}>
               <div style={{ width: 24, height: 24 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
             </div>

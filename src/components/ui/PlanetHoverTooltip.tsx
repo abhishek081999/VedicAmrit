@@ -77,6 +77,7 @@ export interface PlanetTooltipData {
   gandanta?: any
   pushkara?: any
   mrityuBhaga?: any
+  yuddha?: any
 }
 
 
@@ -162,6 +163,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #bbb5d8)' }}>{RASHI_NAMES[rashiNum]} · {Math.floor(degInSign)}°{Math.floor((degInSign % 1) * 60)}′</span>
             {planet.dignity && <span style={{ fontSize: '0.58rem', fontWeight: 700, textTransform: 'uppercase', color: dignityColor, background: `${dignityColor}18`, padding: '1px 5px', borderRadius: 3, border: `1px solid ${dignityColor}33` }}>{planet.dignity.replace('_', ' ')}</span>}
             {planet.isRetro && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f87171', background: 'rgba(248,113,113,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(248,113,113,0.3)' }}>℞ Retro</span>}
+            {planet.isCombust && <span style={{ fontSize: '0.58rem', fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '1px 5px', borderRadius: 3, border: '1px solid rgba(245,158,11,0.3)' }}>☉ Combust</span>}
           </div>
         </div>
         {isMobile && (
@@ -175,7 +177,7 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
       </div>
 
       {/* ── Special Conditions ── */}
-      {(planet.gandanta?.isGandanta || planet.pushkara?.isPushkara || planet.mrityuBhaga?.isMrityuBhaga) && (
+      {(planet.gandanta?.isGandanta || planet.pushkara?.isPushkara || planet.mrityuBhaga?.isMrityuBhaga || planet.yuddha?.isWarring) && (
         <div style={{ padding: '0.6rem 1rem 0.4rem', borderBottom: '1px solid var(--border-soft, rgba(201,168,76,0.07))', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {planet.gandanta?.isGandanta && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -193,6 +195,12 @@ export function PlanetTooltipCard({ planet, x, y, onClose }: { planet: PlanetToo
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ fontSize: '0.6rem', background: 'rgba(251,146,60,0.1)', color: '#fb923c', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(251,146,60,0.3)', fontWeight: 700 }}>🔱 MRITYU BHAGA</span>
               <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.mrityuBhaga.severity} severity</span>
+            </div>
+          )}
+          {planet.yuddha?.isWarring && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ fontSize: '0.6rem', background: 'rgba(129,140,248,0.12)', color: '#818cf8', padding: '1px 5px', borderRadius: 4, border: '1px solid rgba(129,140,248,0.35)', fontWeight: 700 }}>⚔ YUDDHA</span>
+              <span style={{ fontSize: '0.62rem', color: 'var(--text-secondary)' }}>{planet.yuddha.degreeDifference.toFixed(2)}° orb check (≤ {planet.yuddha.orb}°)</span>
             </div>
           )}
         </div>

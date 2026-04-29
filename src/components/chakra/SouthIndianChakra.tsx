@@ -135,12 +135,17 @@ export function SouthIndianChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: ((g.rashi - ascRashi + 12) % 12) + 1
       })
     }, 200)
@@ -159,12 +164,17 @@ export function SouthIndianChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: ((g.rashi - ascRashi + 12) % 12) + 1
       })
     }
@@ -350,6 +360,7 @@ export function SouthIndianChakra({
               
               const color = dignityColor(g.dignity, g.isRetro)
               const ret   = g.isRetro ? 'ᴿ' : ''
+              const comb  = g.isCombust ? 'ᶜ' : ''
               const deg   = showDegrees
                 ? ` ${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2,'0')}'`
                 : ''
@@ -373,7 +384,7 @@ export function SouthIndianChakra({
                     fontFamily="var(--font-chart-planets)"
                     fontWeight="var(--fw-medium)"
                   >
-                    {g.id}{ret}
+                    {g.id}{ret}{comb}
                   </text>
                   {(showDegrees || showKaraka) && (
                     <text
@@ -381,7 +392,7 @@ export function SouthIndianChakra({
                       y={yPos + lineH * 0.9}
                       fontSize={fs.degree}
                       fill="var(--text-muted)"
-                      fontFamily="JetBrains Mono, monospace"
+                      fontFamily="var(--font-mono)"
                     >
                       {deg}{kar}
                     </text>
