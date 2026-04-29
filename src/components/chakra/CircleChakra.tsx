@@ -100,12 +100,17 @@ export function CircleChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: ((g.rashi - ascRashi + 12) % 12) + 1
       })
     }, 200)
@@ -124,12 +129,17 @@ export function CircleChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: ((g.rashi - ascRashi + 12) % 12) + 1
       })
     }
@@ -283,7 +293,7 @@ export function CircleChakra({
               const rOff = (pi - (n - 1) / 2) * radSpread
               const [px, py] = polar(cx, cy, pZone + rOff, mid)
               const col   = DIGNITY_COLORS[g.dignity] ?? '#aaa'
-              const label = (GRAHA_SHORT[g.id] ?? g.id) + (g.isRetro ? '\u1D3F' : '')
+              const label = (GRAHA_SHORT[g.id] ?? g.id) + (g.isRetro ? '\u1D3F' : '') + (g.isCombust ? 'ᶜ' : '')
               return (
                 <g 
                   key={g.id}

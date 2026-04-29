@@ -243,6 +243,21 @@ export function AdvancedAnalysisPanel({ grahas }: AdvancedAnalysisPanelProps) {
 // Export a compact badge row for GrahaTable
 export function ConditionBadges({ graha }: { graha: GrahaData }) {
   const badges: React.ReactNode[] = []
+  if (graha.isCombust) {
+    badges.push(
+      <span key="combust" style={{
+        fontSize: '0.55rem',
+        background: 'rgba(245,158,11,0.12)',
+        color: '#f59e0b',
+        padding: '1px 4px',
+        borderRadius: 3,
+        border: '1px solid rgba(245,158,11,0.35)',
+        fontWeight: 700,
+      }}>
+        C
+      </span>
+    )
+  }
   
   if (graha.gandanta?.isGandanta) {
     const color = graha.gandanta.severity === 'exact' ? COLORS.gandanta.exact : COLORS.gandanta.near

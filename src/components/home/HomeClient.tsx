@@ -950,7 +950,7 @@ function HomeContent() {
         <div className="panel fade-up">
           <div className="panel-header">
             <span>Planetary Details</span>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }} onClick={() => setExpandGraha(!expandGraha)}>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
               {expandGraha ? '▴ Less' : '▾ More'}
             </button>
           </div>
@@ -975,7 +975,7 @@ function HomeContent() {
         <div className="panel fade-up">
           <div className="panel-header">
             <span>Astronomical Details</span>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.65rem', padding: '0.15rem 0.4rem' }} onClick={() => setExpandAstro(!expandAstro)}>
+            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandAstro(!expandAstro)}>
               {expandAstro ? '▴ Less' : '▾ More'}
             </button>
           </div>
@@ -995,11 +995,11 @@ function HomeContent() {
           <div className="panel-header">
             <span>Today&apos;s Timeline</span>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)' }}>☽ {dashboardChart.panchang.nakshatra.name}</span>
               <select
                 value={dashaSystem}
                 onChange={(e) => setDashaSystem(e.target.value as any)}
-                style={{ padding: '0.1rem 0.3rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit', cursor: 'pointer' }}
+                style={{ padding: '0.16rem 0.36rem', fontSize: '0.7rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'var(--font-body)', cursor: 'pointer' }}
               >
                 <option value="vimshottari">Viṁśottarī</option>
                 <option value="ashtottari">Aṣṭottarī</option>
@@ -1014,7 +1014,7 @@ function HomeContent() {
                 const nodes = dashaSystem === 'vimshottari'
                   ? (vimshottariTara === 'Mo' ? dashboardChart.dashas.vimshottari : (altVimshottari ?? dashboardChart.dashas.vimshottari))
                   : (dashboardChart.dashas[dashaSystem] ?? [])
-                if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.5rem' }}>No data.</div>
+                if (!nodes || nodes.length === 0) return <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '0.5rem', fontFamily: 'var(--font-body)' }}>No data.</div>
                 return <DashaTree nodes={nodes} birthDate={new Date(dashboardChart.meta.birthDate)} />
               })()}
             </div>

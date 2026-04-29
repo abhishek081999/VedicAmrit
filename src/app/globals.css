@@ -382,10 +382,10 @@
 /* ── Typography constants ───────────────────────────────────── */
 
 :root {
-  --font-display: var(--font-playfair), 'Playfair Display', serif;
-  --font-body: var(--font-inter), var(--font-outfit), 'Inter', system-ui, sans-serif;
+  --font-display: var(--font-outfit), var(--font-inter), 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
-  --font-chart-planets: var(--font-inter), 'Inter', sans-serif;
+  --font-chart-planets: var(--font-body);
 
   --r-xs: 4px;
   --r-sm: 6px;
@@ -2496,14 +2496,15 @@ select.input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.78rem;
   background: var(--surface-2);
   border-bottom: 1px solid var(--border-soft);
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-gold);
+  font-family: var(--font-body);
   flex-shrink: 0;
 }
 

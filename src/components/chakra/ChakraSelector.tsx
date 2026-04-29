@@ -90,10 +90,10 @@ export function ChakraSelector({
   const [showTooltip,   setShowTooltip]   = useState(false)
 
   // Typography scaling
-  const [fontScale,     setFontScale]     = useState(1.10)
-  const [planetScale,   setPlanetScale]   = useState(1.05)
+  const [fontScale,     setFontScale]     = useState(1.20)
+  const [planetScale,   setPlanetScale]   = useState(1.12)
   const [arudhaScale,   setArudhaScale]   = useState(1.20)
-  const [infoScale,     setInfoScale]     = useState(0.80)
+  const [infoScale,     setInfoScale]     = useState(0.92)
   const [chartScale,    setChartScale]    = useState(1.25)
 
   const [lagnaSource,   setLagnaSource]   = useState('natal')
@@ -107,8 +107,22 @@ export function ChakraSelector({
 
   // Use smaller scale on mobile initially
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-      setChartScale(1.05)
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 640) {
+        // Extra-small phones: strongest readability settings.
+        setChartScale(1.08)
+        setFontScale(1.36)
+        setPlanetScale(1.24)
+        setInfoScale(1.08)
+        setArudhaScale(1.32)
+      } else if (window.innerWidth < 1024) {
+        // Mobile/tablet readability boost.
+        setChartScale(1.05)
+        setFontScale(1.28)
+        setPlanetScale(1.18)
+        setInfoScale(1.02)
+        setArudhaScale(1.26)
+      }
     }
   }, [])
 
@@ -449,7 +463,7 @@ export function ChakraSelector({
                 background: color, display: 'inline-block', flexShrink: 0,
               }} />
               <span style={{
-                fontSize: '0.75rem',
+                fontSize: '0.82rem',
                 color: 'var(--text-muted)',
                 fontFamily: 'var(--font-chart-planets)',
               }}>
@@ -466,7 +480,7 @@ export function ChakraSelector({
           display: 'flex', gap: '1.25rem', flexWrap: 'wrap',
           paddingTop: '0.5rem',
           borderTop: '1px solid var(--border-soft)',
-          fontSize: '0.75rem',
+          fontSize: '0.82rem',
           fontFamily: 'var(--font-chart-planets)',
           color: 'var(--text-muted)',
         }}>
@@ -513,9 +527,9 @@ function Toggle({
         style={{ display: 'none' }}
       />
       <span style={{
-        fontSize: '0.78rem',
+        fontSize: '0.84rem',
         color: value ? 'var(--gold)' : 'var(--text-muted)',
-        fontFamily: 'Cormorant Garamond, serif',
+        fontFamily: 'var(--font-chart-planets)',
         letterSpacing: '0.03em',
         transition: 'color 0.15s',
       }}>
@@ -535,7 +549,7 @@ function ScaleSlider({ label, value, onChange }: { label: string, value: number,
         onChange={e => onChange(parseFloat(e.target.value))}
         style={{ width: '70px', accentColor: 'var(--gold)' }}
       />
-      <span style={{ fontSize: '0.75rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-secondary)', width: '25px' }}>
+      <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', width: '32px' }}>
         {value.toFixed(2)}
       </span>
     </div>

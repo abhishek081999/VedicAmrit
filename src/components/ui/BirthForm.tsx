@@ -710,13 +710,13 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
                       onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.07)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: 'var(--text-primary)' }}>
                         {loc.name}
                         {loc.admin1 && (
                           <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>, {loc.admin1}</span>
                         )}
                       </span>
-                      <span style={{ fontSize: '0.72rem', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
+                      <span style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', display: 'flex', gap: '0.75rem' }}>
                         <span>{loc.country}</span>
                         <span>{loc.latitude.toFixed(2)}°, {loc.longitude.toFixed(2)}°</span>
                         <span style={{ color: loc.timezone === 'UTC' ? 'var(--rose)' : 'var(--text-gold)', fontWeight: loc.timezone === 'UTC' ? 400 : 700 }}>{loc.timezone}</span>
@@ -732,7 +732,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
               <div style={{
                 marginTop: 4, fontSize: '0.72rem',
                 color: 'var(--text-muted)',
-                fontFamily: 'JetBrains Mono, monospace',
+                fontFamily: 'var(--font-mono)',
                 display: 'flex', gap: '0.8rem', flexWrap: 'wrap',
                 alignItems: 'center'
               }}>
@@ -881,7 +881,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           border: '1px solid rgba(212,120,138,0.3)',
           borderRadius: 8,
           color: 'var(--rose)',
-          fontFamily: 'Cormorant Garamond, serif',
+          fontFamily: 'var(--font-body)',
           fontSize: '0.92rem',
         }}>
           {error}
@@ -898,7 +898,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           justifyContent: 'center',
           padding: '0.85rem',
           fontSize: '0.95rem',
-          fontFamily: 'Cormorant Garamond, serif',
+          fontFamily: 'var(--font-body)',
           letterSpacing: '0.04em',
           opacity: loading ? 0.75 : 1,
           transition: 'opacity 0.2s',

@@ -141,12 +141,17 @@ export function NorthIndianChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id)) ? Number(Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id))) : undefined
       })
     }, 200)
@@ -166,12 +171,17 @@ export function NorthIndianChakra({
         name: g.name || g.id,
         totalDeg: g.totalDegree || (g.rashi -1)*30 + g.degree,
         isRetro: g.isRetro,
+        isCombust: g.isCombust,
         dignity: g.dignity,
         nakshatraIndex: g.nakshatraIndex,
         nakshatraName: g.nakshatraName,
         pada: g.pada,
         charaKaraka: g.charaKaraka,
         avastha: g.avastha,
+        gandanta: g.gandanta,
+        pushkara: g.pushkara,
+        mrityuBhaga: g.mrityuBhaga,
+        yuddha: g.yuddha,
         house: Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id)) ? Number(Object.keys(byHouse).find(h => byHouse[Number(h)].some(pg => pg.id === g.id))) : undefined
       })
     }
@@ -434,6 +444,7 @@ export function NorthIndianChakra({
 
               const fillCol = dignityColor(g.dignity, g.isRetro)
               const ret = g.isRetro ? 'ᴿ' : ''
+              const comb = g.isCombust ? 'ᶜ' : ''
               const deg = showDegrees
                 ? `${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2, '0')}'`
                 : ''
@@ -458,13 +469,13 @@ export function NorthIndianChakra({
                     textAnchor="middle"
                     dominantBaseline="middle"
                   >
-                    {g.id}{ret}{kar ? ` [${kar}]` : ''}
+                    {g.id}{ret}{comb}{kar ? ` [${kar}]` : ''}
                   </text>
                   {showDegrees && (
                     <text
                       x={px} y={py + plFont * 0.72 + degFont * 0.5}
                       fontSize={Math.round(degFont)}
-                      fontFamily="JetBrains Mono, monospace"
+                      fontFamily="var(--font-mono)"
                       fill="var(--text-muted)"
                       textAnchor="middle"
                       dominantBaseline="middle"

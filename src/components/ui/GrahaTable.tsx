@@ -230,23 +230,23 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       {/* ── Compact header ─────────────────────────────── */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0.28rem 0.6rem',
+        padding: '0.36rem 0.7rem',
         background: 'var(--surface-3)',
         borderBottom: '1px solid var(--border-soft)',
       }}>
-        <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
           ✦ Micro-Details{selectedVarga !== 'D1' ? ` · ${selectedVarga}` : ''}
         </span>
         {vargas && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
+            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
             <select
               value={selectedVarga}
               onChange={(e) => { const val = e.target.value; setSelectedVarga(val); if (onVargaChange) onVargaChange(val) }}
               style={{
                 background: 'var(--primary-brand)', color: '#fff',
                 border: '1px solid var(--gold)', borderRadius: '4px',
-                fontSize: '0.68rem', fontWeight: 600,
+                fontSize: '0.74rem', fontWeight: 600,
                 padding: '2px 6px', cursor: 'pointer', outline: 'none',
               }}
             >
@@ -284,7 +284,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             </tr>
           </thead>
 
-          <tbody style={{ fontSize: '0.72rem' }}>
+          <tbody style={{ fontSize: '0.76rem', fontFamily: 'var(--font-body)' }}>
             {bodies.map((b, i) => {
               const { deg, min, sec, rshort, rashiIdx } = fmtDeg(b.totalDeg)
               const nak = getNak(b.totalDeg)
@@ -315,11 +315,12 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                               gandanta: b.conditions?.gandanta,
                               pushkara: b.conditions?.pushkara,
                               mrityuBhaga: b.conditions?.mrityuBhaga,
+                              yuddha: b.conditions?.yuddha,
                             })
                           }, 200)
                         }}
                         onMouseLeave={() => { if (hoverTimer.current) clearTimeout(hoverTimer.current); setHoveredPlanet(null) }}
-                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.73rem', cursor: isMainPlanet ? 'help' : 'default' }}>
+                        style={{ fontWeight: 600, color: b.color || 'var(--text-primary)', fontSize: '0.78rem', cursor: isMainPlanet ? 'help' : 'default' }}>
                         {b.name}{b.isRetro && <sup style={{ fontSize: '0.5rem', marginLeft: 1 }}>℞</sup>}
                       </span>
                       {b.karaka && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px', background: 'var(--surface-3)', borderRadius: 2 }}>{b.karaka}</span>}
@@ -327,15 +328,15 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                     </div>
                   </td>
                   {/* Degree — single line */}
-                  <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
+                  <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
                     <b>{deg}°</b>{String(min).padStart(2,'0')}′{String(sec).padStart(2,'0')}″
                   </td>
                   {/* Nakshatra */}
-                  <td style={{ textAlign: 'center', fontSize: '0.68rem' }}>
+                  <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
                     <b>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
                   </td>
                   {/* Rashi · D9 */}
-                  <td style={{ textAlign: 'center', fontSize: '0.68rem' }}>
+                  <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
                     {selectedVarga === 'D1' ? (
                       <>
                         <b style={{ color: 'var(--text-gold)' }}>{isSa ? RASHI_SANSKRIT[rashiIdx] : rshort}</b>
@@ -352,7 +353,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                   {/* Dignity */}
                   <td style={{ textAlign: 'center' }}>{b.dignity ? <DignityCell dignity={b.dignity} /> : <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>—</span>}</td>
                   {/* Avastha */}
-                  <td style={{ textAlign: 'center', fontSize: '0.65rem' }}>
+                  <td style={{ textAlign: 'center', fontSize: '0.7rem' }}>
                     {b.avastha
                       ? <span>{b.avastha.baladi} <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{b.avastha.jagradadi}</span></span>
                       : <span style={{ color: 'var(--text-muted)' }}>—</span>}
@@ -374,8 +375,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       )}
 
       {/* ── Legend ── */}
-      <div style={{ padding: '0.2rem 0.6rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ padding: '0.28rem 0.7rem', background: 'var(--surface-2)', borderTop: '1px solid var(--border-soft)', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {[
+          { code: 'C', label: 'Combust',     bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', border: 'rgba(245,158,11,0.35)' },
           { code: 'G', label: 'Gandanta',    bg: 'rgba(244,63,94,0.1)',   color: '#fb7185',  border: 'rgba(244,63,94,0.3)'   },
           { code: 'P', label: 'Pushkara',    bg: 'rgba(78,205,196,0.1)',  color: 'var(--teal)', border: 'rgba(78,205,196,0.3)' },
           { code: 'M', label: 'Mrityu Bh.', bg: 'rgba(251,146,60,0.1)',  color: '#fb923c',  border: 'rgba(251,146,60,0.3)'  },
@@ -383,7 +385,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         ].map(({ code, label, bg, color, border }) => (
           <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
             <span style={{ fontSize: '0.55rem', background: bg, color, padding: '0 3px', borderRadius: 2, border: `1px solid ${border}`, fontWeight: 700 }}>{code}</span>
-            <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>{label}</span>
+            <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)' }}>{label}</span>
           </div>
         ))}
       </div>
