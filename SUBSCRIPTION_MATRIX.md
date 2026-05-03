@@ -5,7 +5,7 @@ This file is the current source-of-truth summary for feature access by plan.
 | Feature | Free | Gold | Platinum | Enforced In |
 | --- | --- | --- | --- | --- |
 | Core chart calculation | Yes | Yes | Yes | `src/app/api/chart/calculate/route.ts` |
-| Save charts (library limit) | 10 | 200 | Unlimited | `src/lib/subscription/entitlements.ts`, `src/app/api/chart/save/route.ts`, `src/app/api/chart/bulk-import/route.ts` |
+| Save charts (library limit) | 20 | 200 | Unlimited | `src/lib/subscription/entitlements.ts`, `src/app/api/chart/save/route.ts`, `src/app/api/chart/bulk-import/route.ts` |
 | Public chart share links | Yes | Yes | Yes | `src/app/api/chart/public/route.ts`, `src/app/api/chart/toggle-public/route.ts` |
 | Export chart (PDF/HTML) | No | Yes | Yes | `src/app/api/chart/export/route.ts` |
 | Email chart reports | No | No | Yes | `src/app/api/chart/send-email/route.ts` |

@@ -53,7 +53,7 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | **Public Sharing** | Toggle public → unique URL + dynamic Open Graph image + SEO metadata |
 | **JHD / SJS Import** | Import birth data from Jagannatha Hora (.jhd) or Sri Jyoti Star (.sjs) files |
 | **Chart Notes** | Per-chart text annotations with timestamps |
-| **Save Charts** | Up to 10 charts per account |
+| **Save Charts** | Up to 20 charts per account (free) |
 | **Atlas** | 5.1M locations via GeoNames FTS5 SQLite — sub-50ms search |
 | **Sarvatobhadra Chakra** | Classical 9×9 predictive grid; transit Vedha analysis; Dhana (financial) pulse meter; body-part resonance alerts; cell-level interaction with row/column vedha glow |
 

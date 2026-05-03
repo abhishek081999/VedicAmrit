@@ -129,12 +129,24 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
   const { language } = useAppLayout()
   const isSa = language === 'sa'
   const [selectedVarga, setSelectedVarga] = React.useState<string>(activeVarga || 'D1')
+  const [showWideColumns, setShowWideColumns] = useState(true)
   const [hoveredPlanet, setHoveredPlanet] = useState<PlanetTooltipData | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [isMounted, setIsMounted] = useState(false)
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const tableScrollerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => { setIsMounted(true) }, [])
+
+  // Reveal right-side columns when wide mode is enabled.
+  useEffect(() => {
+    if (!showWideColumns) return
+    const el = tableScrollerRef.current
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
+    })
+  }, [showWideColumns, selectedVarga, limited])
 
   // Sync with prop ONLY if it changes from its previous value
   const lastActiveVarga = useRef(activeVarga)
@@ -237,8 +249,27 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
         <span style={{ fontSize: '0.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', fontFamily: 'var(--font-body)' }}>
           ✦ Micro-Details{selectedVarga !== 'D1' ? ` · ${selectedVarga}` : ''}
         </span>
-        {vargas && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <button
+            type="button"
+            onClick={() => setShowWideColumns((v) => !v)}
+            style={{
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              padding: '0.12rem 0.38rem',
+              borderRadius: 4,
+              border: `1px solid ${showWideColumns ? 'var(--gold)' : 'var(--border-soft)'}`,
+              background: showWideColumns ? 'var(--gold-faint)' : 'transparent',
+              color: showWideColumns ? 'var(--text-gold)' : 'var(--text-muted)',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+            title={showWideColumns ? 'Compact columns' : 'Show wider columns'}
+          >
+            ↔ {showWideColumns ? 'Less' : 'More'}
+          </button>
+          {vargas && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
             <select
               value={selectedVarga}
@@ -256,12 +287,13 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                 </option>
               ))}
             </select>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div style={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{ width: '100%', minWidth: 460, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
+      <div ref={tableScrollerRef} style={{ overflowX: 'auto', width: '100%' }}>
+        <table style={{ width: '100%', minWidth: showWideColumns ? 700 : 520, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
           <colgroup>
             <col style={{ width: '20%' }} />
             <col style={{ width: '14%' }} />

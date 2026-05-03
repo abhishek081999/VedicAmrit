@@ -1,7 +1,7 @@
 import type { UserPlan } from '@/types/astrology'
 
 export const CHART_SAVE_LIMITS: Record<UserPlan, number> = {
-  free: 10,
+  free: 20,
   gold: 200,
   platinum: Infinity,
 }

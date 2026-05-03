@@ -89,15 +89,15 @@ export function ChakraSelector({
   const [showNatal,     setShowNatal]     = useState(true)
   const [showTooltip,   setShowTooltip]   = useState(false)
 
-  // Base scale (Base Scale slider) — 1.05 default on desktop and mobile
-  const [fontScale,     setFontScale]     = useState(1.05)
+  // Desktop defaults: chart 1.20, base 1.10, planets 1.20
+  const [fontScale,     setFontScale]     = useState(1.10)
   const [planetScale,   setPlanetScale]   = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.15 : 1.12
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.15 : 1.20
   )
   const [arudhaScale,   setArudhaScale]   = useState(1.20)
   const [infoScale,     setInfoScale]     = useState(0.92)
   const [chartScale,    setChartScale]    = useState(() =>
-    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.0 : 1.25
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.0 : 1.20
   )
 
   const [lagnaSource,   setLagnaSource]   = useState('natal')
@@ -127,10 +127,10 @@ export function ChakraSelector({
     }
   }, [])
 
-  // Adjust chart scale when sidenav opens/closes on desktop
+  // Keep desktop chart-size default fixed at 1.20
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-      setChartScale(isSidenavOpen ? 1.20 : 1.00)
+      setChartScale(1.20)
     }
   }, [isSidenavOpen])
 

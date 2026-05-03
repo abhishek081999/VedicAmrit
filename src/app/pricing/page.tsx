@@ -30,7 +30,7 @@ const FEATURES = {
       '✓ Nakshatra Suite: Navtara, Remedies & Analysis',
       '✓ Interpretation Layer: Headlines & Key Insights',
       '✓ Transit Overlays on Rashi & Houses',
-      '✓ Save up to 10 consultation records',
+      '✓ Save up to 20 consultation records',
       '✓ Public chart sharing with links',
     ],
   },
