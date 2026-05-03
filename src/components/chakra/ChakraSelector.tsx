@@ -89,12 +89,16 @@ export function ChakraSelector({
   const [showNatal,     setShowNatal]     = useState(true)
   const [showTooltip,   setShowTooltip]   = useState(false)
 
-  // Typography scaling
-  const [fontScale,     setFontScale]     = useState(1.20)
-  const [planetScale,   setPlanetScale]   = useState(1.12)
+  // Base scale (Base Scale slider) — 1.05 default on desktop and mobile
+  const [fontScale,     setFontScale]     = useState(1.05)
+  const [planetScale,   setPlanetScale]   = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.15 : 1.12
+  )
   const [arudhaScale,   setArudhaScale]   = useState(1.20)
   const [infoScale,     setInfoScale]     = useState(0.92)
-  const [chartScale,    setChartScale]    = useState(1.25)
+  const [chartScale,    setChartScale]    = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 1024 ? 1.0 : 1.25
+  )
 
   const [lagnaSource,   setLagnaSource]   = useState('natal')
   
@@ -105,23 +109,20 @@ export function ChakraSelector({
 
   const { isSidenavOpen } = useAppLayout()
 
-  // Use smaller scale on mobile initially
+  // Mobile / tablet: chart = base size, planets slightly enlarged; base scale stays 1.05
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      if (window.innerWidth < 640) {
-        // Extra-small phones: strongest readability settings.
-        setChartScale(1.08)
-        setFontScale(1.36)
-        setPlanetScale(1.24)
-        setInfoScale(1.08)
-        setArudhaScale(1.32)
-      } else if (window.innerWidth < 1024) {
-        // Mobile/tablet readability boost.
-        setChartScale(1.05)
-        setFontScale(1.28)
-        setPlanetScale(1.18)
-        setInfoScale(1.02)
-        setArudhaScale(1.26)
+      if (window.innerWidth < 1024) {
+        setChartScale(1.0)
+        setPlanetScale(1.15)
+        setFontScale(1.05)
+        if (window.innerWidth < 640) {
+          setInfoScale(1.08)
+          setArudhaScale(1.32)
+        } else {
+          setInfoScale(1.02)
+          setArudhaScale(1.26)
+        }
       }
     }
   }, [])
@@ -279,7 +280,6 @@ export function ChakraSelector({
                 {arudhas && (
                   <Toggle label="Āruḍha" value={showArudha} onChange={setShowArudha} />
                 )}
-                <Toggle label="Legend" value={showLegend} onChange={setShowLegend} />
                 {transitGrahas.length > 0 && (
                   <Toggle label="Show Natal" value={showNatal} onChange={setShowNatal} />
                 )}
@@ -290,6 +290,7 @@ export function ChakraSelector({
               <>
                 <Toggle label="Tithi"  value={showTithi} onChange={setShowTithi} />
                 <Toggle label="Vara"   value={showVara}  onChange={setShowVara} />
+                <Toggle label="Legend" value={showLegend} onChange={setShowLegend} />
               </>
             )}
           </div>
@@ -441,38 +442,6 @@ export function ChakraSelector({
         )}
 
       </div>
-
-      {/* ── Legend ────────────────────────────────────────── */}
-      {showLegend && !isSBC && (
-        <div style={{
-          display: 'flex', gap: '1rem', flexWrap: 'wrap',
-          paddingTop: '0.5rem',
-          borderTop: '1px solid var(--border-soft)',
-        }}>
-          {[
-            { color: 'var(--dig-exalted)', label: 'Exalted' },
-            { color: 'var(--dig-moola)', label: 'Moolatrikona' },
-            { color: 'var(--dig-own)', label: 'Own sign' },
-            { color: 'var(--dig-neutral)', label: 'Neutral' },
-            { color: 'var(--dig-retro)', label: 'Retrograde (ᴿ)' },
-            { color: 'var(--dig-debilitate)', label: 'Debilitated' },
-          ].map(({ color, label }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{
-                width: 7, height: 7, borderRadius: '50%',
-                background: color, display: 'inline-block', flexShrink: 0,
-              }} />
-              <span style={{
-                fontSize: '0.82rem',
-                color: 'var(--text-muted)',
-                fontFamily: 'var(--font-chart-planets)',
-              }}>
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* SBC legend */}
       {showLegend && isSBC && (

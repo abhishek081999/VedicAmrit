@@ -296,11 +296,9 @@ export function nakFromLon(lon: number): number {
   return Math.floor(((lon % 360) + 360) % 360 / (360 / 27))
 }
 
-export const PLANET_COLOR: Record<GrahaId, string> = {
-  Su: '#FF8C00', Mo: '#A8C8E8', Ma: '#E84040', Me: '#48C774',
-  Ju: '#FFD700', Ve: '#FF69B4', Sa: '#8B9DC3', Ra: '#8B4513',
-  Ke: '#9B59B6', Ur: '#00CED1', Ne: '#4169E1', Pl: '#800000',
-}
+import { GRAHA_DISPLAY_COLOR } from './grahaDisplayColors'
+
+export const PLANET_COLOR: Record<GrahaId, string> = GRAHA_DISPLAY_COLOR
 
 export const PLANET_SYMBOL: Record<GrahaId, string> = {
   Su: '☀', Mo: '☽', Ma: '♂', Me: '☿',

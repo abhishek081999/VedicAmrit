@@ -21,6 +21,7 @@ import {
 } from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
 import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
+import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
 
 interface Branding {
@@ -74,12 +75,6 @@ function fmtDMS(totalDeg: number): string {
   const s = Math.floor(((degInRashi - d) * 60 - m) * 60)
   const rashi = RASHI_SHORT[((rashiIdx % 12) + 1) as Rashi]
   return `${String(d).padStart(2,'0')} ${rashi} ${String(m).padStart(2,'0')}'`
-}
-
-function dignityColor(dignity: string): string {
-  if (['exalted','moolatrikona','own'].includes(dignity)) return '#166534' // Deep Pine Green
-  if (['debilitated','great_enemy','enemy'].includes(dignity)) return '#991b1b' // Vedic Red
-  return '#1e293b'
 }
 
 function capitalize(s: string): string {
@@ -267,7 +262,7 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
         yOff = (i - (ps.length - 1) / 2) * lh
       }
 
-      const color = dignityColor(g.dignity)
+      const color = GRAHA_DISPLAY_COLOR[g.id as GrahaId] ?? THEME.text
       const label = g.id + (g.isRetro ? 'R' : '')
       const deg = Math.floor(g.degree ?? (g.totalDegree % 30))
       
@@ -277,9 +272,6 @@ function buildNorthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
     cells += `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>
               ${signTxt}${planetTxts}`
   }
-
-  // Center brand watermark
-  cells += `<image href="/veda-icon.png" x="${S/2 - S*0.1}" y="${S/2 - S*0.1}" width="${S*0.2}" height="${S*0.2}" opacity="0.15" style="pointer-events:none; filter:sepia(1) saturate(4) hue-rotate(-20deg)" />`
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
 }
@@ -328,7 +320,7 @@ function buildSouthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
       const py = startY + i * lh
       const label = g.id + (g.isRetro ? 'R' : '')
       const deg = Math.floor(g.degree ?? (g.totalDegree % 30))
-      cells += `<text x="${x + cell * 0.15}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${dignityColor(g.dignity)}">${label} ${deg}°</text>`
+      cells += `<text x="${x + cell * 0.15}" y="${py}" font-family="Arial" font-size="${pf}" font-weight="700" fill="${GRAHA_DISPLAY_COLOR[g.id as GrahaId] ?? THEME.text}">${label} ${deg}°</text>`
     })
   }
 
@@ -339,7 +331,6 @@ function buildSouthSVG(chart: ChartOutput, vargaKey: string = 'D1', size = 280):
     <line x1="${cell}" y1="${cell}" x2="${cell}" y2="${3*cell}" stroke="${THEME.border}" stroke-width="0.5"/>
     <line x1="${3*cell}" y1="${cell}" x2="${3*cell}" y2="${3*cell}" stroke="${THEME.border}" stroke-width="0.5"/>
     <text x="${S/2}" y="${S/2}" font-family="Arial" font-size="${S*0.06}" font-weight="900" fill="${THEME.primary}" text-anchor="middle" dominant-baseline="middle" opacity="0.05">${vargaKey}</text>
-    <image href="/veda-icon.png" x="${S/2 - S*0.125}" y="${S/2 - S*0.125}" width="${S*0.25}" height="${S*0.25}" opacity="0.12" style="pointer-events:none; filter:sepia(1) saturate(4) hue-rotate(-20deg)" />
   `
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">${cells}</svg>`
@@ -559,13 +550,13 @@ function buildPlanetInterpretations(chart: ChartOutput, group: string[]): string
     if (!g) return ''
     const signInterp = SIGN_INTERPRETATIONS[id]?.[g.rashi] || 'Core energy influence.'
     const digInterp = DIGNITY_INTERPRETATIONS[g.dignity] || ''
-    const color = dignityColor(g.dignity)
+    const planetColor = GRAHA_DISPLAY_COLOR[id as GrahaId] ?? THEME.text
     
     return `
       <div class="interp-block">
         <div class="interp-header">
-          <span style="color:${color};font-weight:800;font-size:1.2rem">${GRAHA_NAMES[id as GrahaId]} in ${RASHI_NAMES[g.rashi]}</span>
-          <span class="dignity-tag" style="background:${color}11;color:${color}">${capitalize(g.dignity)}</span>
+          <span style="color:${planetColor};font-weight:800;font-size:1.2rem">${GRAHA_NAMES[id as GrahaId]} in ${RASHI_NAMES[g.rashi]}</span>
+          <span class="dignity-tag" style="background:${THEME.surface};color:${THEME.muted};border:1px solid ${THEME.border}">${capitalize(g.dignity)}</span>
         </div>
         <div class="interp-text">${signInterp} ${digInterp}</div>
         <div class="interp-meta">Nakshatra: ${g.nakshatraName} (${g.pada}) • House: ${((g.rashi - chart.lagnas.ascRashi + 12) % 12) + 1}</div>
@@ -1076,7 +1067,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
           <td>${g.rashiName}</td>
           <td>${g.nakshatraName}</td>
           <td>${g.pada}</td>
-          <td style="color:${dignityColor(g.dignity)};font-weight:800">${capitalize(g.dignity)}</td>
+          <td style="color:${THEME.text};font-weight:700">${capitalize(g.dignity)}</td>
           <td>${g.isCombust ? 'Combust' : 'Direct'} • ${capitalize(g.avastha.baladi)} / ${capitalize(g.avastha.jagradadi)}</td>
         </tr>`).join('')}
     </tbody>

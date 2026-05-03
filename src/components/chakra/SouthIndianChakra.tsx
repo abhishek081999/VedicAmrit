@@ -17,8 +17,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import type { GrahaId } from '@/types/astrology'
-
-
+import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 
 // ── Fixed sign → [row, col] in 4×4 grid ──────────────────────
 
@@ -37,17 +36,6 @@ const SIGN_ABBR: Record<number, string> = {
 const ARUDHA_KEYS = [
   'AL','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12',
 ] as const
-
-function dignityColor(dignity: string, isRetro: boolean): string {
-  if (isRetro) return 'var(--dig-retro)'
-  switch (dignity) {
-    case 'exalted':      return 'var(--dig-exalted)'
-    case 'moolatrikona': return 'var(--dig-moola)'
-    case 'own':          return 'var(--dig-own)'
-    case 'debilitated':  return 'var(--dig-debilitate)'
-    default:             return 'var(--dig-neutral)'
-  }
-}
 
 
 // Standard display labels for Arudha Padas
@@ -250,7 +238,7 @@ export function SouthIndianChakra({
         const isAspected = aspectHighlights.includes(sign)
 
         const nGrahas = cellGrahas.length
-        const useTwoCol = nGrahas > 3
+        const useTwoCol = nGrahas > 2
         
         // Multiplier to figure out how many distinct text lines per planet
         const linesPerGraha = 1
@@ -268,6 +256,10 @@ export function SouthIndianChakra({
             )
           : cell * 0.16
 
+        // Tie planet / degree font to row height so many grahas in one rāśi still fit
+        const grahaFont = Math.round(Math.min(fs.graha, lineH * (linesPerGraha > 1 ? 0.42 : 0.88)))
+        const degreeFont = Math.round(Math.min(fs.degree, lineH * 0.38))
+
         return (
           <g
             key={sign}
@@ -279,14 +271,14 @@ export function SouthIndianChakra({
               x={x + 0.5} y={y + 0.5}
               width={cell - 1} height={cell - 1}
               fill={
-                isHouseHi ? 'rgba(253, 230, 138, 0.12)' :
+                isHouseHi ? 'rgba(253, 230, 138, 0.14)' :
                 isAspected ? 'var(--gold-faint)' :
                 isHi  ? 'var(--accent-glow)' :
-                isAsc ? 'var(--gold-faint)' :
                         'transparent'
               }
-              stroke={isHouseHi ? 'var(--gold)' : (isAsc ? 'var(--gold)' : 'var(--border-bright)')}
-              strokeWidth={isHouseHi ? 2.5 : (isAsc ? 2.5 : 1.25)}
+              stroke="var(--gold)"
+              strokeWidth={1.25}
+              strokeOpacity={0.42}
             />
 
             {/* Sign number — top-left */}
@@ -358,9 +350,8 @@ export function SouthIndianChakra({
               const px    = x + cell * (useTwoCol ? (col === 0 ? 0.10 : 0.55) : 0.12)
               const yPos  = y + cell * 0.28 + pRow * lineH * linesPerGraha
               
-              const color = dignityColor(g.dignity, g.isRetro)
-              const ret   = g.isRetro ? 'ᴿ' : ''
-              const comb  = g.isCombust ? 'ᶜ' : ''
+              const color = grahaChartFill(g.id)
+              const subMarkFs = Math.max(8, Math.round(grahaFont * 0.55))
               const deg   = showDegrees
                 ? ` ${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2,'0')}'`
                 : ''
@@ -379,18 +370,25 @@ export function SouthIndianChakra({
                   <text
                     x={px}
                     y={yPos}
-                    fontSize={fs.graha}
+                    fontSize={grahaFont}
                     fill={color}
                     fontFamily="var(--font-chart-planets)"
-                    fontWeight="var(--fw-medium)"
+                    fontWeight="var(--fw-chart-planet)"
+                    dominantBaseline="middle"
                   >
-                    {g.id}{ret}{comb}
+                    <tspan>{g.id}</tspan>
+                    {g.isRetro && (
+                      <tspan fontSize={subMarkFs} baselineShift="super">ᴿ</tspan>
+                    )}
+                    {g.isCombust && (
+                      <tspan fontSize={subMarkFs} baselineShift="super">ᶜ</tspan>
+                    )}
                   </text>
                   {(showDegrees || showKaraka) && (
                     <text
                       x={px}
                       y={yPos + lineH * 0.9}
-                      fontSize={fs.degree}
+                      fontSize={degreeFont}
                       fill="var(--text-muted)"
                       fontFamily="var(--font-mono)"
                     >
@@ -401,7 +399,7 @@ export function SouthIndianChakra({
                     <text
                       x={px}
                       y={yPos + lineH * (showDegrees || showKaraka ? 1.8 : 0.9)}
-                      fontSize={fs.degree * 0.88}
+                      fontSize={degreeFont * 0.88}
                       fill="var(--text-muted)"
                       fontFamily="var(--font-chart-planets)"
                       fontStyle="italic"
@@ -452,21 +450,26 @@ export function SouthIndianChakra({
         const cx = col * cell + cell * 0.5
         const cy = row * cell + cell * 0.72
         const tFont = cell * 0.115 * fontScale * planetScale
-        return tPlanets.map((tg, ti) => (
+        return tPlanets.map((tg, ti) => {
+          const tFs = Math.round(tFont * 0.85)
+          const tSub = Math.max(6, Math.round(tFs * 0.48))
+          return (
           <text
             key={`transit-s-${tg.id}-${ti}`}
             x={cx + (tPlanets.length > 1 && ti % 2 === 1 ? cell * 0.18 : tPlanets.length > 1 ? -cell * 0.18 : 0)}
             y={cy + Math.floor(ti / 2) * tFont * 1.5}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={Math.round(tFont * 0.85)}
+            fontSize={tFs}
             fontWeight={700}
             fontFamily="var(--font-mono)"
             fill={tg.isRetro ? 'rgba(200,140,255,0.90)' : 'rgba(139,124,246,0.90)'}
             style={{ filter: 'drop-shadow(0 0 3px rgba(139,124,246,0.5))' }}
           >
-            {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? ` ${Math.floor(tg.degree)}°` : ''}
+            <tspan>{tg.id}</tspan>
+            {tg.isRetro && <tspan fontSize={tSub} baselineShift="super">℞</tspan>}
+            {showDegrees ? <tspan>{` ${Math.floor(tg.degree)}°`}</tspan> : null}
           </text>
-        ))
+        )})
       })}
 
       {/* ── Comparison planet overlay (Synastry) ── */}
@@ -477,21 +480,26 @@ export function SouthIndianChakra({
         const cx = col * cell + cell * 0.5
         const cy = row * cell + cell * 0.85
         const cFont = cell * 0.115 * fontScale * planetScale
-        return cPlanets.map((cg, ci) => (
+        return cPlanets.map((cg, ci) => {
+          const cFs = Math.round(cFont * 0.85)
+          const cSub = Math.max(6, Math.round(cFs * 0.48))
+          return (
           <text
             key={`compare-s-${cg.id}-${ci}`}
             x={cx + (cPlanets.length > 1 && ci % 2 === 1 ? cell * 0.18 : cPlanets.length > 1 ? -cell * 0.18 : 0)}
             y={cy + Math.floor(ci / 2) * cFont * 1.5}
             textAnchor="middle" dominantBaseline="middle"
-            fontSize={Math.round(cFont * 0.85)}
+            fontSize={cFs}
             fontWeight={800}
             fontFamily="var(--font-mono)"
             fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
             style={{ filter: 'drop-shadow(0 0 3px rgba(184,134,11,0.3))' }}
           >
-            {cg.id}{cg.isRetro ? '℞' : ''}{showDegrees ? ` ${Math.floor(cg.degree)}°` : ''}
+            <tspan>{cg.id}</tspan>
+            {cg.isRetro && <tspan fontSize={cSub} baselineShift="super">℞</tspan>}
+            {showDegrees ? <tspan>{` ${Math.floor(cg.degree)}°`}</tspan> : null}
           </text>
-        ))
+        )})
       })}
 
       {/* Centre decorative lines */}
@@ -504,16 +512,6 @@ export function SouthIndianChakra({
         <line x1={cell*3} y1={cell} x2={cell} y2={cell*3} stroke="var(--border)" strokeWidth="0.5" />
       </g>
 
-      {/* ── Center Brand Watermark ── */}
-      <image 
-        href="/veda-icon.png" 
-        x={size/2 - (size * 0.1)} 
-        y={size/2 - (size * 0.1)} 
-        width={size * 0.2} 
-        height={size * 0.2} 
-        opacity="0.22"
-        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
-      />
     </svg>
     {isMounted && showTooltip && hoveredPlanet && (
       <PlanetTooltipCard

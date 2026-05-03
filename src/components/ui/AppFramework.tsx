@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
 
 // ── Navigation Progress Bar Animation ──
 const progressKeyframes = `
@@ -86,7 +87,7 @@ const ADVANCED_ASTRO_TABS: { id: string; label: string; icon: string; path?: str
   { id: 'sbc', label: 'Sarvatobhadra Chakra', icon: '⬛', path: '/sbc' },
   { id: 'muhurta', label: 'Muhurta Finder', icon: '🕒', path: '/muhurta' },
   { id: 'prashna', label: 'Prashna', icon: '🎯', path: '/prashna' },
-  { id: 'compare', label: 'Synastry Overlay', icon: '⚭', path: '/compare' },
+  { id: 'compare', label: 'Kundali Matching', icon: '⚭', path: '/compare' },
   { id: 'roadmap', label: 'Cosmic Roadmap', icon: '🛣️', path: '/roadmap' },
   { id: 'transit-scrubber', label: 'Time Scrubber', icon: '⏳', path: '/scrubber' },
 ]
@@ -112,6 +113,9 @@ const MAIN_TABS: { id: string; label: string; icon: string; path?: string }[] = 
   { id: 'my-charts',  label: 'My Charts',     icon: '📚', path: '/my/charts' },
 ]
 
+/** Keep in sync with `.sidenav.open + .main-content` in `globals.css` */
+const SIDENAV_WIDTH_PX = 212
+
 export function AppFramework({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const pathname = usePathname()
@@ -125,7 +129,31 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isSidenavOpen) setProfileMenuOpen(false)
+  }, [isSidenavOpen])
+
+  useEffect(() => {
+    if (!profileMenuOpen) return
+    const onDoc = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setProfileMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [profileMenuOpen])
 
   useEffect(() => {
     setIsNavigating(false)
@@ -211,7 +239,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         setIsNavigating(true)
       }
 
-      if (!chart && t.path && !isAstrologyTab) {
+      if (!chart && t.path && !isAstrologyTab && !routeAllowsWithoutChart(t.path)) {
         e.preventDefault()
         setPendingDestination(t.path)
         setIsFormOpen(true)
@@ -224,21 +252,22 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
     }
 
     const style: React.CSSProperties = {
-      display: 'flex', alignItems: 'center', gap: '0.72rem', padding: '0.56rem 0.65rem',
+      display: 'flex', alignItems: 'center', gap: '0.48rem', padding: '0.36rem 0.5rem',
       background: isActive ? 'var(--gold-faint)' : 'transparent', 
       border: 'none',
-      borderLeft: `3px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
+      borderLeft: `2px solid ${isActive ? 'var(--gold)' : 'transparent'}`,
       color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
       borderRadius: '0 var(--r-md) var(--r-md) 0', 
       cursor: 'pointer', 
       textAlign: 'left',
       fontFamily: 'var(--font-body)', 
-      fontSize: '0.86rem', 
+      fontSize: '0.8rem', 
       transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-      letterSpacing: '0.04em',
+      letterSpacing: '0.02em',
       width: '100%', 
       textDecoration: 'none',
-      paddingLeft: isSub ? '1.75rem' : '0.72rem',
+      paddingLeft: isSub ? '1.15rem' : '0.52rem',
+      minHeight: 36,
       position: 'relative',
       overflow: 'hidden'
     }
@@ -252,20 +281,21 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         onMouseEnter={(e) => {
           if (!isActive) {
             e.currentTarget.style.background = 'var(--surface-3)'
-            e.currentTarget.style.paddingLeft = isSub ? '1.9rem' : '0.85rem'
+            e.currentTarget.style.paddingLeft = isSub ? '1.28rem' : '0.62rem'
             e.currentTarget.style.color = 'var(--text-primary)'
           }
         }}
         onMouseLeave={(e) => {
           if (!isActive) {
             e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.paddingLeft = isSub ? '1.75rem' : '0.72rem'
+            e.currentTarget.style.paddingLeft = isSub ? '1.15rem' : '0.52rem'
             e.currentTarget.style.color = 'var(--text-secondary)'
           }
         }}
       >
          <span style={{ 
-           fontSize: '1.1rem', 
+           fontSize: '0.95rem', 
+           lineHeight: 1,
            opacity: isActive ? 1 : 0.6,
            transition: 'transform 0.2s',
            transform: isActive ? 'scale(1.1)' : 'scale(1)',
@@ -292,7 +322,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: 'var(--bg-page)' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', background: 'transparent' }}>
       <style dangerouslySetInnerHTML={{ __html: progressKeyframes }} />
       
       {/* ── Global Top Progress Bar ── */}
@@ -424,20 +454,27 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         <aside
           className={`sidenav ${isSidenavOpen ? 'open' : ''}`}
           style={{
-            width: 232, flexShrink: 0,
+            width: SIDENAV_WIDTH_PX,
+            flexShrink: 0,
             background: 'var(--surface-2)',
             borderRight: '1px solid var(--border)',
-            zIndex: 1500, display: 'flex', flexDirection: 'column',
-            position: 'fixed', top: 0, left: 0, bottom: 0,
+            zIndex: 1500,
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            bottom: 0,
             transform: isSidenavOpen ? 'translateX(0)' : 'translateX(-100%)',
-            transition: 'transform 0.4s cubic-bezier(0.16,1,0.3,1)',
-            boxShadow: isSidenavOpen ? '4px 0 32px rgba(0,0,0,0.15)' : 'none',
+            transition: 'transform 0.32s cubic-bezier(0.16,1,0.3,1)',
+            boxShadow: isSidenavOpen ? '4px 0 24px rgba(0,0,0,0.12)' : 'none',
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
           }}
         >
           {/* Logo area */}
-          <div style={{ padding: '1rem 1rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+          <div style={{ padding: '0.6rem 0.65rem', borderBottom: '1px solid var(--border-soft)', background: 'var(--logo-gradient)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
               <Link
                 href="/home"
                 onClick={() => {
@@ -446,25 +483,28 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
                   setActiveTab('dashboard')
                   if (window.innerWidth < 1024) setIsSidenavOpen(false)
                 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none', minWidth: 0, flex: 1 }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', minWidth: 0, flex: 1 }}
               >
                 <img
                   src="/veda-icon.png"
                   alt="Vedaansh Logo"
-                  style={{ width: 44, height: 44, objectFit: 'contain' }}
+                  style={{ width: 34, height: 34, objectFit: 'contain' }}
                 />
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1, minWidth: 0 }}>
-                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.05em' }}>Vedaansh</span>
-                  <span style={{ fontSize: '0.65rem', color: 'var(--logo-text-sub)', letterSpacing: '0.1em', fontWeight: 600, whiteSpace: 'nowrap' }}>॥ श्री गणेशाय नमः ॥</span>
+                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.05, minWidth: 0 }}>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.12rem', fontWeight: 700, color: 'var(--logo-text-title)', letterSpacing: '0.04em' }}>Vedaansh</span>
+                  <span style={{ fontSize: '0.58rem', color: 'var(--logo-text-sub)', letterSpacing: '0.08em', fontWeight: 600, whiteSpace: 'nowrap', opacity: 0.92 }}>॥ श्री गणेशाय नमः ॥</span>
                 </div>
               </Link>
               <button
+                type="button"
+                aria-label="Close menu"
                 onClick={() => setIsSidenavOpen(false)}
                 style={{
                   background: 'none', border: '1px solid var(--border-soft)', borderRadius: 6,
-                  width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.75rem', 
-                  transition: 'all 0.15s'
+                  width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.72rem', 
+                  transition: 'all 0.15s',
+                  flexShrink: 0,
                 }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-soft)'}
@@ -475,46 +515,184 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* User Profile Block */}
-          <div style={{ padding: '0.9rem 1rem', borderBottom: '1px solid var(--border-soft)' }}>
+          <div style={{ padding: '0.5rem 0.65rem', borderBottom: '1px solid var(--border-soft)' }}>
             {status === 'loading' ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0.5 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'var(--surface-3)', animation: 'pulse 1.5s infinite' }} />
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Syncing...</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.5 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 'var(--r-md)', background: 'var(--surface-3)', animation: 'pulse 1.5s infinite' }} />
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Syncing...</div>
               </div>
             ) : status === 'authenticated' && session?.user ? (
-              <Link 
-                href="/account"
-                onClick={() => { if (window.innerWidth < 1024) setIsSidenavOpen(false) }}
-                onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-3)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                style={{ 
-                  display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none',
-                  padding: '0.5rem', borderRadius: 'var(--r-md)', transition: 'all 0.15s'
-                }}
-              >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'var(--gold-faint)', border: '1px solid var(--gold)',
-                  color: 'var(--text-gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1rem', flexShrink: 0
-                }}>
-                  {session.user.name?.[0] || '★'}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {session.user.name || 'Account'}
+              <div ref={profileMenuRef} style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  onClick={() => setProfileMenuOpen((v) => !v)}
+                  aria-expanded={profileMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label="Account menu"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    width: '100%',
+                    padding: '0.38rem 0.42rem',
+                    borderRadius: 'var(--r-md)',
+                    transition: 'background 0.15s',
+                    background: profileMenuOpen ? 'var(--surface-3)' : 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    font: 'inherit',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!profileMenuOpen) e.currentTarget.style.background = 'var(--surface-3)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!profileMenuOpen) e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 'var(--r-md)',
+                      background: 'var(--gold-faint)',
+                      border: '1px solid var(--gold)',
+                      color: 'var(--text-gold)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      fontSize: '0.88rem',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {session.user.name?.[0] || '★'}
                   </div>
-                  <div style={{ color: 'var(--text-gold)', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>
-                    Settings ›
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {session.user.name || 'Account'}
+                    </div>
+                    <div
+                      style={{
+                        color: 'var(--text-gold)',
+                        fontSize: '0.6rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        marginTop: 1,
+                      }}
+                    >
+                      {profileMenuOpen ? 'Close ▴' : 'Account ▾'}
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </button>
+                {profileMenuOpen && (
+                  <div
+                    role="menu"
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      right: 0,
+                      top: '100%',
+                      marginTop: 6,
+                      padding: '0.35rem',
+                      background: 'var(--surface-1)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--r-md)',
+                      boxShadow: 'var(--shadow-card)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                      zIndex: 40,
+                    }}
+                  >
+                    <Link
+                      href="/account"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        if (window.innerWidth < 1024) setIsSidenavOpen(false)
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        padding: '0.42rem 0.5rem',
+                        borderRadius: 6,
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        color: 'var(--text-primary)',
+                        textDecoration: 'none',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'var(--surface-3)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      <span aria-hidden style={{ fontSize: '0.85rem' }}>
+                        👤
+                      </span>
+                      Profile
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setProfileMenuOpen(false)
+                        setIsSidenavOpen(false)
+                        void signOut({ callbackUrl: '/' })
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        padding: '0.42rem 0.5rem',
+                        borderRadius: 6,
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        color: 'var(--text-muted)',
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        fontFamily: 'inherit',
+                        width: '100%',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(224, 123, 142, 0.12)'
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      <span aria-hidden style={{ fontSize: '0.85rem' }}>
+                        ⎋
+                      </span>
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link 
                 href="/login"
                 onClick={() => { if (window.innerWidth < 1024) setIsSidenavOpen(false) }}
                 style={{ 
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  padding: '0.65rem 1rem', background: 'var(--gold-faint)', borderRadius: 'var(--r-md)',
-                  color: 'var(--text-gold)', textDecoration: 'none', fontWeight: 600, fontSize: '0.88rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                  padding: '0.45rem 0.65rem', background: 'var(--gold-faint)', borderRadius: 'var(--r-md)',
+                  color: 'var(--text-gold)', textDecoration: 'none', fontWeight: 600, fontSize: '0.8rem',
                   border: '1px solid var(--border)'
                 }}
               >
@@ -524,23 +702,25 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Navigation */}
-          <nav style={{ flex: 1, padding: '0.55rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-            <div className="label-caps" style={{ padding: '0.35rem 0.6rem', fontSize: '0.62rem', opacity: 0.5 }}>Navigation</div>
+          <nav style={{ flex: 1, padding: '0.35rem 0.4rem 0.5rem', display: 'flex', flexDirection: 'column', gap: '0.08rem' }}>
+            <div className="label-caps" style={{ padding: '0.22rem 0.45rem 0.28rem', fontSize: '0.58rem', opacity: 0.55 }}>Navigation</div>
             {TOP_TABS.map(t => renderTab(t))}
             
             <button
+              type="button"
               onClick={toggleAstroOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
-                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
+                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
-                letterSpacing: '0.04em',
-                width: '100%'
+                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
+                letterSpacing: '0.02em',
+                width: '100%',
+                minHeight: 36,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
-                <span style={{ fontSize: '1rem', opacity: 0.5 }}>🌌</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
+                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>🌌</span>
                 <span>Astrology</span>
               </div>
               <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAstroOpen ? '▲' : '▼'}</span>
@@ -550,18 +730,18 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               overflow: 'hidden',
               maxHeight: isAstroOpen ? '1200px' : '0',
               transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+              display: 'flex', flexDirection: 'column', gap: '0.1rem'
             }}>
               {ASTRO_GROUPS.map((group, gIdx) => (
-                <div key={group.label} style={{ marginTop: gIdx === 0 ? '0' : '0.5rem' }}>
+                <div key={group.label} style={{ marginTop: gIdx === 0 ? '0' : '0.32rem' }}>
                   <div style={{ 
-                    fontSize: '0.62rem', 
+                    fontSize: '0.58rem', 
                     fontWeight: 700, 
                     color: 'var(--text-muted)', 
                     textTransform: 'uppercase', 
-                    letterSpacing: '0.1em',
-                    padding: '0.35rem 1.75rem',
-                    opacity: 0.6
+                    letterSpacing: '0.08em',
+                    padding: '0.18rem 0.85rem',
+                    opacity: 0.62
                   }}>
                     {group.label}
                   </div>
@@ -571,18 +751,20 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
             </div>
 
             <button
+              type="button"
               onClick={toggleAdvancedAstroOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
-                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
+                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
-                letterSpacing: '0.04em',
-                width: '100%'
+                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
+                letterSpacing: '0.02em',
+                width: '100%',
+                minHeight: 36,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
-                <span style={{ fontSize: '1rem', opacity: 0.5 }}>⚛</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
+                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>⚛</span>
                 <span>Advanced Astrology</span>
               </div>
               <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isAdvancedAstroOpen ? '▲' : '▼'}</span>
@@ -591,23 +773,26 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               overflow: 'hidden',
               maxHeight: isAdvancedAstroOpen ? '800px' : '0',
               transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+              display: 'flex', flexDirection: 'column', gap: '0.1rem'
             }}>
               {ADVANCED_ASTRO_TABS.map(t => renderTab(t, true))}
             </div>
 
             <button
+              type="button"
               onClick={toggleNakshatraOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
-                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
+                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
-                width: '100%'
+                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
+                letterSpacing: '0.02em',
+                width: '100%',
+                minHeight: 36,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
-                <span style={{ fontSize: '1.1rem' }}>🌙</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
+                <span style={{ fontSize: '0.95rem' }} aria-hidden>🌙</span>
                 <span style={{ fontWeight: 600, letterSpacing: '0.01em' }}>Nakṣatra</span>
               </div>
               <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isNakshatraOpen ? '▲' : '▼'}</span>
@@ -616,24 +801,26 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               overflow: 'hidden',
               maxHeight: isNakshatraOpen ? '800px' : '0',
               transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+              display: 'flex', flexDirection: 'column', gap: '0.1rem'
             }}>
               {NAKSHATRA_TABS.map(t => renderTab(t, true))}
             </div>
 
             <button
+              type="button"
               onClick={togglePanchangOpen}
               style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.55rem 0.65rem',
-                background: 'transparent', border: 'none', borderLeft: '3px solid transparent',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.36rem 0.48rem',
+                background: 'transparent', border: 'none', borderLeft: '2px solid transparent',
                 color: 'var(--text-secondary)', borderRadius: '0 var(--r-md) var(--r-md) 0', cursor: 'pointer', textAlign: 'left',
-                fontFamily: 'var(--font-body)', fontSize: '0.86rem', transition: 'all 0.15s',
-                letterSpacing: '0.04em',
-                width: '100%'
+                fontFamily: 'var(--font-body)', fontSize: '0.8rem', transition: 'all 0.15s',
+                letterSpacing: '0.02em',
+                width: '100%',
+                minHeight: 36,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.72rem' }}>
-                <span style={{ fontSize: '1rem', opacity: 0.5 }}>📅</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.48rem' }}>
+                <span style={{ fontSize: '0.92rem', opacity: 0.55 }} aria-hidden>📅</span>
                 <span>Pañcāṅga</span>
               </div>
               <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>{isPanchangOpen ? '▲' : '▼'}</span>
@@ -643,7 +830,7 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
               overflow: 'hidden',
               maxHeight: isPanchangOpen ? '500px' : '0',
               transition: 'max-height 0.3s ease-in-out',
-              display: 'flex', flexDirection: 'column', gap: '0.25rem'
+              display: 'flex', flexDirection: 'column', gap: '0.1rem'
             }}>
               {PANCHANG_TABS.map(t => renderTab(t, true))}
             </div>
@@ -652,18 +839,13 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Bottom Actions */}
-          <div style={{ padding: '0.9rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.2, marginBottom: '0.5rem' }}>
-              <div style={{ width: 24, height: 24 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
+          <div style={{ padding: '0.55rem 0.55rem 0.65rem', borderTop: '1px solid var(--border-soft)', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--gold)', opacity: 0.22, marginBottom: '0.15rem' }}>
+              <div style={{ width: 20, height: 20 }} dangerouslySetInnerHTML={{ __html: VEDIC_ICONS.om }} />
             </div>
-            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.85rem', textDecoration: 'none' }}>
+            <Link href="/astrology?new=true" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', fontSize: '0.8rem', paddingTop: '0.45rem', paddingBottom: '0.45rem', textDecoration: 'none' }}>
               + New Consultation
             </Link>
-            {status === 'authenticated' && (
-              <button onClick={() => signOut()} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem' }}>
-                <span style={{ fontSize: '1rem' }}>⎋</span> Logout
-              </button>
-            )}
           </div>
         </aside>
 
