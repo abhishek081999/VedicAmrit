@@ -1,9 +1,9 @@
 # Consultation Portal — Full Technical Specification
 
-**Version:** 1.0 (MVP)
+**Version:** 1.3 (Cloudinary chosen for uploads)
 **Status:** Approved for build
 **Owner:** Vedaansh Engineering
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-02
 
 ---
 
@@ -14,7 +14,7 @@
 3. [High-level architecture](#3-high-level-architecture)
 4. [Role hierarchy & permissions](#4-role-hierarchy--permissions)
 5. [Authentication & authorization](#5-authentication--authorization)
-6. [Data model](#6-data-model)
+6. [Data model](#6-data-model) — includes [§6.11 Media: photos, logos, category art](#611-media-consultant-photos-logos-and-platform-assets)
 7. [Route map](#7-route-map)
 8. [API surface](#8-api-surface)
 9. [Slot engine](#9-slot-engine)
@@ -32,6 +32,7 @@
 21. [Security & compliance](#21-security--compliance)
 22. [Operational runbook](#22-operational-runbook)
 23. [Out of scope (V2 roadmap)](#23-out-of-scope-v2-roadmap)
+24. [Appendix: complete implementation reference](#24-appendix-complete-implementation-reference) — *error codes, validation, API bodies, indexes, constants, edge cases*
 
 ---
 
@@ -286,7 +287,11 @@ Indexes: `{ slug: 1 }` unique, `{ displayOrder: 1, isActive: 1 }`.
   displayName:     string
   headline:        string             // one-liner
   bio:             string             // markdown
-  photo:           string | null      // URL
+  photo:           string | null      // HTTPS URL — see §6.11 (never raw binary in MongoDB for V1)
+  // Optional when using first-party upload (object storage); omit for paste-URL-only MVP:
+  // photoStorage?: 'external_url' | 's3' | 'r2' | 'vercel_blob'
+  // photoObjectKey?: string | null
+  // photoUpdatedAt?: Date | null
   languages:       string[]           // ['en', 'hi', 'sa']
   specialties:     string[]
   experienceYears: number
@@ -496,6 +501,174 @@ A single row identified by `{ singleton: 'global' }`.
 
 Indexes: `{ createdAt: -1 }`, `{ actorStaffId: 1, createdAt: -1 }`, `{ targetType: 1, targetId: 1 }`.
 
+### 6.11 Media: consultant photos, logos, and platform assets
+
+This section answers: **where does the consultant’s image live, who can change it, and what the app actually stores?**
+
+**Project decision (Vedaansh on Render):** first-party image uploads use **[Cloudinary](https://cloudinary.com/)**. The API uploads to Cloudinary from `POST …/upload-photo`; **`ConsultPractitioner.photo`** stores Cloudinary’s **`secure_url`**. Optional field **`photoCloudinaryPublicId`** (or reuse a generic `photoRemoteId`) stores Cloudinary **`public_id`** so replacing/deleting an image can call Cloudinary’s destroy API. **Mode A** (staff pastes any HTTPS image URL) remains supported alongside uploads.
+
+#### 6.11.1 Core rule (V1)
+
+- **MongoDB stores references only** — typically an **absolute HTTPS URL** string pointing at the image bytes elsewhere.
+- **MongoDB does not store** raw image binary (`Buffer`), Base64 blobs in documents, or GridFS for profile photos in MVP (GridFS is reserved for V2 if you want everything self-hosted).
+- The **canonical field** for a consultant’s public face is **`ConsultPractitioner.photo`** — `string | null`, meaning “URL of the profile image shown on `/consult`, directory cards, and booking emails.”
+
+If `photo` is `null`, the UI uses a **deterministic fallback**: initials avatar from `displayName` on a category-tinted circle, or a generic silhouette SVG — same pattern as the rest of Vedaansh.
+
+#### 6.11.2 What `photo` points to (three supported ingestion modes)
+
+| Mode | What gets saved in DB | Where bytes live | Best for |
+|---|---|---|---|
+| **A — External URL (paste)** | The URL string the staff pastes | Third-party host (Imgur, Cloudinary, Google user content, practitioner’s own CDN, etc.) | Fastest MVP; zero storage bill |
+| **B — First-party upload** | Public URL returned by your upload API | **Cloudinary** (default for this project on Render), or AWS S3 / Cloudflare R2 / B2 / Vercel Blob | Production; predictable URLs; delete-on-replace |
+| **C — Bundled static** | Path like `/consult-assets/featured/dr-sharma.jpg` | **`public/`** in the Next.js repo | Only for **platform-curated** heroes or seed data — **not** for every consultant (requires redeploy to change) |
+
+**Recommendation:** ship **Mode A** first if time-constrained; add **Mode B** via **Cloudinary** (`POST /api/consult/me/upload-photo`, etc.) before public launch so consultants are not dependent on random paste URLs.
+
+#### 6.11.3 Detailed flow — Mode B (recommended production path)
+
+```mermaid
+sequenceDiagram
+    actor Staff as Practitioner or Admin
+    participant UI as Profile form<br/>multipart file input
+    participant API as POST /api/consult/.../upload-photo
+    participant Store as Object storage<br/>(S3 / R2 / Vercel Blob)
+    participant DB as MongoDB<br/>consult_practitioners
+
+    Staff->>UI: choose JPEG/PNG/WebP
+    UI->>API: multipart file + CSRF-safe cookie
+    API->>API: verify staff auth; size/type check
+    API->>Store: putObject(key, body, contentType)
+    Store-->>API: public URL (or signed CDN URL)
+    API->>DB: photo = publicUrl; optional photoObjectKey = key
+    API-->>UI: { url }
+    UI-->>Staff: preview + saved
+```
+
+- **Object key convention** (example): `consult/practitioners/{practitionerId}/{uuid}.{ext}` — makes orphan cleanup and GDPR deletion obvious.
+- **After a successful new upload**, if the previous image was stored in **your** bucket (`photoObjectKey` present), **delete the old object** to avoid storage leaks.
+
+#### 6.11.4 Optional schema extensions (when using Mode B)
+
+If you implement first-party upload, extend `ConsultPractitioner` (same collection, additive fields):
+
+```ts
+photo:              string | null   // public HTTPS URL (always)
+photoStorage:       'external_url' | 's3' | 'r2' | 'vercel_blob' | null
+photoObjectKey:     string | null   // set when bytes are in your bucket; used for delete
+photoContentType:   string | null   // e.g. 'image/jpeg'
+photoByteSize:      number | null     // bytes; for admin moderation
+photoUpdatedAt:     Date | null
+```
+
+- **`photoStorage: 'external_url'`** — staff pasted a URL; **never** try to delete remote bytes (you don’t own them).
+- **`photoObjectKey`** — always set when `photoStorage` is your bucket; **omit** for external URLs.
+
+#### 6.11.5 Validation rules (paste URL — Mode A)
+
+| Check | Rule |
+|---|---|
+| Scheme | Must be `https:` (reject `http:` in production to avoid mixed content and downgrade attacks). |
+| Host allowlist (optional) | Super-admin setting `allowedPhotoHosts: string[]` — if empty, any HTTPS host; if set, only those hosts (stops some SSRF abuse from staff paste). |
+| SSRF hardening | Server-side `HEAD` or `GET` with **timeout (3s)**, **max redirect hops (3)**, **block RFC1918 / loopback** — never fetch internal IPs from the Next.js server when “validating” a URL. Safer: skip remote fetch in MVP and only validate URL shape + HTTPS. |
+| Length | Max URL length **2048** characters (matches typical browser limits). |
+
+#### 6.11.6 Validation rules (upload — Mode B)
+
+| Check | Suggested limit |
+|---|---|
+| MIME | Allow `image/jpeg`, `image/png`, `image/webp` only (reject GIF/SVG in V1 — SVG XSS surface). |
+| Max size | **5 MB** per file (adjust per hosting). |
+| Dimensions | Optional: reject if width or height **> 4096px** server-side using `sharp` or probe — **optional dependency**; can skip in MVP and rely on CSS `object-cover`. |
+| Magic bytes | Verify file signature matches claimed MIME (don’t trust browser-provided type alone). |
+
+#### 6.11.7 Display rules in the product
+
+| Surface | Behaviour |
+|---|---|
+| **Directory cards** (`/consult`, `/consult/[category]`) | Square or rounded-square **thumbnail**, **cover** crop (`object-cover`), fixed height ~160–200px, lazy-loaded `<Image>` from `next/image` with `sizes` for responsive srcset. |
+| **Profile hero** (`/consult/p/[slug]`) | Larger image or circular avatar + name; optional blurred background using same URL (`blurDataURL` optional V2). |
+| **Emails** | Many clients block external images by default — always include **alt text** with practitioner name; `brandLogo` same rules. Use **absolute HTTPS** URLs only in HTML. |
+| **Staff dashboards** | Small 40–48px avatar in tables and headers. |
+
+#### 6.11.8 Who can set or change the consultant image
+
+| Role | Can change `ConsultPractitioner.photo` |
+|---|---|
+| **Super Admin** | Yes — any practitioner |
+| **Consultant Admin** | Yes — only practitioners in **their** `categoryId` |
+| **Practitioner** | Yes — **own** profile only (`/consult/me/profile`) |
+| **Booker** | Never |
+
+All changes — especially URL paste from admin — should append **`ConsultAuditLog`** (`action: 'practitioner.photo_update'`, store previous URL redacted if needed).
+
+#### 6.11.9 Platform brand logo (`ConsultSettings.brandLogo`)
+
+- Same storage philosophy: **string URL**, HTTPS, typically uploaded once by super-admin on `/consult/admin/settings`.
+- Used in email templates as `{{brandLogoUrl}}` and optionally in `/consult` header.
+- Prefer **wide rectangular** logo (e.g. **~600×120 px** max display width in email); store hi-res PNG/WebP with transparent background.
+
+#### 6.11.10 Category visuals (`ConsultCategory.icon`, `ConsultCategory.color`)
+
+- **`icon`** — flexible encoding for MVP:
+  - **Single Unicode emoji** (e.g. `✨`, `🔮`) — zero hosting cost; render as text.
+  - **Or** short **icon key** aligned with Lucide (`'Sparkles'`) if you map keys to SVG components in code — still no binary in DB.
+  - **Or** HTTPS URL to a small PNG/SVG — same validation as practitioner photo for pasted URLs.
+- **`color`** — hex string `#RRGGBB` for category accent borders and avatar fallback ring — **not** an image.
+
+#### 6.11.11 Email templates and inline images
+
+- Transactional HTML lives in `ConsultEmailTemplate` — images inside templates must use **public absolute URLs** (same domain as `NEXT_PUBLIC_APP_URL` or CDN).
+- Do **not** embed multi-megabyte Base64 images in MongoDB template bodies — link to hosted assets under `/public` or object storage.
+
+#### 6.11.12 Broken / stale URLs
+
+- If `photo` URL returns 404 at runtime (browser `onError` on `<img>`), fall back to **initials avatar**; optionally show staff-only banner “Image failed to load — update URL.”
+- Periodic job (V2): HEAD-check practitioner photos weekly and notify consultant admin.
+
+#### 6.11.13 Environment variables (when using object storage)
+
+**Default for this project — Cloudinary** (set on Render service → Environment):
+
+```bash
+# Cloudinary — practitioner photos + optional brand logo upload
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+# Optional: folder prefix for consult assets (e.g. consult/practitioners)
+CLOUDINARY_UPLOAD_FOLDER=vedaansh/consult
+```
+
+- Server-only: **`CLOUDINARY_API_SECRET`** never exposed to the browser.
+- Upload API uses signed upload or server-side `upload_stream` with `folder: process.env.CLOUDINARY_UPLOAD_FOLDER`.
+- **`next/image`:** add Cloudinary host to `images.remotePatterns` in [next.config.mjs](next.config.mjs), e.g. `hostname: 'res.cloudinary.com'`, `pathname: '/your_cloud_name/**'` (match [Next.js remote patterns](https://nextjs.org/docs/app/api-reference/components/image#remotepatterns)).
+
+**Alternatives** (if you migrate off Cloudinary):
+
+```bash
+# AWS S3 / compatible (R2, MinIO)
+CONSULT_S3_BUCKET=vedaansh-consult
+CONSULT_S3_REGION=auto
+CONSULT_S3_ACCESS_KEY_ID=...
+CONSULT_S3_SECRET_ACCESS_KEY=...
+CONSULT_S3_PUBLIC_BASE_URL=https://cdn.example.com
+
+# Vercel Blob (only if also deploying to Vercel)
+BLOB_READ_WRITE_TOKEN=...
+```
+
+Public pages never receive raw secrets — only the API routes that write to storage.
+
+#### 6.11.14 Consultant Admin vs practitioner — same image rules
+
+- **Consultant Admin** editing a practitioner’s photo uses the **same** field (`photo`) and the **same** upload endpoint — authorization ensures `categoryId` match.
+- **Super Admin** bypasses category scope.
+
+#### 6.11.15 Related fields (not images)
+
+- **`bio`** — Markdown or sanitized HTML; **not** stored as image. Sanitize on render (no raw `<script>`).
+- **`qualifications`** — text array; certificates as PDFs = **V2** (`ConsultPractitionerCertificate` model + file upload).
+
 ---
 
 ## 7. Route map
@@ -578,6 +751,7 @@ All `/api/consult/*` routes return JSON envelopes: `{ success: true, data }` or 
 | Method | Path | Auth |
 |---|---|---|
 | GET / PATCH | `/api/consult/me/profile` | practitioner |
+| POST | `/api/consult/me/upload-photo` | practitioner — multipart → object storage; updates `photo` + optional `photoObjectKey` (§6.11) |
 | GET / POST / PATCH / DELETE | `/api/consult/me/services[/id]` | practitioner |
 | GET / POST / PATCH / DELETE | `/api/consult/me/availability[/id]` | practitioner |
 | GET / POST / DELETE | `/api/consult/me/exceptions[/id]` | practitioner |
@@ -589,6 +763,7 @@ All `/api/consult/*` routes return JSON envelopes: `{ success: true, data }` or 
 | Method | Path | Auth |
 |---|---|---|
 | GET / POST / PATCH / DELETE | `/api/consult/dept/practitioners[/id]` | consultant_admin |
+| POST | `/api/consult/dept/practitioners/[id]/upload-photo` | consultant_admin — scoped to own category (§6.11) |
 | GET | `/api/consult/dept/bookings` | consultant_admin |
 | GET | `/api/consult/dept/revenue` | consultant_admin |
 | GET | `/api/consult/dept/stats` | consultant_admin |
@@ -600,6 +775,7 @@ All `/api/consult/*` routes return JSON envelopes: `{ success: true, data }` or 
 | GET / POST / PATCH / DELETE | `/api/consult/admin/categories[/id]` | super |
 | GET / POST / PATCH / DELETE | `/api/consult/admin/staff[/id]` | super |
 | GET / POST / PATCH / DELETE | `/api/consult/admin/practitioners[/id]` | super |
+| POST | `/api/consult/admin/practitioners/[id]/upload-photo` | super — same as practitioner upload but any practitioner ID |
 | GET | `/api/consult/admin/bookings` | super |
 | GET | `/api/consult/admin/revenue` | super |
 | GET | `/api/consult/admin/stats` | super |
@@ -890,6 +1066,8 @@ CONSULT_SUPERADMIN_PASSWORD=change-me-immediately
 CRON_SECRET=replace-with-32-byte-random
 ```
 
+**Images (Cloudinary — project default):** set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, and optionally `CLOUDINARY_UPLOAD_FOLDER`. See [§6.11.13](#6113-environment-variables-when-using-object-storage). Paste-only Mode A works without Cloudinary.
+
 Reused (already present):
 
 - `AUTH_SECRET` — also signs the staff JWT cookie.
@@ -919,6 +1097,7 @@ src/lib/db/models/consult/
   index.ts                       // barrel export
 
 src/lib/consult/
+  constants.ts                   // §24.2 — TTLs, limits, rate caps (single source)
   auth.ts                        // signStaffToken, verifyStaffToken, getStaffSession, requireXxx
   slots.ts                       // slot engine
   emails.ts                      // template-driven sender
@@ -989,8 +1168,10 @@ src/app/api/consult/
   me/bookings/route.ts
   me/earnings/route.ts
   me/bookings/list/route.ts
+  me/upload-photo/route.ts
   dept/practitioners/route.ts
   dept/practitioners/[id]/route.ts
+  dept/practitioners/[id]/upload-photo/route.ts
   dept/bookings/route.ts
   dept/revenue/route.ts
   dept/stats/route.ts
@@ -1000,6 +1181,7 @@ src/app/api/consult/
   admin/staff/[id]/route.ts
   admin/practitioners/route.ts
   admin/practitioners/[id]/route.ts
+  admin/practitioners/[id]/upload-photo/route.ts
   admin/bookings/route.ts
   admin/revenue/route.ts
   admin/stats/route.ts
@@ -1011,6 +1193,8 @@ src/app/api/consult/
   admin/audit/route.ts
 
 src/app/api/cron/consultation-reminders/route.ts
+src/app/api/cron/consult-pending-cleanup/route.ts
+src/app/api/cron/consultation-complete/route.ts    // optional — §24.21 auto completed
 
 src/components/consult/
   ConsultShellClient.tsx
@@ -1212,6 +1396,480 @@ Each phase is shippable and can be hidden behind a feature flag (`NEXT_PUBLIC_CO
 - **Internationalization** of consultation pages (matching existing `language` setting).
 - **Mobile push notifications** for upcoming sessions.
 - **Analytics & funnel tracking** (Mixpanel / PostHog) for booking conversion.
+
+---
+
+## 24. Appendix: complete implementation reference
+
+This section is the **single source of truth** for implementers: copy-paste field limits, error codes, index definitions, and request/response contracts. It does not replace earlier narrative sections; it **nails down** what those sections only summarized.
+
+### 24.1 Mongoose model → MongoDB collection names
+
+Mongoose lowercases and pluralizes by default. **Planned** collection names (set explicitly in `Schema` with `collection: '...'` to avoid surprises):
+
+| Model | `collection` name | Notes |
+|---|---|---|
+| `ConsultStaff` | `consult_staff` | |
+| `ConsultCategory` | `consult_categories` | |
+| `ConsultPractitioner` | `consult_practitioners` | |
+| `ConsultService` | `consult_services` | |
+| `ConsultAvailabilityRule` | `consult_availability_rules` | |
+| `ConsultSlotException` | `consult_slot_exceptions` | |
+| `ConsultBooking` | `consult_bookings` | |
+| `ConsultEmailTemplate` | `consult_email_templates` | |
+| `ConsultSettings` | `consult_settings` | singleton document |
+| `ConsultAuditLog` | `consult_audit_logs` | |
+
+**Always** set `collection` explicitly in each model file so production DB names never drift from this table.
+
+### 24.2 Global constants (code: `src/lib/consult/constants.ts`)
+
+| Constant | Value | Where used |
+|---|---:|---|
+| `PENDING_BOOKING_TTL_MS` | `15 * 60 * 1000` (15 min) | Auto-cancel `pending` if unpaid; free slot |
+| `PENDING_CLEANUP_CRON_EVERY_MS` | `5 * 60 * 1000` (5 min) | How often cleanup job runs (or on-demand in API) |
+| `STAFF_JWT_TTL_S` | `30 * 24 * 60 * 60` (30 days) | Staff session cookie `maxAge` |
+| `BCRYPT_COST` | `12` | `bcrypt` rounds for `ConsultStaff.passwordHash` |
+| `BOOKING_CODE_PREFIX` | `"CN-"` | Human booking code |
+| `BOOKING_CODE_ENTROPY` | 6 chars from `A-Z0-9` (no ambiguous 0/O) or Crockford base32 | Collision re-roll up to 10 times |
+| `MAX_LIST_PAGE_SIZE` | `100` | Default list cap |
+| `DEFAULT_LIST_PAGE_SIZE` | `20` | Default page size |
+| `MAX_BIO_LENGTH` | `20_000` | `ConsultPractitioner.bio` (markdown) |
+| `MAX_INTAKE_NOTES` | `5_000` | `ConsultBooking.intake.notes` |
+| `SET_PASSWORD_TOKEN_TTL_MS` | `7 * 24 * 60 * 60 * 1000` (7 days) | Invite link expiry |
+| `CRON_REMINDER_WINDOW_MIN` | `15` | Match `reminderHoursBefore ±` window in minutes |
+| `RATE_LIMIT_AUTH` | 5 req / 15 min / IP | Login + set-password |
+| `RATE_LIMIT_BOOKING_CREATE` | 10 req / hour / userId | Anti-abuse |
+| `MIN_SERVICE_DURATION_MIN` | `5` | |
+| `MAX_SERVICE_DURATION_MIN` | `480` (8h) | Sanity cap for 1:1 |
+| `MIN_SLOT_DURATION_MIN` | `5` | |
+| `MAX_SLOT_DURATION_MIN` | `180` | |
+| `MAX_BUFFER_MIN` | `120` | |
+| `MAX_PHOTO_URL_LENGTH` | `2048` | `photo` string |
+| `MEETING_LINK_MAX` | `2000` | URLs can be long with query params |
+
+### 24.3 Error code catalog
+
+All API errors return:
+
+```json
+{ "success": false, "error": { "code": "SLOT_TAKEN", "message": "…", "details": {} } }
+```
+
+| `code` | HTTP | When |
+|---|---:|---|
+| `UNAUTHORIZED` | 401 | No staff / no booker session |
+| `FORBIDDEN` | 403 | Role or category scope violation |
+| `NOT_FOUND` | 404 | Entity missing or wrong scope |
+| `VALIDATION_ERROR` | 400 | Zod / business rule (field errors in `details`) |
+| `SLOT_TAKEN` | 409 | Slot no longer free at commit |
+| `SLOT_INVALID` | 400 | `start` not on slot grid for service |
+| `PAYMENT_VERIFICATION_FAILED` | 400 | Bad Razorpay signature / wrong order |
+| `PAYMENT_ALREADY_PROCESSED` | 200* or 409 | Idempotent success / duplicate (return prior state) |
+| `BOOKING_EXPIRED` | 410 | `pending` past TTL; user must rebook |
+| `CANCEL_WINDOW_CLOSED` | 403 | Booker cancel too close to `slotStart` |
+| `RESCHEDULE_WINDOW_CLOSED` | 403 | Same |
+| `REFUND_FAILED` | 502 | Razorpay API error (surface `details.razorpayMessage`) |
+| `SERVICE_UNAVAILABLE` | 503 | Settings missing / DB down |
+
+\*Prefer returning `{ success: true, data: { idempotent: true } }` with 200 for idempotent verify.
+
+### 24.4 API envelope & HTTP status conventions
+
+- **Success**: `200` with `{ success: true, data: T }`. Use `201` only if you want REST purism on POST creates (optional; V1 can stay `200` everywhere for simplicity).
+- **Client errors**: `400` validation, `401` auth, `403` scope, `404` missing, `409` conflict, `410` gone (expired pending).
+- **Server errors**: `500` uncaught; `502` upstream (Razorpay/Resend).
+
+### 24.5 Pagination, sorting, filtering (all `GET` list endpoints)
+
+**Query params (shared):**
+
+| Param | Type | Default | Max |
+|---|---|---|---|
+| `page` | int ≥ 1 | 1 | — |
+| `pageSize` | int | 20 | 100 |
+| `sort` | string | entity-specific | whitelist only |
+| `order` | `asc` \| `desc` | `desc` for dates, `asc` for names | — |
+
+**Bookings list (`admin`, `dept`, `me`, booker):**
+
+- `status` — comma-separated: `pending,confirmed,...`
+- `from` / `to` — ISO 8601 instant on `slotStart` (UTC)
+
+**Practitioner directory (public):**
+
+- `category` — slug or ObjectId string
+- `q` — search `displayName`, `headline`, `specialties` (text index)
+- `lang` — filter if `languages` contains
+- `minPrice` / `maxPrice` — paise, across minimum active service price
+
+**Response shape:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [ … ],
+    "page": 1,
+    "pageSize": 20,
+    "total": 137,
+    "totalPages": 7
+  }
+}
+```
+
+### 24.6 Field validation matrix (Zod — summary)
+
+**ConsultStaff (invite / patch)**
+
+| Field | Rules |
+|---|---|
+| `email` | `.email()`, lowercased, max 254 |
+| `name` | trim, 1–120 chars |
+| `password` (set) | min 12, max 128, require at least one letter + one digit (adjust to policy) |
+
+**ConsultCategory**
+
+| Field | Rules |
+|---|---|
+| `slug` | `^[a-z0-9]+(?:-[a-z0-9]+)*$`, 2–80 chars, unique |
+| `name` | 1–80 chars |
+| `description` | max 10_000 |
+| `color` | `^#[0-9A-Fa-f]{6}$` |
+| `icon` | max 64 chars (emoji or key) |
+
+**ConsultPractitioner**
+
+| Field | Rules |
+|---|---|
+| `slug` | same as category slug rules, unique globally |
+| `displayName` | 1–120 |
+| `headline` | max 200 |
+| `bio` | max `MAX_BIO_LENGTH` |
+| `timezone` | must be valid IANA via `Intl` or tz database allowlist |
+| `languages` | array of ISO 639-1 codes, max 10 entries |
+| `specialties` | max 20 strings, each max 80 chars |
+| `experienceYears` | 0–80 |
+| `qualifications` | max 15 strings, each max 200 chars |
+
+**ConsultService**
+
+| Field | Rules |
+|---|---|
+| `title` | 1–120 |
+| `durationMinutes` | `MIN_SERVICE_DURATION_MIN`–`MAX_SERVICE_DURATION_MIN` |
+| `priceAmount` | int ≥ 100 paise (₹1 minimum) unless super overrides |
+| `currency` | must equal `ConsultSettings.defaultCurrency` in V1 |
+
+**ConsultAvailabilityRule**
+
+| Field | Rules |
+|---|---|
+| `dayOfWeek` | 0–6 |
+| `startMin` / `endMin` | 0–1440, `startMin < endMin` |
+| `slotDurationMinutes` | `MIN_SLOT_DURATION_MIN`–`MAX_SLOT_DURATION_MIN` |
+| `bufferMinutes` | 0–`MAX_BUFFER_MIN` |
+
+**ConsultBooking (create)**
+
+| Field | Rules |
+|---|---|
+| `serviceId` | valid ObjectId |
+| `slotStart` | ISO UTC instant; must match engine slot for that service |
+| `intake.notes` | optional, max `MAX_INTAKE_NOTES` |
+| `intake.answers` | object keys must exist in category `intakeFormSchema`; types enforced |
+
+**ConsultSettings (patch)**
+
+| Field | Rules |
+|---|---|
+| `commissionPercent` | 0–100, max 2 decimal places stored as hundredths if needed |
+| `reminderHoursBefore` | 1–168 |
+| `cancellationWindowHours` | 0–168 |
+| `bookingLeadHours` | 0–720 |
+| `maxAdvanceBookingDays` | 1–365 |
+
+### 24.7 Key API contracts (request / response)
+
+#### `POST /api/consult/auth/login`
+
+**Request**
+
+```json
+{ "email": "admin@x.com", "password": "••••••••••••" }
+```
+
+**Response**
+
+```json
+{
+  "success": true,
+  "data": {
+    "role": "super_admin",
+    "redirect": "/consult/admin",
+    "staff": { "_id": "…", "email": "…", "name": "…", "role": "super_admin" }
+  }
+}
+```
+
+Sets cookie `vedaansh_consult_session` (details §24.8).
+
+#### `POST /api/consult/bookings`
+
+**Headers:** NextAuth session cookie required.
+
+**Request**
+
+```json
+{
+  "serviceId": "664…",
+  "slotStart": "2026-05-15T04:30:00.000Z",
+  "intake": { "notes": "…", "answers": { "topic": "career" } }
+}
+```
+
+**Response (200)**
+
+```json
+{
+  "success": true,
+  "data": {
+    "bookingId": "664…",
+    "bookingCode": "CN-A3F9Q2",
+    "amount": 99900,
+    "currency": "INR",
+    "razorpayOrderId": "order_xxx",
+    "razorpayKeyId": "${RAZORPAY_KEY_ID}",
+    "status": "pending",
+    "expiresAt": "2026-05-02T12:15:00.000Z"
+  }
+}
+```
+
+#### `POST /api/consult/bookings/[id]/verify`
+
+**Request**
+
+```json
+{
+  "razorpay_order_id": "order_xxx",
+  "razorpay_payment_id": "pay_xxx",
+  "razorpay_signature": "…"
+}
+```
+
+**Response**
+
+```json
+{ "success": true, "data": { "bookingId": "…", "status": "confirmed", "idempotent": false } }
+```
+
+#### `GET /api/consult/practitioners/[id]/slots`
+
+**Query:** `from=2026-05-01T00:00:00.000Z&to=2026-05-07T23:59:59.999Z&serviceId=664…` (optional service filter)
+
+**Response**
+
+```json
+{
+  "success": true,
+  "data": {
+    "timezone": "Asia/Kolkata",
+    "slots": [
+      { "start": "2026-05-15T04:30:00.000Z", "end": "2026-05-15T05:00:00.000Z", "durationMinutes": 30 }
+    ]
+  }
+}
+```
+
+### 24.8 Staff JWT cookie — exact specification
+
+| Property | Value |
+|---|---|
+| Name | `vedaansh_consult_session` |
+| Value | JWT string, 3 segments Base64URL |
+| Algorithm | HS256 |
+| Secret | `process.env.AUTH_SECRET` (same as NextAuth — **must** be ≥ 32 random bytes in prod) |
+| Payload claims | `sid` (staff ObjectId string), `role`, `cat` (optional category ObjectId string), `iat`, `exp` |
+| `exp` | `iat + STAFF_JWT_TTL_S` |
+| Cookie attributes | `HttpOnly`, `Path=/`, `SameSite=Lax`, `Secure` in production |
+| Refresh | On each successful `GET /api/consult/auth/me`, optionally re-issue sliding expiration (optional V1.1) |
+
+**Important:** On every authorized API call, **reload** `consult_staff` by `sid` and verify `isActive === true`.
+
+### 24.9 Booking code generation (`bookingCodes.ts`)
+
+Format: `CN-` + **6** alphanumeric characters.
+
+- Charset: exclude `0`, `O`, `I`, `1`, `L` to reduce support confusion (optional Crockford base32).
+- Uniqueness: query `consult_bookings` for `bookingCode`; retry up to 10 times on collision.
+- **Never** derive booking codes from sequential IDs (privacy).
+
+### 24.10 Pending booking TTL cleanup
+
+**Triggers (any one is acceptable for V1):**
+
+1. **Cron route** `POST /api/cron/consult-pending-cleanup` + `CRON_SECRET` every 5 minutes.
+2. **Lazy:** run cleanup at start of `POST /bookings` and `GET .../slots` (cheap indexed query on `status=pending` + `createdAt < now - 15m`).
+3. **Vercel cron** calling the same endpoint.
+
+**Cleanup logic:**
+
+```text
+find { status: 'pending', createdAt: { $lt: now - 15min } }
+updateMany { status: 'cancelled', cancelledByRole: null, cancellationReason: 'payment_timeout' }
+```
+
+Do **not** send cancellation emails for timeout (noise). Audit optional.
+
+### 24.11 Razorpay — order, verify, webhook (field mapping)
+
+**Order create**
+
+| Razorpay field | Source |
+|---|---|
+| `amount` | `ConsultBooking.priceAmount` (integer paise) |
+| `currency` | `INR` for V1 India-first |
+| `receipt` | `bookingCode` truncated to **40 chars** (Razorpay limit) — if code longer, use last 40 of Mongo `_id` hex |
+| `notes` | `{ type: 'consult', bookingId, bookingCode }` — **all string values** for Razorpay note constraints |
+
+**Verify (client callback)**
+
+```text
+message = order_id + "|" + payment_id
+expected = HMAC_SHA256(message, RAZORPAY_KEY_SECRET)
+compare timing-safe expected === signature
+```
+
+**Webhook**
+
+- Verify `X-Razorpay-Signature` with raw body + `RAZORPAY_WEBHOOK_SECRET`.
+- Parse `payload.payment.entity` → `order_id`, `id`, `status`.
+- Load booking by `notes.bookingId` or lookup by `razorpayOrderId`.
+- **Idempotency:** if `razorpayPaymentId` already set and matches → `200 OK` no-op.
+
+### 24.12 Partial unique index — exact MongoDB definition
+
+Prevents double-booking same practitioner + start for active holds:
+
+```js
+db.consult_bookings.createIndex(
+  { practitionerId: 1, slotStart: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      status: { $in: ['pending', 'confirmed'] }
+    },
+    name: 'uniq_practitioner_slot_active'
+  }
+)
+```
+
+**Note:** `rescheduled` is not in the filter — old row moves out of `confirmed` before new insert (single transaction or two-step with careful ordering).
+
+### 24.13 Timezone, DST, and slot engine edge cases
+
+| Scenario | Rule |
+|---|---|
+| Practitioner changes `timezone` | Recompute slots; **do not** rewrite existing `ConsultBooking.slotStart` (immutable UTC instant). Show warning to practitioner: “future slots only.” |
+| DST gap (spring forward) | Non-existent local times **never** appear in slot lists — iterate in UTC slices or use `date-fns-tz` conversion and skip invalid. |
+| DST overlap (fall back) | Same local wall-clock can occur twice — **always** store UTC in DB; display converts unambiguously. |
+| `slotMin` boundary | `endMin` is **exclusive** for chunking; last slot must satisfy `slotStart + duration + buffers ≤ endMin`. |
+| Cross-midnight windows | V1 **disallowed**: each `ConsultAvailabilityRule` must satisfy `startMin < endMin` within same calendar day in local TZ. For overnight clinics, use **two rules** (e.g. Mon 22:00–24:00 as two windows split — see V2) or `available_extra` exceptions. |
+
+### 24.14 Reschedule & cancel — decision table
+
+| Actor | Cancel | Reschedule | Refund on cancel |
+|---|---|---|---|
+| Booker | Allowed if `now < slotStart - cancellationWindow` | Same window | Auto full refund if paid |
+| Practitioner | Always allowed | N/A (use admin reschedule API) | Via dept/super |
+| Consultant Admin | Category scope | Category scope | Full/partial via Razorpay |
+| Super Admin | All | All | Full/partial |
+
+**Reschedule implementation:** atomically (ordered):
+
+1. Verify new slot free.
+2. Set old booking `status: rescheduled` **or** update in place with `rescheduleHistory` push — pick **one** pattern and stick to it (spec recommends: single row update + history array to preserve `bookingCode`).
+
+### 24.15 Middleware — path behavior (exact prefixes)
+
+| Prefix | Unauthenticated browser | Unauthenticated API |
+|---|---|---|
+| `/consult/admin` (except `/login`, `/set-password`) | 302 → `/consult/admin/login` | 401 JSON |
+| `/consult/dept` | 302 → login | 401 |
+| `/consult/me` | 302 → login | 401 |
+| `/consult/book` | 302 → `/login?callbackUrl=…` | 401 |
+| `/api/consult/admin/*` | — | 401 |
+| `/api/consult/dept/*` | — | 401 |
+| `/api/consult/me/*` | — | 401 |
+
+**Excluded from staff gate:** `/consult`, `/consult/[category]`, `/consult/p/*`, static assets, `/api/consult/categories`, `/api/consult/practitioners`, `/api/consult/bookings` POST only if… — **booker routes under `/api/consult/bookings` use NextAuth**, not staff cookie.
+
+**Matcher:** extend existing Next.js `matcher` in [middleware.ts](middleware.ts) so consult paths are included while preserving current astrology routes.
+
+### 24.16 Rate limits (implementation)
+
+| Route key | Limit | Store |
+|---|---|---|
+| `consult:auth:login` | 5 / 15 min / IP | Upstash Redis |
+| `consult:auth:set-password` | 5 / 15 min / IP | Upstash |
+| `consult:booking:create` | 10 / hour / userId | Upstash |
+
+Return `429` with `code: 'RATE_LIMITED'` and `Retry-After` header (seconds).
+
+### 24.17 Logging & correlation
+
+- Generate `x-request-id` (UUID) per incoming request; attach to all logs.
+- Log lines: `level`, `requestId`, `route`, `staffId?`, `userId?`, `durationMs`, `outcome`.
+- **Never** log full payment payloads — only `order_id`, `payment_id`, `bookingId`.
+
+### 24.18 Feature flag
+
+| Env | Meaning |
+|---|---|
+| `NEXT_PUBLIC_CONSULT_ENABLED` | `'true'` → show `/consult` nav entry + routes; `'false'` → 404 all `/consult/*` public pages (staff URLs return maintenance message) |
+
+Implementation: guard in root `consult/layout.tsx` and middleware optional bypass.
+
+### 24.19 Data exposure matrix
+
+| Data | Public | Booker | Practitioner | Dept admin | Super |
+|---|---|---|---|---|---|
+| Practitioner `bio`, `photo`, services | yes | yes | own | category | all |
+| `ConsultBooking.intake` | no | own rows | own bookings | category | all |
+| `razorpayPaymentId` | no | no | no | no | yes (admin UI, not export to CSV without mask) |
+| `ConsultAuditLog` | no | no | no | no | yes (full); dept: **category-filtered** if implemented V2 |
+
+### 24.20 Intake form examples (`intakeFormSchema`)
+
+**Astrology**
+
+```json
+[
+  { "key": "topic", "label": "Main topic", "type": "select", "required": true, "options": ["Career", "Relationship", "Health", "Spiritual"] },
+  { "key": "notes", "label": "Anything else?", "type": "textarea", "required": false }
+]
+```
+
+**Doctor (generic)**
+
+```json
+[
+  { "key": "chiefComplaint", "label": "Chief complaint", "type": "textarea", "required": true },
+  { "key": "medicationAllergies", "label": "Allergies", "type": "text", "required": false }
+]
+```
+
+Render rules: **required** fields block submit; answers stored under `intake.answers` as strings/booleans; server validates keys exist in schema.
+
+### 24.21 Post-session status (`completed` / `no_show`)
+
+| Transition | Who | Condition |
+|---|---|---|
+| → `completed` | Practitioner or admin | `now >= slotEnd` (or manual override after session) |
+| → `no_show` | Practitioner or admin | Booker did not join — **no automatic detection** in V1 |
+
+Optional cron: `POST /api/cron/consultation-complete` sets `confirmed` → `completed` when `slotEnd < now - 1h` (idempotent).
 
 ---
 

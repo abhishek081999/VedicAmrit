@@ -6,7 +6,7 @@
 //  • Rashis ROTATE — each cell shows rashi NUMBER only (1-12)
 //  • Anti-clockwise: H1(top)→H2(top-left)→H3(left-upper)→H4(left)…
 //  • Layout: safe Y range split 25% rashi / 75% planets
-//  • Crowded house (>3 planets): 2-col grid
+//  • Crowded house (>2 planets): 2-col grid; fonts shrink to fit
 // ─────────────────────────────────────────────────────────────
 'use client'
 
@@ -17,19 +17,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
 import type { GrahaId } from '@/types/astrology'
-
-
-
-function dignityColor(dignity: string, isRetro: boolean): string {
-  if (isRetro) return 'var(--dig-retro)'
-  switch (dignity) {
-    case 'exalted': return 'var(--dig-exalted)'
-    case 'moolatrikona': return 'var(--dig-moola)'
-    case 'own': return 'var(--dig-own)'
-    case 'debilitated': return 'var(--dig-debilitate)'
-    default: return 'var(--dig-neutral)'
-  }
-}
+import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 
 // ── Polygon vertices ──────────────────────────────────────────
 
@@ -59,6 +47,28 @@ function centroid(pts: [number, number][]): [number, number] {
   ]
 }
 
+/** Horizontal segment inside a convex polygon at y — keeps labels from clipping triangle/kite edges */
+function horizontalSpanAtY(pts: [number, number][], y: number): [number, number] | null {
+  if (pts.length < 2) return null
+  const xs: number[] = []
+  const n = pts.length
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = pts[i]
+    const [x2, y2] = pts[(i + 1) % n]
+    const lo = Math.min(y1, y2)
+    const hi = Math.max(y1, y2)
+    if (y < lo || y > hi) continue
+    if (hi - lo < 1e-9) continue
+    const t = (y - y1) / (y2 - y1)
+    xs.push(x1 + t * (x2 - x1))
+  }
+  if (xs.length < 2) return null
+  return [Math.min(...xs), Math.max(...xs)]
+}
+
+function clamp(n: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, n))
+}
 
 // Standard display labels for Arudha Padas
 const ARUDHA_LABEL: Record<string, string> = {
@@ -359,7 +369,7 @@ export function NorthIndianChakra({
         const numARows = aList.length > 0 ? Math.ceil(aList.length / 3) : 0
 
         const n = planets.length
-        const useTwoCol = n > 3
+        const useTwoCol = n > 2
         const rows = useTwoCol ? Math.ceil(n / 2) : n
 
         const linesPerPl = 1
@@ -369,16 +379,26 @@ export function NorthIndianChakra({
         // Count Arudha rows as roughly 0.8 line height equivalent
         const estTotalLines = Math.max(rows * linesPerPl + numARows * 0.8, 1)
 
-        // Scale down font if many items — but never below a readable minimum
+        // Fit font to vertical budget — when crowded, fitted size drops below default floor; do not force the floor or text overflows the cell
         const maxLineH = plAreaH / estTotalLines
-        const plFont = Math.max(
-          S * 0.032 * fontScale * planetScale,                            // Stronger minimum
-          Math.min(BASE_PL_FONT, maxLineH * 0.8)
-        )
-        const degFont = Math.min(BASE_DEG_FONT, plFont * 0.7)
-        const lineH = plFont * 1.15
+        const fittedPl = Math.min(BASE_PL_FONT, maxLineH * 0.75)
+        const defaultFloor = S * 0.032 * fontScale * planetScale
+        let plFont =
+          fittedPl < defaultFloor ? fittedPl : Math.max(defaultFloor, fittedPl)
+        let degFont = Math.min(BASE_DEG_FONT, plFont * 0.7)
+        let lineH = plFont * 1.15
           + (showDegrees ? degFont * 1.10 : 0)
           + (showNakshatra ? degFont * 0.95 : 0)
+
+        const blockH = rows * lineH
+        if (blockH > plAreaH * 0.96 && blockH > 0) {
+          const s = (plAreaH * 0.96) / blockH
+          plFont *= s
+          degFont *= s
+          lineH = plFont * 1.15
+            + (showDegrees ? degFont * 1.10 : 0)
+            + (showNakshatra ? degFont * 0.95 : 0)
+        }
 
         const aFont = Math.round(Math.min(plFont * 0.82, S * 0.028) * arudhaScale)
 
@@ -397,9 +417,6 @@ export function NorthIndianChakra({
           ? plAreaTop + (plAreaH * 0.05)
           : plAreaTop + Math.max(0, (plAreaH - totalContentH) / 2)
 
-        // Two-col horizontal offset — wider spacing
-        const colOff = useTwoCol ? Math.min(cellW * 0.28, S * 0.06) : 0
-
         return (
           <g
             key={h}
@@ -410,13 +427,13 @@ export function NorthIndianChakra({
             <polygon
               points={pts.map(([x, y]) => `${x},${y}`).join(' ')}
               fill={
-                highlightHouses.includes(h) ? 'rgba(253, 230, 138, 0.12)' :
-                lagna ? 'var(--gold-faint)' :
-                  kite ? 'rgba(132, 27, 27, 0.03)' : /* Subtle tint for Kendras */
-                    'transparent'
+                highlightHouses.includes(h)
+                  ? 'rgba(253, 230, 138, 0.14)'
+                  : 'transparent'
               }
-              stroke={highlightHouses.includes(h) ? 'var(--gold)' : 'var(--gold)'}
-              strokeWidth={highlightHouses.includes(h) ? 2.5 : (lagna ? 2.0 : 1.25)}
+              stroke="var(--gold)"
+              strokeWidth={1.25}
+              strokeOpacity={0.42}
               strokeLinejoin="round"
             />
 
@@ -439,12 +456,30 @@ export function NorthIndianChakra({
             {planets.map((g, gi) => {
               const col = useTwoCol ? gi % 2 : 0
               const row = useTwoCol ? Math.floor(gi / 2) : gi
-              const px = gcx + (useTwoCol ? (col === 0 ? -colOff : colOff) : 0)
-              const py = plBlockTopY + row * lineH + plFont * 0.55
+              let py = plBlockTopY + row * lineH + plFont * 0.55
+              py = clamp(py, safeTop + plFont * 0.55, safeBot - plFont * 0.45)
 
-              const fillCol = dignityColor(g.dignity, g.isRetro)
-              const ret = g.isRetro ? 'ᴿ' : ''
-              const comb = g.isCombust ? 'ᶜ' : ''
+              const polyArr = pts as [number, number][]
+              const spanAtRow =
+                horizontalSpanAtY(polyArr, py) ?? [leftX + PAD, rightX - PAD]
+              const [sxmin, sxmax] = spanAtRow
+              const spanW = sxmax - sxmin
+              const labelPad = Math.max(S * 0.006, plFont * 0.52, spanW * 0.035)
+
+              let px: number
+              if (useTwoCol) {
+                px = sxmin + spanW * (col === 0 ? 0.28 : 0.72)
+              } else {
+                px = (sxmin + sxmax) / 2
+              }
+              if (sxmin + labelPad < sxmax - labelPad) {
+                px = clamp(px, sxmin + labelPad, sxmax - labelPad)
+              } else {
+                px = (sxmin + sxmax) / 2
+              }
+
+              const fillCol = grahaChartFill(g.id)
+              const subMarkFs = Math.max(8, Math.round(plFont * 0.55))
               const deg = showDegrees
                 ? `${Math.floor(g.degree)}°${String(Math.floor((g.degree % 1) * 60)).padStart(2, '0')}'`
                 : ''
@@ -464,12 +499,19 @@ export function NorthIndianChakra({
                     x={px} y={py}
                     fontSize={Math.round(plFont)}
                     fontFamily="var(--font-chart-planets)"
-                    fontWeight="var(--fw-medium)"
+                    fontWeight="var(--fw-chart-planet)"
                     fill={fillCol}
                     textAnchor="middle"
                     dominantBaseline="middle"
                   >
-                    {g.id}{ret}{comb}{kar ? ` [${kar}]` : ''}
+                    <tspan>{g.id}</tspan>
+                    {g.isRetro && (
+                      <tspan fontSize={subMarkFs} baselineShift="super">ᴿ</tspan>
+                    )}
+                    {g.isCombust && (
+                      <tspan fontSize={subMarkFs} baselineShift="super">ᶜ</tspan>
+                    )}
+                    {kar ? <tspan>{` [${kar}]`}</tspan> : null}
                   </text>
                   {showDegrees && (
                     <text
@@ -512,11 +554,21 @@ export function NorthIndianChakra({
                 chunks.push(aList.slice(i, i + 3).map(k => ARUDHA_LABEL[k] ?? k).join(' · '))
               }
 
-              return chunks.map((textStr, ci) => (
+              return chunks.map((textStr, ci) => {
+                const ay = baseY + ci * aFont * 1.3
+                const aSpan =
+                  horizontalSpanAtY(pts as [number, number][], ay) ??
+                  [leftX + PAD, rightX - PAD]
+                const [ax0, ax1] = aSpan
+                const aw = ax1 - ax0
+                const aPad = Math.max(S * 0.005, aFont * 0.5, aw * 0.03)
+                let ax = (ax0 + ax1) / 2
+                if (ax0 + aPad < ax1 - aPad) ax = clamp(ax, ax0 + aPad, ax1 - aPad)
+                return (
                 <text
                   key={`arudha-row-${ci}`}
-                  x={gcx}
-                  y={baseY + ci * aFont * 1.3}
+                  x={ax}
+                  y={ay}
                   fontSize={aFont}
                   fontFamily="var(--font-chart-planets)"
                   fontStyle="italic"
@@ -527,22 +579,38 @@ export function NorthIndianChakra({
                 >
                   {textStr}
                 </text>
-              ))
+                )
+              })
             })()}
             {/* ── Transit planet overlay ── */}
             {hasTransits && tPlanetsInSelf.map((tg, ti) => {
                const tFont = S * 0.024 * fontScale * planetScale
                const col = ti % 2
                const row = Math.floor(ti / 2)
-               const offX = (tPlanetsInSelf.length > 1) ? (col === 0 ? -S * 0.05 : S * 0.05) : 0
                
                // Offset from bottom of the SAFE house area
                const ty = plAreaTop + plAreaH * 0.90 + (row * tFont * 1.1)
 
+               const tSpan =
+                 horizontalSpanAtY(pts as [number, number][], ty) ??
+                 [leftX + PAD, rightX - PAD]
+               const [tx0, tx1] = tSpan
+               const tw = tx1 - tx0
+               const tPad = Math.max(S * 0.005, tFont * 0.48, tw * 0.03)
+               let txN: number
+               if (tPlanetsInSelf.length > 1) {
+                 txN = tx0 + tw * (col === 0 ? 0.28 : 0.72)
+               } else {
+                 txN = (tx0 + tx1) / 2
+               }
+               if (tx0 + tPad < tx1 - tPad) txN = clamp(txN, tx0 + tPad, tx1 - tPad)
+               else txN = (tx0 + tx1) / 2
+
+               const tSub = Math.max(6, Math.round(tFont * 0.48))
                return (
                 <g key={`transit-${tg.id}-${ti}`}>
                   <text
-                    x={gcx + offX}
+                    x={txN}
                     y={ty}
                     textAnchor="middle"
                     dominantBaseline="middle"
@@ -551,11 +619,15 @@ export function NorthIndianChakra({
                     fontFamily="var(--font-mono)"
                     fill={tg.isRetro ? 'rgba(120,80,220,0.95)' : 'rgba(100,80,180,0.95)'}
                   >
-                    {tg.id}{tg.isRetro ? '℞' : ''}{showDegrees ? Math.floor(tg.degree) : ''}
+                    <tspan>{tg.id}</tspan>
+                    {tg.isRetro && (
+                      <tspan fontSize={tSub} baselineShift="super">℞</tspan>
+                    )}
+                    {showDegrees ? <tspan>{Math.floor(tg.degree)}</tspan> : null}
                   </text>
                   {showNakshatra && tg.nakshatraIndex !== undefined && (
                     <text
-                      x={gcx + offX}
+                      x={txN}
                       y={ty + tFont * 0.8}
                       fontSize={Math.round(tFont * 0.75)}
                       fontFamily="var(--font-chart-planets)"
@@ -576,16 +648,31 @@ export function NorthIndianChakra({
                const cFont = S * 0.024 * fontScale * planetScale
                const col = ci % 2
                const row = Math.floor(ci / 2)
-               const offX = (cPlanetsInSelf.length > 1) ? (col === 0 ? -S * 0.05 : S * 0.05) : 0
                
                // Offset from bottom, above transits if they exist
                const vBase = hasTransits ? 0.75 : 0.90
                const ty = plAreaTop + plAreaH * vBase + (row * cFont * 1.1)
 
+               const cSpan =
+                 horizontalSpanAtY(pts as [number, number][], ty) ??
+                 [leftX + PAD, rightX - PAD]
+               const [cx0, cx1] = cSpan
+               const cw = cx1 - cx0
+               const cPad = Math.max(S * 0.005, cFont * 0.48, cw * 0.03)
+               let cxN: number
+               if (cPlanetsInSelf.length > 1) {
+                 cxN = cx0 + cw * (col === 0 ? 0.28 : 0.72)
+               } else {
+                 cxN = (cx0 + cx1) / 2
+               }
+               if (cx0 + cPad < cx1 - cPad) cxN = clamp(cxN, cx0 + cPad, cx1 - cPad)
+               else cxN = (cx0 + cx1) / 2
+
+               const cSub = Math.max(6, Math.round(cFont * 0.48))
                return (
                 <g key={`compare-${cg.id}-${ci}`}>
                   <text
-                    x={gcx + offX}
+                    x={cxN}
                     y={ty}
                     textAnchor="middle"
                     dominantBaseline="middle"
@@ -594,7 +681,11 @@ export function NorthIndianChakra({
                     fontFamily="var(--font-mono)"
                     fill={cg.isRetro ? 'var(--rose)' : 'var(--text-gold)'}
                   >
-                    {cg.id}{cg.isRetro ? '℞' : ''}{showDegrees ? Math.floor(cg.degree) : ''}
+                    <tspan>{cg.id}</tspan>
+                    {cg.isRetro && (
+                      <tspan fontSize={cSub} baselineShift="super">℞</tspan>
+                    )}
+                    {showDegrees ? <tspan>{Math.floor(cg.degree)}</tspan> : null}
                   </text>
                 </g>
                )
@@ -605,7 +696,7 @@ export function NorthIndianChakra({
 
       {/* Outer framing box */}
       <rect x=".5" y=".5" width={S - 1} height={S - 1}
-        fill="none" stroke="var(--gold)" strokeWidth="1.5" />
+        fill="none" stroke="var(--gold)" strokeWidth={1.25} strokeOpacity={0.5} />
 
       {/* ── Aspect Lines ── */}
       {aspectLines.map(({ from, to }, idx) => {
@@ -640,16 +731,6 @@ export function NorthIndianChakra({
         )
       })}
 
-      {/* ── Center Brand Watermark ── */}
-      <image 
-        href="/veda-icon.png" 
-        x={S/2 - (S * 0.09)} 
-        y={S/2 - (S * 0.09)} 
-        width={S * 0.18} 
-        height={S * 0.18} 
-        opacity="0.21"
-        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(1.5)' }}
-      />
     </svg>
     {isMounted && showTooltip && hoveredPlanet && (
       <PlanetTooltipCard

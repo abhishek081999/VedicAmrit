@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { ChakraSelector } from './ChakraSelector'
 import type { GrahaData, Rashi, UserPlan, ArudhaData, LagnaData, ChartOutput } from '@/types/astrology'
 import { calcArudhaOutput } from '@/lib/engine/arudhas'
-import { getActiveHouses } from '@/lib/engine/activeHouses'
+import { getDashaLordPlacementHouses } from '@/lib/engine/activeHouses'
 import { getVargaPosition } from '@/lib/engine/vargas'
 
 interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'gold'|'platinum' }
@@ -294,7 +294,7 @@ export function VargaSwitcher({
                   }) : []}
                   moonNakIndex={moonNakIndex}
                   tithiNumber={tithiNumber} varaNumber={varaNumber}
-                  highlightHouses={chart ? getActiveHouses(chart, transitMoonLon, grahas, { ...lagnas!, ascRashi: varAscRashi }) : []}
+                  highlightHouses={chart ? getDashaLordPlacementHouses(chart, grahas, varAscRashi) : []}
                   showSettingsOverride={Boolean(chartSettingsOpen[name])}
                   onToggleSettings={() =>
                     setChartSettingsOpen((prev) => ({ ...prev, [name]: !prev[name] }))

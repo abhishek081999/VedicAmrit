@@ -26,8 +26,9 @@
   --fw-medium: 500;
   --fw-bold: 600;
 
-  /* Typography families */
-  --font-chart-planets: 'Inter', sans-serif;
+  /* Chart graha labels — humanist sans reads softer than monospace at small sizes */
+  --font-chart-planets: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --fw-chart-planet: 500;
 
   /* Core surfaces */
   --bg-page: #09090f;
@@ -135,6 +136,14 @@
   --logo-gradient: linear-gradient(to bottom, var(--surface-1), var(--bg-page));
   --logo-text-title: #facc15;
   --logo-text-sub: rgba(250, 204, 21, 0.8);
+
+  /* Sri Yantra / mandala page backdrop (see public/vedic-yantra-bg.png) */
+  --vedic-yantra-image: url('/vedic-yantra-bg.png');
+  /* Vignette for yantra stack — painted only when `body.yantra-backdrop` (home / astrology, non-dark) */
+  --vedic-yantra-stack:
+    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(9, 9, 15, 0.04) 0%, rgba(9, 9, 15, 0.28) 48%, rgba(9, 9, 15, 0.52) 100%),
+    linear-gradient(165deg, rgba(9, 9, 15, 0.45) 0%, rgba(14, 14, 24, 0.72) 100%),
+    var(--vedic-yantra-image);
 }
 
 /* ── Light theme tokens ─────────────────────────────────────── */
@@ -215,6 +224,11 @@
   --bg-gradient:
     radial-gradient(circle at 50% -20%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
     var(--bg-page);
+
+  --vedic-yantra-stack:
+    radial-gradient(ellipse 120% 82% at 50% 42%, rgba(255, 253, 248, 0.06) 0%, rgba(248, 250, 252, 0.45) 52%, rgba(248, 250, 252, 0.82) 100%),
+    linear-gradient(165deg, rgba(253, 251, 245, 0.36) 0%, rgba(248, 250, 252, 0.82) 100%),
+    var(--vedic-yantra-image);
 
   --scrollbar-track: #f8fafc;
   --scrollbar-thumb: #cbd5e1;
@@ -377,6 +391,12 @@
   --logo-gradient: linear-gradient(to bottom, #FCF5E5, #F7F3E8);
   --logo-text-title: #8b4513;
   --logo-text-sub: #C06C2D;
+
+  /* Parchment yantra stack — :root also matches <html>, so without this classic inherited the dark stack from the default block */
+  --vedic-yantra-stack:
+    radial-gradient(ellipse 125% 88% at 50% 44%, rgba(253, 250, 243, 0.08) 0%, rgba(247, 243, 232, 0.5) 50%, rgba(237, 228, 208, 0.9) 100%),
+    linear-gradient(165deg, rgba(253, 251, 245, 0.5) 0%, rgba(247, 243, 232, 0.94) 100%),
+    var(--vedic-yantra-image);
 }
 
 /* ── Typography constants ───────────────────────────────────── */
@@ -385,7 +405,8 @@
   --font-display: var(--font-outfit), var(--font-inter), 'Outfit', 'Inter', system-ui, sans-serif;
   --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', monospace;
-  --font-chart-planets: var(--font-body);
+  --font-chart-planets: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --fw-chart-planet: 500;
 
   --r-xs: 4px;
   --r-sm: 6px;
@@ -393,6 +414,9 @@
   --r-lg: 14px;
   --r-xl: 20px;
   --r-2xl: 28px;
+
+  /* App shell — keep in sync with SIDENAV_WIDTH_PX in AppFramework.tsx */
+  --sidenav-width: 212px;
 }
 
 /* ── Smooth theme transitions ───────────────────────────────── */
@@ -433,14 +457,81 @@ body {
 
 /* ── Vedic Assets ───────────────────────────────────────────── */
 
-[data-theme="classic"] body::before {
+/*
+ * Sri Yantra backdrop — only on home `/` and dashboard `/astrology`.
+ * Class `yantra-backdrop` is toggled by YantraBackdropRoute.tsx.
+ * Dark theme: never show (see `[data-theme='dark']` rule below).
+ */
+html:not([data-theme='dark']) body.yantra-backdrop::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: 
-    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20l5-5-5-5-5 5 5 5zm0-20l5 5-5 5-5-5 5-5zm0 40l5-5-5-5-5 5 5 5zM0 20l5-5-5-5-5 5 5 5zm40 0l5-5-5-5-5 5 5 5z' fill='%23b45309' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+  z-index: 0;
   pointer-events: none;
-  z-index: -1;
+  background-image: var(--vedic-yantra-stack);
+  background-size: cover, cover, 100% auto;
+  background-position: center, center, 50% 48%;
+  background-repeat: no-repeat;
+  transform-origin: 50% 46%;
+  will-change: transform;
+  animation: vedic-yantra-merge 38s ease-in-out infinite alternate;
+}
+
+@keyframes vedic-yantra-merge {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.028) translate3d(0, -0.2%, 0);
+  }
+}
+
+/* Match specificity of `html:not([data-theme='dark'])` so warm classic layers actually apply */
+html[data-theme='classic'] body.yantra-backdrop::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20l5-5-5-5-5 5 5 5zm0-20l5 5-5 5-5-5 5-5zm0 40l5-5-5-5-5 5 5 5zM0 20l5-5-5-5-5 5 5 5zm40 0l5-5-5-5-5 5 5 5z' fill='%23b45309' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 88% 60% at 50% 44%, rgba(253, 250, 243, 0.05) 0%, rgba(253, 247, 235, 0.58) 52%, rgba(237, 228, 208, 0.93) 100%),
+    linear-gradient(165deg, rgba(253, 251, 245, 0.42) 0%, rgba(247, 243, 232, 0.86) 100%),
+    var(--vedic-yantra-image);
+  background-size: 40px 40px, cover, cover, 100% auto;
+  background-position: 0 0, center, center, 50% 48%;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+}
+
+/* Dark theme: no mandala anywhere */
+[data-theme='dark'] body::before {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+  background: none !important;
+}
+
+/*
+ * Phones / small tablets: hide yantra layer entirely — same routes as desktop still use
+ * body.yantra-backdrop, but the mandala behind stacked cards reads as noisy & low contrast.
+ * Matches app breakpoint where sidenav becomes overlay (1023px).
+ */
+@media (max-width: 1023px) {
+  html:not([data-theme='dark']) body.yantra-backdrop::before,
+  html[data-theme='classic'] body.yantra-backdrop::before {
+    display: none !important;
+    animation: none !important;
+    background: none !important;
+    content: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-theme='dark']) body.yantra-backdrop::before {
+    animation: none;
+    opacity: 0.94;
+  }
+}
+
+@media print {
+  body::before {
+    display: none !important;
+  }
 }
 
 .ornamental-border {
@@ -880,6 +971,18 @@ select.input {
   font-size: 0.72rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* Account page — quick option tiles */
+.account-quick-tile:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--glow-gold);
+  transform: translateY(-1px);
+}
+
+.account-quick-tile--danger:hover {
+  border-color: rgba(224, 123, 142, 0.45);
+  box-shadow: 0 4px 14px rgba(224, 123, 142, 0.14);
 }
 
 /* ── Scrollbar ──────────────────────────────────────────────── */
@@ -1336,7 +1439,22 @@ select.input {
 
 /* ═══════════════════════════════════════════════════════════════
    SIDENAV — Responsive & Toggle
+   Match width to SIDENAV_WIDTH_PX in AppFramework.tsx
    ═══════════════════════════════════════════════════════════════ */
+
+.sidenav {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.sidenav::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidenav::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--scrollbar-thumb) 88%, transparent);
+  border-radius: 999px;
+}
 
 /* On mobile (< 1024px): sidenav is fixed overlay, full-height */
 @media (max-width: 1023px) {
@@ -1387,7 +1505,7 @@ select.input {
   }
 
   .sidenav.open + .main-content {
-    margin-left: 250px;
+    margin-left: var(--sidenav-width);
   }
 
   /* Birth Details Form Drawer - Fixed width on desktop */
@@ -1529,13 +1647,32 @@ select.input {
 
 .landing-shell {
   font-family: 'Outfit', var(--font-body);
+  position: relative;
+  isolation: isolate;
+}
+
+.landing-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-shell section.card,
 .landing-shell section.card-gold {
   border-radius: var(--r-xl);
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  border: 1px solid color-mix(in oklab, var(--border-bright) 75%, transparent);
+  background: color-mix(in oklab, var(--surface-1) 78%, transparent);
+  backdrop-filter: blur(16px) saturate(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.12);
+  box-shadow:
+    0 8px 28px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+/* Opaque so global yantra does not show through glass behind the feature grid */
+.landing-shell section.landing-major-sections {
+  background: var(--surface-1);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .landing-shell h1,
@@ -1646,6 +1783,386 @@ select.input {
   height: auto;
 }
 
+/* ── Landing hero carousel (auto-rotating product areas) ───── */
+.landing-hero-carousel {
+  --hero-auto-ms: 5600ms;
+}
+
+/* Frosted glass only — global body yantra shows through (no second mandala “paper” in the card) */
+.landing-hero-carousel.card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: transparent;
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--surface-1) 52%, transparent) 0%,
+    color-mix(in oklab, var(--surface-2) 42%, transparent) 100%
+  );
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  backdrop-filter: blur(22px) saturate(1.18);
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  border: 1px solid color-mix(in oklab, var(--gold) 34%, var(--border-bright));
+  box-shadow:
+    0 14px 44px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+[data-theme='dark'] .landing-hero-carousel.card {
+  background-color: transparent;
+  background-image: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--surface-1) 44%, transparent) 0%,
+    color-mix(in oklab, var(--surface-2) 36%, transparent) 100%
+  );
+  background-size: 100% 100%;
+  background-position: center;
+  border-color: color-mix(in oklab, var(--gold) 26%, var(--border));
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.landing-hero-carousel.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.35;
+  background: radial-gradient(ellipse 70% 55% at 88% 18%, rgba(201, 168, 76, 0.14), transparent 55%);
+}
+
+.landing-hero-carousel-progress-wrap {
+  position: relative;
+  z-index: 4;
+  height: 3px;
+  background: color-mix(in oklab, var(--border) 70%, transparent);
+  overflow: hidden;
+}
+
+.landing-hero-carousel-progress {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(
+    90deg,
+    var(--hero-accent, var(--gold)),
+    color-mix(in oklab, var(--hero-accent, var(--gold)) 55%, var(--surface-1))
+  );
+  animation: landing-hero-progress-fill var(--hero-auto-ms, 5600ms) linear forwards;
+}
+
+.landing-hero-carousel.is-paused .landing-hero-carousel-progress {
+  animation-play-state: paused;
+}
+
+.landing-hero-carousel.reduced-motion .landing-hero-carousel-progress-wrap {
+  display: none;
+}
+
+@keyframes landing-hero-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.landing-hero-carousel-inner {
+  padding: clamp(0.75rem, 1.6vw, 1.35rem);
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.55rem, 1.2vw, 0.85rem);
+}
+
+.landing-hero-carousel-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.landing-hero-carousel-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-secondary);
+}
+
+.landing-hero-carousel-pause-hint {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--surface-2) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in oklab, var(--border-soft) 80%, transparent);
+}
+
+.landing-hero-carousel-stage {
+  position: relative;
+  min-height: min(34vw, 220px);
+}
+
+.landing-hero-carousel-slide {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 200px);
+  gap: clamp(0.55rem, 1.4vw, 0.95rem);
+  align-items: center;
+  align-content: center;
+  min-height: inherit;
+}
+
+.landing-hero-carousel-slide-bg {
+  position: absolute;
+  inset: -12% -6% -8% -6%;
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(ellipse 55% 70% at 92% 42%, color-mix(in oklab, var(--slide-accent, var(--gold)) 22%, transparent), transparent 62%),
+    radial-gradient(ellipse 45% 55% at 8% 88%, color-mix(in oklab, var(--slide-accent, var(--teal)) 12%, transparent), transparent 58%);
+  pointer-events: none;
+  opacity: 0.38;
+}
+
+.landing-hero-carousel-slide.is-active {
+  animation: landing-hero-slide-enter 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes landing-hero-slide-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-carousel-slide.is-active {
+    animation: none;
+  }
+}
+
+.landing-hero-carousel-copy {
+  position: relative;
+  z-index: 2;
+  max-width: min(100%, 580px);
+}
+
+.landing-hero-carousel-kicker {
+  margin: 0 0 0.28rem 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--slide-accent, var(--gold)) 75%, var(--text-muted));
+}
+
+.landing-hero-carousel-title {
+  margin: 0;
+  font-size: clamp(1.28rem, 3.1vw, 2rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  text-wrap: balance;
+}
+
+.landing-hero-carousel-desc {
+  margin: 0.4rem 0 0 0;
+  font-size: clamp(0.82rem, 1.1vw, 0.94rem);
+  line-height: 1.42;
+  color: var(--text-secondary);
+  max-width: 480px;
+}
+
+.landing-hero-carousel-bullets {
+  margin: 0.45rem 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem 0.55rem;
+}
+
+.landing-hero-carousel-bullets li {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0.2rem 0.48rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border-soft) 85%, transparent);
+  background: color-mix(in oklab, var(--surface-1) 58%, var(--slide-accent, var(--gold)) 6%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.landing-hero-carousel-cta {
+  margin-top: 0.65rem;
+}
+
+.landing-hero-carousel-primary {
+  min-width: min(100%, 200px);
+  min-height: 40px;
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+  font-size: 0.88rem !important;
+  box-shadow: 0 8px 22px color-mix(in oklab, var(--slide-accent, var(--gold)) 22%, transparent);
+}
+
+.landing-hero-vedic-art {
+  position: relative;
+  z-index: 2;
+  border-radius: var(--r-lg);
+  border: 1px solid color-mix(in oklab, var(--slide-accent, var(--border)) 34%, var(--border-soft));
+  padding: 0.55rem 0.65rem;
+  background:
+    radial-gradient(circle at 22% 18%, color-mix(in oklab, var(--slide-accent, var(--gold)) 16%, transparent), transparent 50%),
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--surface-1) 62%, transparent),
+      color-mix(in oklab, var(--surface-2) 52%, transparent)
+    );
+  backdrop-filter: blur(14px) saturate(1.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+[data-theme='dark'] .landing-hero-vedic-art {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.landing-hero-vedic-art-symbol {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  margin-bottom: 0.35rem;
+  background: color-mix(in oklab, var(--slide-accent, var(--gold)) 18%, transparent);
+  border: 1px solid color-mix(in oklab, var(--slide-accent, var(--gold)) 45%, var(--border-soft));
+}
+
+.landing-hero-vedic-art h3 {
+  margin: 0 0 0.2rem 0;
+  font-size: 0.88rem;
+}
+
+.landing-hero-vedic-art p {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.landing-hero-carousel-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-top: 0.1rem;
+}
+
+.landing-hero-carousel-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.landing-hero-carousel-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--border) 88%, transparent);
+  background: color-mix(in oklab, var(--surface-1) 62%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.landing-hero-carousel-tab:hover {
+  border-color: var(--border-bright);
+  box-shadow: var(--shadow-card);
+}
+
+.landing-hero-carousel-tab.is-active {
+  border-color: color-mix(in oklab, var(--tab-accent, var(--gold)) 55%, var(--border));
+  background: color-mix(in oklab, var(--tab-accent, var(--gold)) 14%, transparent);
+  color: var(--text-primary);
+}
+
+.landing-hero-carousel-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.landing-hero-carousel-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.75rem;
+  padding-top: 0.1rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.landing-hero-carousel-footer-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, currentColor 35%, transparent);
+}
+
+.landing-hero-carousel-footer-link:hover {
+  color: var(--text-secondary);
+}
+
+[data-theme='dark'] .landing-hero-carousel-tab {
+  background: color-mix(in oklab, var(--surface-1) 50%, transparent);
+}
+
+[data-theme='dark'] .landing-hero-carousel-bullets li {
+  background: color-mix(in oklab, var(--surface-1) 48%, transparent);
+}
+
 .landing-trust-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1679,10 +2196,52 @@ select.input {
   box-shadow: var(--shadow-lift);
 }
 
+/* Avoid 4-column layouts that orphan two tiles (10 cards): use 2 cols until xl, then 5. */
+.landing-major-sections-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1280px) {
+  .landing-major-sections-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 .landing-flow-card {
   padding: 1.35rem;
   border: 1px solid var(--border-bright);
   background: linear-gradient(180deg, var(--surface-1), color-mix(in oklab, var(--surface-2) 52%, white 8%));
+}
+
+.landing-vedic-gallery {
+  padding: 1.25rem;
+}
+
+.landing-vedic-gallery-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.landing-vedic-gallery-card {
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-lg);
+  padding: 0.95rem;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--surface-1) 92%, white 8%), var(--surface-2));
+}
+
+.landing-vedic-gallery-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.45rem;
+  font-size: 1.08rem;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--gold-faint) 65%, transparent);
 }
 
 .landing-flow-grid {
@@ -1802,9 +2361,17 @@ select.input {
 /* ── Landing dark-mode tuning ─────────────────────────────── */
 [data-theme="dark"] .landing-shell section.card,
 [data-theme="dark"] .landing-shell section.card-gold {
-  background: linear-gradient(165deg, rgba(28, 28, 44, 0.92), rgba(17, 17, 30, 0.95));
-  border-color: rgba(201, 168, 76, 0.2);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklab, rgb(28, 28, 44) 58%, transparent),
+    color-mix(in oklab, rgb(17, 17, 30) 55%, transparent)
+  );
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  border-color: rgba(201, 168, 76, 0.22);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="dark"] .landing-hero {
@@ -2061,6 +2628,25 @@ select.input {
 }
 
 @media (max-width: 768px) {
+  .landing-hero-carousel-pause-hint {
+    display: none;
+  }
+
+  .landing-hero-carousel-stage {
+    min-height: auto;
+  }
+
+  .landing-hero-carousel-tab {
+    font-size: 0.74rem;
+    padding: 0.38rem 0.62rem;
+  }
+
+  .landing-hero-carousel-primary {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
   .landing-shell {
     padding-bottom: 0.25rem;
   }
@@ -2123,6 +2709,14 @@ select.input {
     min-height: 32px !important;
     padding: 0.35rem 0.62rem;
     font-size: 0.77rem;
+  }
+
+  .landing-hero-carousel-slide {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero-vedic-art {
+    min-height: unset;
   }
 
   .landing-flow-grid {

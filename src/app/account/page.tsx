@@ -4,11 +4,10 @@
 //  User account page with editable preferences
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link                    from 'next/link'
-import Image                   from 'next/image'
 import { ThemeToggle }         from '@/components/ui/ThemeToggle'
 
 // ── Types ─────────────────────────────────────────────────────
@@ -107,6 +106,71 @@ function PrefToggle({ label, desc, value, onChange }: {
   )
 }
 
+function QuickActionTile({
+  href,
+  icon,
+  label,
+  sub,
+  onClick,
+  danger,
+}: {
+  href?: string
+  icon: string
+  label: string
+  sub: string
+  onClick?: () => void
+  danger?: boolean
+}) {
+  const inner = (
+    <>
+      <span style={{ fontSize: '1.05rem', lineHeight: 1, flexShrink: 0 }} aria-hidden>
+        {icon}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            color: danger ? 'var(--rose)' : 'var(--text-primary)',
+            fontFamily: 'var(--font-display)',
+          }}
+        >
+          {label}
+        </div>
+        <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.25 }}>{sub}</div>
+      </div>
+    </>
+  )
+  const baseStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.55rem',
+    padding: '0.62rem 0.72rem',
+    borderRadius: 'var(--r-md)',
+    border: `1px solid ${danger ? 'rgba(224,123,142,0.28)' : 'var(--border-soft)'}`,
+    background: danger ? 'rgba(224,123,142,0.05)' : 'color-mix(in oklab, var(--surface-2) 94%, var(--surface-1) 6%)',
+    textDecoration: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s',
+    cursor: 'pointer',
+    textAlign: 'left',
+    font: 'inherit',
+    width: '100%',
+    boxSizing: 'border-box',
+  }
+  if (href) {
+    return (
+      <Link href={href} style={baseStyle} className="account-quick-tile">
+        {inner}
+      </Link>
+    )
+  }
+  return (
+    <button type="button" onClick={onClick} style={baseStyle} className="account-quick-tile account-quick-tile--danger">
+      {inner}
+    </button>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────
 import { Suspense } from 'react'
 
@@ -126,6 +190,28 @@ function AccountContent() {
   const [saved,         setSaved]         = useState(false)
   const [prefsDirty,    setPrefsDirty]    = useState(false)
   const [upgradeMsg,    setUpgradeMsg]    = useState<string | null>(null)
+
+  type AccountTabId = 'profile' | 'branding' | 'birth' | 'preferences'
+  const [activeTab, setActiveTab] = useState<AccountTabId>('profile')
+
+  const accountTabs = useMemo(() => {
+    const tabs: { id: AccountTabId; label: string; icon: string }[] = [
+      { id: 'profile', label: 'Profile', icon: '👤' },
+    ]
+    if (user?.plan === 'platinum') {
+      tabs.push({ id: 'branding', label: 'Consult branding', icon: '💎' })
+    }
+    tabs.push(
+      { id: 'birth', label: 'My birth details', icon: '🌙' },
+      { id: 'preferences', label: 'Chart preferences', icon: '⚙' },
+    )
+    return tabs
+  }, [user?.plan])
+
+  useEffect(() => {
+    const ids = accountTabs.map((t) => t.id)
+    if (!ids.includes(activeTab)) setActiveTab('profile')
+  }, [accountTabs, activeTab])
 
   // ── Refresh plan from DB after payment redirect ───────────
   useEffect(() => {
@@ -199,6 +285,22 @@ function AccountContent() {
     }
   }
 
+  const quickLinks = useMemo(() => {
+    const items: Array<{ href?: string; icon: string; label: string; sub: string }> = [
+      { href: '/my/charts', icon: '📂', label: 'My Charts', sub: 'Saved library' },
+      { href: '/', icon: '✦', label: 'New chart', sub: 'Home calculator' },
+      { href: '/panchang', icon: '📅', label: 'Pañcāṅga', sub: 'Daily calendar' },
+      { href: '/muhurta', icon: '⏱', label: 'Muhūrta', sub: 'Good timings' },
+    ]
+    if (user?.plan === 'free') {
+      items.push({ href: '/pricing', icon: '💎', label: 'Upgrade', sub: 'Gold & Platinum' })
+    }
+    if (user?.role === 'admin') {
+      items.push({ href: '/admin', icon: '🛡️', label: 'Admin', sub: 'Dashboard' })
+    }
+    return items
+  }, [user])
+
   if (status === 'loading' || loading) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -216,56 +318,163 @@ function AccountContent() {
 
       <main style={{ flex: 1, maxWidth: 860, width: '100%', margin: '0 auto', padding: 'clamp(1.5rem,4vw,3rem)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-        {/* Profile hero */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
-              background: 'linear-gradient(135deg, rgba(201,168,76,0.3), rgba(139,124,246,0.3))',
-              border: '2px solid var(--border-bright)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'var(--font-display)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-gold)',
-            }}>{initials}</div>
+        {/* Quick actions — top */}
+        <section
+          style={{
+            background: 'linear-gradient(145deg, color-mix(in oklab, var(--surface-1) 88%, var(--gold-faint) 12%), var(--surface-1))',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-lg)',
+            padding: '1rem 1.15rem 1.1rem',
+            boxShadow: 'var(--shadow-card-sm)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap',
+              marginBottom: '0.9rem',
+            }}
+          >
             <div>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(1.4rem,4vw,2rem)', fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 0.2rem 0' }}>
-                {user?.name ?? 'Vedic Soul'}
-              </h1>
-              <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                {user?.email}
+              <div
+                className="label-caps"
+                style={{
+                  fontSize: '0.58rem',
+                  letterSpacing: '0.14em',
+                  fontWeight: 700,
+                  color: 'var(--text-muted)',
+                  marginBottom: '0.25rem',
+                }}
+              >
+                Quick options
               </div>
+              <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
+                Shortcuts to charts, tools, and appearance
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Theme</span>
+              <ThemeToggle />
             </div>
           </div>
-          
-          {/* Subscription Section */}
-          <section style={{ 
-            background: 'var(--surface-1)', border: '1px solid var(--border)', 
-            borderRadius: 'var(--r-md)', padding: '0.75rem 1rem', display: 'flex', 
-            flexDirection: 'column', gap: '0.35rem', minWidth: 200,
-            boxShadow: 'var(--shadow-card-sm)' 
-          }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Current Plan</span>
-                <span style={{
-                  padding: '0.15rem 0.5rem', borderRadius: 6,
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(152px, 1fr))',
+              gap: '0.55rem',
+            }}
+          >
+            {quickLinks.map((q) => (
+              <QuickActionTile key={q.href ?? q.label} href={q.href} icon={q.icon} label={q.label} sub={q.sub} />
+            ))}
+            <QuickActionTile
+              icon="⎋"
+              label="Log out"
+              sub="End session"
+              danger
+              onClick={() => signOut({ callbackUrl: '/' })}
+            />
+          </div>
+        </section>
+
+        {/* Profile hero */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.25rem',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            padding: '1rem 1.15rem',
+            background: 'var(--surface-1)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 'var(--r-lg)',
+            boxShadow: 'var(--shadow-card-sm)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                flexShrink: 0,
+                background: 'linear-gradient(135deg, rgba(201,168,76,0.28), rgba(139,124,246,0.22))',
+                border: '2px solid var(--border-bright)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: 'var(--font-display)',
+                fontSize: '1.45rem',
+                fontWeight: 700,
+                color: 'var(--text-gold)',
+              }}
+            >
+              {initials}
+            </div>
+            <div>
+              <h1
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(1.25rem,3.5vw,1.75rem)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  margin: '0 0 0.2rem 0',
+                }}
+              >
+                {user?.name ?? 'Vedic Soul'}
+              </h1>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{user?.email}</div>
+            </div>
+          </div>
+
+          <section
+            style={{
+              background: 'color-mix(in oklab, var(--surface-2) 85%, var(--surface-1) 15%)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--r-md)',
+              padding: '0.65rem 0.9rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.3rem',
+              minWidth: 200,
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Plan</span>
+              <span
+                style={{
+                  padding: '0.12rem 0.45rem',
+                  borderRadius: 6,
                   background: user?.plan === 'free' ? 'var(--surface-3)' : 'rgba(201,168,76,0.12)',
                   border: `1px solid ${user?.plan === 'free' ? 'var(--border)' : 'rgba(201,168,76,0.30)'}`,
-                  fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-                  color: user?.plan === 'free' ? 'var(--text-secondary)' : 'var(--text-gold)', 
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: user?.plan === 'free' ? 'var(--text-secondary)' : 'var(--text-gold)',
                   fontFamily: 'var(--font-display)',
-                }}>
-                  {user?.plan === 'free' ? 'Free' : user?.plan === 'gold' ? 'Gold' : user?.plan === 'platinum' ? 'Platinum' : user?.plan}
+                }}
+              >
+                {user?.plan === 'free' ? 'Free' : user?.plan === 'gold' ? 'Gold' : user?.plan === 'platinum' ? 'Platinum' : user?.plan}
+              </span>
+            </div>
+            {user?.plan !== 'free' && user?.planExpiresAt && (
+              <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+                Renews{' '}
+                <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                  {new Date(user.planExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
-             </div>
-             {user?.plan !== 'free' && user?.planExpiresAt && (
-               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                 Expires: <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{new Date(user.planExpiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-               </div>
-             )}
-             {user?.plan === 'free' && (
-               <Link href="/pricing" style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
-                 Upgrade to Gold →
-               </Link>
-             )}
+              </div>
+            )}
+            {user?.plan === 'free' && (
+              <Link href="/pricing" style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>
+                Upgrade to Gold →
+              </Link>
+            )}
           </section>
         </div>
 
@@ -287,214 +496,304 @@ function AccountContent() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
-
-          {/* Personal Details */}
-          <section className="card" style={{ padding: '1.25rem' }}>
-            <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              👤 Profile
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-              <div>
-                <label className="field-label">Display Name</label>
-                <input
-                  className="input"
-                  value={name}
-                  onChange={e => { setName(e.target.value); setPrefsDirty(true) }}
-                  style={{ marginTop: '0.35rem', width: '100%' }}
-                />
-              </div>
-              <div>
-                <label className="field-label">Email</label>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>{user?.email}</div>
-              </div>
-            </div>
-          </section>
-
-          {/* White-Labeling (Platinum Only) */}
-          {user?.plan === 'platinum' && (
-            <section className="card" style={{ padding: '1.25rem', border: '1px solid var(--gold-soft)', background: 'linear-gradient(135deg, var(--surface-1), rgba(201,168,76,0.03))' }}>
-              <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--gold)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                💎 Consultant Branding
-              </h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                <div>
-                  <label className="field-label">Brand / Business Name</label>
-                  <input
-                    className="input"
-                    value={brandName}
-                    onChange={e => { setBrandName(e.target.value); setPrefsDirty(true) }}
-                    placeholder="e.g. Astro Wisdom Studio"
-                    style={{ marginTop: '0.35rem', width: '100%' }}
-                  />
-                  <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>This name will appear on shared charts and PDF reports.</p>
-                </div>
-                <div>
-                  <label className="field-label">Brand Logo URL</label>
-                  <input
-                    className="input"
-                    value={brandLogo}
-                    onChange={e => { setBrandLogo(e.target.value); setPrefsDirty(true) }}
-                    placeholder="https://yourdomain.com/logo.png"
-                    style={{ marginTop: '0.35rem', width: '100%' }}
-                  />
-                  <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Enter a direct link to your logo image (transparent PNG recommended).</p>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Birth Chart */}
-          <section className="card card-gold" style={{ padding: '1.25rem' }}>
-            <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <Image src="/veda-icon.png" alt="Vedaansh" width={22} height={22} style={{ objectFit: 'contain' }} />
-              My Birth Details
-            </h2>
-            {personalChart ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ padding: '0.75rem', background: 'rgba(201,168,76,0.06)', borderRadius: 'var(--r-md)', border: '1px solid rgba(201,168,76,0.15)' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{personalChart.name}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    {personalChart.birthDate} · {personalChart.birthTime.slice(0, 5)}
-                  </div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>
-                    📍 {personalChart.birthPlace}
-                  </div>
-                </div>
-                <Link
-                  href={`/?name=${encodeURIComponent(personalChart.name)}&birthDate=${personalChart.birthDate}&birthTime=${personalChart.birthTime}&birthPlace=${encodeURIComponent(personalChart.birthPlace)}&lat=${personalChart.latitude}&lng=${personalChart.longitude}&tz=${encodeURIComponent(personalChart.timezone)}`}
-                  className="btn btn-primary btn-sm"
-                  style={{ justifyContent: 'center', textAlign: 'center' }}
+        {/* Tabbed account sections */}
+        <section
+          className="card"
+          style={{
+            padding: 0,
+            overflow: 'hidden',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-lg)',
+            boxShadow: 'var(--shadow-card-sm)',
+          }}
+        >
+          <div
+            role="tablist"
+            aria-label="Account sections"
+            style={{
+              display: 'flex',
+              gap: '0.3rem',
+              flexWrap: 'wrap',
+              padding: '0.5rem 0.55rem',
+              borderBottom: '1px solid var(--border-soft)',
+              background: 'color-mix(in oklab, var(--surface-2) 72%, var(--surface-1) 28%)',
+            }}
+          >
+            {accountTabs.map((tab) => {
+              const selected = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  id={`account-tab-${tab.id}`}
+                  aria-controls={`account-panel-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    flex: '0 1 auto',
+                    padding: '0.45rem 0.75rem',
+                    borderRadius: 'var(--r-md)',
+                    border: `1px solid ${selected ? 'rgba(201,168,76,0.35)' : 'transparent'}`,
+                    background: selected ? 'rgba(201,168,76,0.10)' : 'transparent',
+                    color: selected ? 'var(--text-gold)' : 'var(--text-secondary)',
+                    fontWeight: selected ? 700 : 500,
+                    fontSize: '0.76rem',
+                    fontFamily: 'var(--font-display)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                  }}
                 >
-                  Open My Chart
-                </Link>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>
-                  No personal birth chart saved yet.
-                </p>
-                <Link href="/" className="btn btn-ghost btn-sm">
-                  Set Birth Details
-                </Link>
-              </div>
-            )}
-          </section>
-        </div>
+                  <span aria-hidden style={{ marginRight: 5 }}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
 
-        {/* Preferences */}
-        {prefs && (
-          <section className="card" style={{ padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <h2 style={{ fontSize: '1rem', fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                ⚙ Chart Preferences
-              </h2>
-              {saved && (
-                <span style={{ fontSize: '0.78rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
-                  ✓ Saved
-                </span>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 520 }}>
-              <PrefSelect
-                label="Ayanamsha"
-                value={prefs.defaultAyanamsha}
-                options={AYANAMSHA_OPTIONS}
-                onChange={v => updatePref('defaultAyanamsha', v)}
-              />
-              <PrefSelect
-                label="Chart Style"
-                value={prefs.defaultChartStyle}
-                options={CHART_STYLE_OPTIONS}
-                onChange={v => updatePref('defaultChartStyle', v)}
-              />
-              <PrefSelect
-                label="House System"
-                value={prefs.defaultHouseSystem}
-                options={HOUSE_OPTIONS}
-                onChange={v => updatePref('defaultHouseSystem', v)}
-              />
-              <PrefSelect
-                label="Nodes"
-                value={prefs.defaultNodeMode}
-                options={NODE_OPTIONS}
-                onChange={v => updatePref('defaultNodeMode', v)}
-              />
-              <PrefSelect
-                label="Karaka Scheme"
-                value={prefs.karakaScheme}
-                options={[{ value: 7, label: '7 Karakas (Parashari)' }, { value: 8, label: '8 Karakas (with Rahu)' }]}
-                onChange={v => updatePref('karakaScheme', parseInt(v) as 7 | 8)}
-              />
-
-              <div style={{ borderTop: '1px solid var(--border-soft)', paddingTop: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <PrefToggle
-                  label="Show Degrees"
-                  desc="Display planet degree in chart"
-                  value={prefs.showDegrees}
-                  onChange={v => updatePref('showDegrees', v)}
-                />
-                <PrefToggle
-                  label="Show Nakshatra"
-                  desc="Display nakshatra abbreviation"
-                  value={prefs.showNakshatra}
-                  onChange={v => updatePref('showNakshatra', v)}
-                />
-                <PrefToggle
-                  label="Show Chara Karaka"
-                  desc="Show AK/AmK/BK labels on planets"
-                  value={prefs.showKaraka}
-                  onChange={v => updatePref('showKaraka', v)}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          {prefsDirty && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                flexWrap: 'wrap',
+                padding: '0.55rem 1rem',
+                borderBottom: '1px solid var(--border-soft)',
+                background: 'rgba(201,168,76,0.07)',
+              }}
+            >
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-display)' }}>
+                Unsaved changes (profile, branding & chart defaults)
+              </span>
               <button
+                type="button"
                 onClick={savePreferences}
-                disabled={saving || !prefsDirty}
+                disabled={saving}
                 className="btn btn-primary btn-sm"
               >
-                {saving ? 'Saving…' : 'Save Preferences'}
+                {saving ? 'Saving…' : 'Save changes'}
               </button>
-              {!prefsDirty && !saved && (
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic' }}>
-                  No unsaved changes
-                </span>
-              )}
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Quick actions */}
-        <section>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.85rem' }}>
-            Quick Actions
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.75rem' }}>
-            {[
-              { href: '/my/charts',  icon: '📂', label: 'Saved Charts',   sub: 'View your chart history' },
-              { href: '/',           icon: '✦',  label: 'New Chart',       sub: 'Cast a birth chart' },
-              ...(user?.role === 'admin' ? [{ href: '/admin', icon: '🛡️', label: 'Admin Panel', sub: 'System Analytics' }] : []),
-              { href: '/panchang',   icon: '📅', label: 'Daily Pañcāṅga', sub: 'Today\'s Pañcāṅga' },
-              { href: '/muhurta',    icon: '🔍', label: 'Muhūrta Finder', sub: 'Find auspicious times' },
-            ].map(({ href, icon, label, sub }: { href: string; icon: string; label: string; sub: string }) => (
-              <Link key={href} href={href} className="stat-chip" style={{ textDecoration: 'none' }}>
-                <div className="stat-label">{icon}</div>
-                <div className="stat-value" style={{ fontSize: '0.9rem' }}>{label}</div>
-                <div className="stat-sub">{sub}</div>
-              </Link>
-            ))}
-            <div
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="stat-chip"
-              style={{ cursor: 'pointer' }}
-            >
-              <div className="stat-label" style={{ color: 'var(--rose)' }}>⬡</div>
-              <div className="stat-value" style={{ fontSize: '0.9rem', color: 'var(--rose)' }}>Sign Out</div>
-              <div className="stat-sub">End session</div>
-            </div>
+          <div style={{ padding: '1.25rem 1.35rem 1.45rem' }}>
+            {activeTab === 'profile' && (
+              <div
+                role="tabpanel"
+                id="account-panel-profile"
+                aria-labelledby="account-tab-profile"
+              >
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1rem', fontFamily: 'var(--font-display)' }}>
+                  How your name appears in the app and on exports.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 480 }}>
+                  <div>
+                    <label className="field-label">Display Name</label>
+                    <input
+                      className="input"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value)
+                        setPrefsDirty(true)
+                      }}
+                      style={{ marginTop: '0.35rem', width: '100%' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label">Email</label>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
+                      {user?.email}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'branding' && user?.plan === 'platinum' && (
+              <div
+                role="tabpanel"
+                id="account-panel-branding"
+                aria-labelledby="account-tab-branding"
+                style={{
+                  borderRadius: 'var(--r-md)',
+                  border: '1px solid var(--gold-soft)',
+                  background: 'linear-gradient(135deg, var(--surface-1), rgba(201,168,76,0.04))',
+                  padding: '1rem 1rem 1.1rem',
+                }}
+              >
+                <p style={{ fontSize: '0.78rem', color: 'var(--gold)', margin: '0 0 1rem', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                  💎 White-label PDFs and shared charts with your practice name and logo.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 480 }}>
+                  <div>
+                    <label className="field-label">Brand / Business Name</label>
+                    <input
+                      className="input"
+                      value={brandName}
+                      onChange={(e) => {
+                        setBrandName(e.target.value)
+                        setPrefsDirty(true)
+                      }}
+                      placeholder="e.g. Astro Wisdom Studio"
+                      style={{ marginTop: '0.35rem', width: '100%' }}
+                    />
+                    <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Shown on shared charts and PDF reports.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="field-label">Brand Logo URL</label>
+                    <input
+                      className="input"
+                      value={brandLogo}
+                      onChange={(e) => {
+                        setBrandLogo(e.target.value)
+                        setPrefsDirty(true)
+                      }}
+                      placeholder="https://yourdomain.com/logo.png"
+                      style={{ marginTop: '0.35rem', width: '100%' }}
+                    />
+                    <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      Direct link to a logo image (transparent PNG recommended).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'birth' && (
+              <div role="tabpanel" id="account-panel-birth" aria-labelledby="account-tab-birth">
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 1rem', fontFamily: 'var(--font-display)' }}>
+                  Janma details used for your default chart and dashboard.
+                </p>
+                {personalChart ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: 440 }}>
+                    <div
+                      style={{
+                        padding: '0.85rem',
+                        background: 'rgba(201,168,76,0.06)',
+                        borderRadius: 'var(--r-md)',
+                        border: '1px solid rgba(201,168,76,0.15)',
+                      }}
+                    >
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>
+                        {personalChart.name}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        {personalChart.birthDate} · {personalChart.birthTime.slice(0, 5)}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>📍 {personalChart.birthPlace}</div>
+                    </div>
+                    <Link
+                      href={`/?name=${encodeURIComponent(personalChart.name)}&birthDate=${personalChart.birthDate}&birthTime=${personalChart.birthTime}&birthPlace=${encodeURIComponent(personalChart.birthPlace)}&lat=${personalChart.latitude}&lng=${personalChart.longitude}&tz=${encodeURIComponent(personalChart.timezone)}`}
+                      className="btn btn-primary btn-sm"
+                      style={{ justifyContent: 'center', textAlign: 'center', alignSelf: 'flex-start' }}
+                    >
+                      Open My Chart
+                    </Link>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '1.25rem 0.5rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', marginBottom: '1rem', fontFamily: 'var(--font-display)' }}>
+                      No personal birth chart saved yet.
+                    </p>
+                    <Link href="/" className="btn btn-ghost btn-sm">
+                      Set Birth Details
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'preferences' && prefs && (
+              <div role="tabpanel" id="account-panel-preferences" aria-labelledby="account-tab-preferences">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0, fontFamily: 'var(--font-display)' }}>
+                    Defaults for new charts and the calculator.
+                  </p>
+                  {saved && !prefsDirty && (
+                    <span style={{ fontSize: '0.76rem', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+                      ✓ Saved
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', maxWidth: 520 }}>
+                  <PrefSelect
+                    label="Ayanamsha"
+                    value={prefs.defaultAyanamsha}
+                    options={AYANAMSHA_OPTIONS}
+                    onChange={(v) => updatePref('defaultAyanamsha', v)}
+                  />
+                  <PrefSelect
+                    label="Chart Style"
+                    value={prefs.defaultChartStyle}
+                    options={CHART_STYLE_OPTIONS}
+                    onChange={(v) => updatePref('defaultChartStyle', v)}
+                  />
+                  <PrefSelect
+                    label="House System"
+                    value={prefs.defaultHouseSystem}
+                    options={HOUSE_OPTIONS}
+                    onChange={(v) => updatePref('defaultHouseSystem', v)}
+                  />
+                  <PrefSelect
+                    label="Nodes"
+                    value={prefs.defaultNodeMode}
+                    options={NODE_OPTIONS}
+                    onChange={(v) => updatePref('defaultNodeMode', v)}
+                  />
+                  <PrefSelect
+                    label="Karaka Scheme"
+                    value={prefs.karakaScheme}
+                    options={[{ value: 7, label: '7 Karakas (Parashari)' }, { value: 8, label: '8 Karakas (with Rahu)' }]}
+                    onChange={(v) => updatePref('karakaScheme', parseInt(v) as 7 | 8)}
+                  />
+
+                  <div
+                    style={{
+                      borderTop: '1px solid var(--border-soft)',
+                      paddingTop: '0.9rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.75rem',
+                    }}
+                  >
+                    <PrefToggle
+                      label="Show Degrees"
+                      desc="Display planet degree in chart"
+                      value={prefs.showDegrees}
+                      onChange={(v) => updatePref('showDegrees', v)}
+                    />
+                    <PrefToggle
+                      label="Show Nakshatra"
+                      desc="Display nakshatra abbreviation"
+                      value={prefs.showNakshatra}
+                      onChange={(v) => updatePref('showNakshatra', v)}
+                    />
+                    <PrefToggle
+                      label="Show Chara Karaka"
+                      desc="Show AK/AmK/BK labels on planets"
+                      value={prefs.showKaraka}
+                      onChange={(v) => updatePref('showKaraka', v)}
+                    />
+                  </div>
+                </div>
+
+                {!prefsDirty && !saved && (
+                  <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontStyle: 'italic', marginTop: '1.15rem', marginBottom: 0 }}>
+                    No unsaved changes
+                  </p>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'preferences' && !prefs && (
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>Loading preferences…</div>
+            )}
           </div>
         </section>
 

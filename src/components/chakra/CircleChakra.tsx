@@ -9,8 +9,7 @@ import { RASHI_SHORT, NAKSHATRA_SHORT } from '@/types/astrology'
 import { getNakshatra } from '@/lib/engine/nakshatra'
 import { PlanetTooltipCard, type PlanetTooltipData } from '@/components/ui/PlanetHoverTooltip'
 import { getAspectedHouses } from '@/lib/engine/aspects'
-
-
+import { grahaChartFill } from '@/lib/engine/grahaDisplayColors'
 
 const SIGN_ELEMENT: Record<number, string> = {
   1:'fire',2:'earth',3:'air',4:'water',5:'fire',6:'earth',
@@ -21,17 +20,6 @@ const ELEM_FILL: Record<string,string> = {
   earth: 'rgba(70, 170, 90, 0.12)',
   air:   'rgba(80, 150, 220, 0.12)',
   water: 'rgba(130, 90, 210, 0.12)',
-}
-const DIGNITY_COLORS: Record<string,string> = {
-  exalted:      'var(--dig-exalted,  #4ecdc4)',
-  moolatrikona: 'var(--dig-moola,    #f7dc6f)',
-  own:          'var(--dig-own,      #82e0aa)',
-  great_friend: '#abebc6',
-  friend:       '#a9cce3',
-  neutral:      'var(--dig-neutral,  #aaaaaa)',
-  enemy:        '#f0b27a',
-  great_enemy:  '#ec7063',
-  debilitated:  'var(--dig-debilitate, #e74c3c)',
 }
 const GRAHA_SHORT: Record<string,string> = {
   Su:'Su', Mo:'Mo', Ma:'Ma', Me:'Me', Ju:'Ju',
@@ -288,12 +276,14 @@ export function CircleChakra({
           <g key={h}>
             {planets.map((g, pi) => {
               const n   = planets.length
+              const pfThis = Math.max(6 * fontScale, Math.min(pf, pf / Math.sqrt(Math.max(n, 1))))
               // Spread planets radially — stack along spoke, not tangentially
               const radSpread = Math.min(22, 44 / Math.max(n, 1))
               const rOff = (pi - (n - 1) / 2) * radSpread
               const [px, py] = polar(cx, cy, pZone + rOff, mid)
-              const col   = DIGNITY_COLORS[g.dignity] ?? '#aaa'
-              const label = (GRAHA_SHORT[g.id] ?? g.id) + (g.isRetro ? '\u1D3F' : '') + (g.isCombust ? 'ᶜ' : '')
+              const col   = grahaChartFill(g.id)
+              const subPf = Math.max(8, Math.round(pfThis * 0.55))
+              const baseLbl = GRAHA_SHORT[g.id] ?? g.id
               return (
                 <g 
                   key={g.id}
@@ -307,23 +297,30 @@ export function CircleChakra({
                   <text
                     x={px} y={py}
                     textAnchor="middle" dominantBaseline="central"
-                    fontSize={pf} fontWeight={600} fill={col}
+                    fontSize={pfThis} fontWeight="var(--fw-chart-planet)" fill={col}
                     fontFamily="var(--font-chart-planets)"
                   >
-                    {label}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
+                    <tspan>{baseLbl}</tspan>
+                    {g.isRetro && (
+                      <tspan fontSize={subPf} baselineShift="super">ᴿ</tspan>
+                    )}
+                    {g.isCombust && (
+                      <tspan fontSize={subPf} baselineShift="super">ᶜ</tspan>
+                    )}
+                    {showDegrees ? <tspan>{` ${Math.floor(g.degree)}°`}</tspan> : null}
                   </text>
                   {showNakshatra && (
-                    <text x={px} y={py + pf + 1}
+                    <text x={px} y={py + pfThis + 1}
                       textAnchor="middle" dominantBaseline="central"
-                      fontSize={pf - 2} fill="var(--text-muted, #888)"
+                      fontSize={pfThis - 2} fill="var(--text-muted, #888)"
                     >
                       {g.nakshatraIndex !== undefined ? NAKSHATRA_SHORT[g.nakshatraIndex] : ''} {g.pada}
                     </text>
                   )}
                   {showKaraka && g.charaKaraka && (
-                    <text x={px} y={py - pf}
+                    <text x={px} y={py - pfThis}
                       textAnchor="middle" dominantBaseline="central"
-                      fontSize={pf - 2} fill="#8b5cf6"
+                      fontSize={pfThis - 2} fill="#8b5cf6"
                     >
                       {g.charaKaraka}
                     </text>
@@ -335,6 +332,7 @@ export function CircleChakra({
             {/* Transits — outer ring */}
             {transits.map((g, pi) => {
               const n = transits.length
+              const pfT = Math.max(5 * fontScale, Math.min(pf - 2, (pf - 2) / Math.sqrt(Math.max(n, 1))))
               const radSpread = Math.min(18, 36 / Math.max(n, 1))
               const rOff = (pi - (n - 1) / 2) * radSpread
               const [px, py] = polar(cx, cy, planetR + 10 + rOff, mid)
@@ -342,7 +340,7 @@ export function CircleChakra({
                 <text key={`t-${g.id}`}
                   x={px} y={py}
                   textAnchor="middle" dominantBaseline="central"
-                  fontSize={pf - 2} fontWeight={600}
+                  fontSize={pfT} fontWeight={600}
                   fill="rgba(139,124,246,0.9)"
                 >
                   {GRAHA_SHORT[g.id] ?? g.id}{showDegrees ? ` ${Math.floor(g.degree)}°` : ''}
@@ -388,16 +386,6 @@ export function CircleChakra({
         )
       })}
 
-      {/* ── Center Brand Watermark ── */}
-      <image 
-        href="/veda-icon.png" 
-        x={cx - (size * 0.08)} 
-        y={cy - (size * 0.08)} 
-        width={size * 0.16} 
-        height={size * 0.16} 
-        opacity="0.25"
-        style={{ pointerEvents: 'none', filter: 'sepia(1) saturate(5) hue-rotate(-20deg) brightness(0.9)' }}
-      />
     </svg>
     {isMounted && showTooltip && hoveredPlanet && (
       <PlanetTooltipCard

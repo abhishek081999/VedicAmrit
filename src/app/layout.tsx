@@ -6,6 +6,7 @@ import { AuthProvider }      from '@/components/providers/SessionProvider'
 import { AppLayoutProvider } from '@/components/providers/LayoutProvider'
 import { ChartProvider }     from '@/components/providers/ChartProvider'
 import { AppFramework }      from '@/components/ui/AppFramework'
+import { YantraBackdropRoute } from '@/components/ui/YantraBackdropRoute'
 
 // ── Fonts (next/font — zero layout shift, self-hosted) ────────
 const playfair = Playfair_Display({
@@ -218,6 +219,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <AppLayoutProvider>
             <ChartProvider>
+              <YantraBackdropRoute />
               <AppFramework>
                 {children}
               </AppFramework>

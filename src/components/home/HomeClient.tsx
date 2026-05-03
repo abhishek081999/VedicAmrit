@@ -40,6 +40,7 @@ const AstroDetailsPanel = dynamic(() => import('@/components/ui/AstroDetailsPane
 
 import { useAppLayout } from '@/components/providers/LayoutProvider'
 import { useChart } from '@/components/providers/ChartProvider'
+import { routeAllowsWithoutChart } from '@/lib/chartGateRoutes'
 import type { ChartOutput, GrahaId, Rashi, ChartSettings } from '@/types/astrology'
 import { DEFAULT_SETTINGS, GRAHA_NAMES, NAKSHATRA_NAMES as NAK_NAMES } from '@/types/astrology'
 import { RASHI_NAMES, RASHI_SHORT } from '@/types/astrology'
@@ -300,6 +301,34 @@ function MajorKundaliStrip({
 // ─────────────────────────────────────────────────────────────
 
 import { Suspense } from 'react'
+import { LandingHeroCarousel } from '@/components/home/LandingHeroCarousel'
+
+/** Query string matches BirthForm URL hydration (`name`, `birthDate`, … `tz`). */
+function buildChartShareUrl(chart: ChartOutput): string {
+  const m = chart.meta
+  const q = new URLSearchParams({
+    name: m.name,
+    birthDate: m.birthDate,
+    birthTime: m.birthTime,
+    birthPlace: m.birthPlace,
+    lat: String(m.latitude),
+    lng: String(m.longitude),
+    tz: m.timezone,
+  })
+  return `${typeof window !== 'undefined' ? window.location.origin : ''}/?${q.toString()}`
+}
+
+function ShareLinkIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+    </svg>
+  )
+}
 
 function HomeContent() {
   const { data: session, status } = useSession()
@@ -322,6 +351,7 @@ function HomeContent() {
   const [loading,    setLoading]    = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [saveDone,   setSaveDone]   = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
   const [crmSaving,  setCrmSaving]  = useState(false)
   const [crmDone,    setCrmDone]    = useState(false)
   const [defaultChart, setDefaultChart] = useState<any>(null)
@@ -385,7 +415,7 @@ function HomeContent() {
       { id: 'sbc', label: 'Sarvatobhadra Chakra', path: '/sbc' },
       { id: 'muhurta', label: 'Muhurta Finder', path: '/muhurta' },
       { id: 'prashna', label: 'Prashna', path: '/prashna' },
-      { id: 'compare', label: 'Synastry Overlay', path: '/compare' },
+      { id: 'compare', label: 'Kundali Matching', path: '/compare' },
       { id: 'roadmap', label: 'Cosmic Roadmap', path: '/roadmap' },
       { id: 'transit-scrubber', label: 'Time Scrubber', path: '/scrubber' },
     ],
@@ -640,6 +670,29 @@ function HomeContent() {
     }
   }
 
+  async function handleCopyShareLink() {
+    if (!chart) return
+    const url = buildChartShareUrl(chart)
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      try {
+        const ta = document.createElement('textarea')
+        ta.value = url
+        ta.style.position = 'fixed'
+        ta.style.left = '-9999px'
+        document.body.appendChild(ta)
+        ta.select()
+        document.execCommand('copy')
+        document.body.removeChild(ta)
+      } catch {
+        return
+      }
+    }
+    setShareCopied(true)
+    setTimeout(() => setShareCopied(false), 2500)
+  }
+
   useEffect(() => {
     if (!chart || vimshottariTara === 'Mo') { setAltVimshottari(null); return }
     let refLon: number | null = null
@@ -664,7 +717,11 @@ function HomeContent() {
     router.push('/astrology?new=true')
   }, [router])
 
-  const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLAnchorElement>) => {
+  const openSectionWithChartGate = React.useCallback((href: string, e?: React.MouseEvent<HTMLElement>) => {
+    if (routeAllowsWithoutChart(href)) {
+      return
+    }
+
     const isAstrologyTarget = href.startsWith('/astrology')
     if (!chart && !isAstrologyTarget) {
       e?.preventDefault()
@@ -708,41 +765,50 @@ function HomeContent() {
   }, [defaultChart, router, setChart, userPrefs])
 
   const landingFeaturePillars = [
-    { title: 'Kundli Intelligence', detail: 'Accurate birth-chart with varga depth and applied interpretation.' },
-    { title: 'Panchang Precision', detail: 'Daily tithi, nakshatra, yoga, karana, and actionable muhurta timing.' },
-    { title: 'Consultation Ready', detail: 'Chart workflows built for personal, family, and client-level use.' },
-    { title: 'Remedy Direction', detail: 'Practical next steps rooted in classical Jyotish principles.' },
-  ]
-
-  const landingTrustStats = [
-    { label: 'Core engines', value: '20+' },
-    { label: 'Analysis layers', value: '50+' },
-    { label: 'Primary modules', value: '8' },
-    { label: 'Precision base', value: 'Swiss Ephemeris' },
+    { title: 'Kundali Intelligence', detail: 'Accurate chart casting with varga depth and practical interpretation.' },
+    { title: 'Panchang Timing', detail: 'Daily tithi, nakshatra, yoga, karana, and practical muhurta guidance.' },
+    { title: 'Prashna Clarity', detail: 'Focused question workflow for specific life decisions and immediate next steps.' },
+    { title: 'Consultation Ready', detail: 'Built for personal use and practitioner-level consultation workflows.' },
   ]
 
   const landingJourney = [
-    { step: '01', title: 'Enter Birth Details', text: 'Open Astrology app and submit date, time, and place.' },
-    { step: '02', title: 'Generate Deep Chart', text: 'Instantly compute grahas, houses, dasha, and divisional charts.' },
-    { step: '03', title: 'Read & Act', text: 'Move from insights to timing windows, remedies, and consultation.' },
+    { step: '01', title: 'Enter birth details', text: 'Open Astrology app and submit date, time, and place.' },
+    { step: '02', title: 'Generate deep chart', text: 'Compute grahas, houses, dasha layers, and divisional charts instantly.' },
+    { step: '03', title: 'Apply in real life', text: 'Use Panchang, Prashna, and calendar timing to plan your next action.' },
   ]
 
   const landingMajorSections = [
     {
-      title: 'Your Chart',
+      title: 'Astrology',
       subtitle: 'Dashboard',
-      text: 'Open your chart dashboard for complete graha, house, and interpretation overview.',
+      text: 'Complete kundali, varga, dasha, and interpretation workspace in one focused view.',
       href: '/astrology',
-      ctaName: 'major_sections_your_chart',
+      ctaName: 'major_sections_astrology',
       icon: '🧿',
+    },
+    {
+      title: 'Prashna',
+      subtitle: 'Query',
+      text: 'Get focused question-based guidance through Prashna-oriented interpretation flow.',
+      href: '/prashna',
+      ctaName: 'major_sections_prashna',
+      icon: '🎯',
     },
     {
       title: 'Panchang',
       subtitle: 'Daily',
-      text: 'Check tithi, nakshatra, yoga, karana and day guidance from one clean section.',
+      text: 'Check tithi, nakshatra, yoga, karana, and live day timing from one section.',
       href: '/panchang',
       ctaName: 'major_sections_panchang',
-      icon: '📆',
+      icon: '🕉️',
+    },
+    {
+      title: 'Calendar',
+      subtitle: 'Monthly',
+      text: 'Scan month-level Vedic timing windows for events, rituals, travel, and launch planning.',
+      href: '/panchang/calendar',
+      ctaName: 'major_sections_calendar',
+      icon: '🗓️',
     },
     {
       title: 'Nakshatra',
@@ -756,9 +822,9 @@ function HomeContent() {
       title: 'Jaimini Astrology',
       subtitle: 'Advanced',
       text: 'Apply Jaimini principles with focused tools for deeper karmic and life-direction reading.',
-      href: '/astrology?new=true',
+      href: '/jaimini',
       ctaName: 'major_sections_jaimini',
-      icon: '💠',
+      icon: '🔮',
     },
     {
       title: 'Astro Vastu',
@@ -780,9 +846,9 @@ function HomeContent() {
       title: 'Sarvatobhadra Chakra',
       subtitle: 'Classical',
       text: 'Access traditional S.B. Chakra style timing and influence mapping for advanced study.',
-      href: '/roadmap',
+      href: '/sbc',
       ctaName: 'major_sections_sarvatobhadra',
-      icon: '◼',
+      icon: '🌀',
     },
     {
       title: 'Muhurta Finder',
@@ -792,56 +858,16 @@ function HomeContent() {
       ctaName: 'major_sections_muhurta_finder',
       icon: '🕒',
     },
-    {
-      title: 'Prashna',
-      subtitle: 'Query',
-      text: 'Get focused question-based guidance through Prashna-oriented interpretation flow.',
-      href: '/roadmap',
-      ctaName: 'major_sections_prashna',
-      icon: '🎯',
-    },
-    {
-      title: 'Synastry Overlay',
-      subtitle: 'Compatibility',
-      text: 'Overlay two charts and inspect relational patterns for compatibility and dynamics.',
-      href: '/roadmap',
-      ctaName: 'major_sections_synastry',
-      icon: '∞',
-    },
-    {
-      title: 'Cosmic Roadmap',
-      subtitle: 'Guidance',
-      text: 'Turn chart insights into a structured personal roadmap for long-term growth.',
-      href: '/roadmap',
-      ctaName: 'major_sections_cosmic_roadmap',
-      icon: '🛣',
-    },
-    {
-      title: 'Time Scrubber',
-      subtitle: 'Transit',
-      text: 'Scrub through time and inspect planetary movement windows before making decisions.',
-      href: '/scrubber',
-      ctaName: 'major_sections_time_scrubber',
-      icon: '⏳',
-    },
   ]
 
   const trustedBy = ['Jyotish Practitioners', 'Consultants', 'Learners', 'Seekers', 'Vedic Families', 'Wellness Guides']
+  const vedicVisuals = [
+    { icon: '🧘', title: 'Sage Wisdom', text: 'Timeless rishi insight translated into practical daily guidance.' },
+    { icon: '📜', title: 'Scripture Anchoring', text: 'Classical Jyotish logic with modern readability and flow.' },
+    { icon: '🪔', title: 'Ritual Timing', text: 'Auspicious windows to support meaningful life actions and sankalpa.' },
+  ]
 
   const landingVariant = searchParams.get('lpv') === 'b' ? 'b' : 'a'
-  const heroCopy = landingVariant === 'b'
-    ? {
-        headline: 'From Kundli to clear life decisions, all in one Vedic platform.',
-        subline:
-          'Stop jumping across tools. Vedaansh combines deep chart analysis, panchang timing, and action-ready interpretation in one premium workflow.',
-        cta: 'Start Free Chart',
-      }
-    : {
-        headline: 'Build your complete Vedic journey on one premium platform.',
-        subline:
-          'Inspired by the depth users love in products like VedicRishi and AstroBharati, Vedaansh unifies serious Jyotish analysis, daily guidance, consultation workflows, and conscious life planning.',
-        cta: '✦ Open Astrology App',
-      }
 
   const trackLandingCta = React.useCallback((ctaName: string) => {
     const payload = {
@@ -866,45 +892,6 @@ function HomeContent() {
       ;(window as any).posthog.capture('landing_cta_click', { ctaName, variant: landingVariant })
     }
   }, [landingVariant])
-
-  const landingTestimonials = [
-    {
-      quote: 'This feels like a serious Jyotish workstation, not just a horoscope page. The depth and structure are excellent.',
-      name: 'Early Practitioner User',
-      role: 'Advanced Learner',
-    },
-    {
-      quote: 'The Panchang + chart + interpretation flow saves time in daily guidance and consultation preparation.',
-      name: 'Consultation-Focused User',
-      role: 'Practicing Astrologer',
-    },
-    {
-      quote: 'Clean UI, deep analysis, and clear next actions. This is exactly where modern Vedic platforms should go.',
-      name: 'Vedic Community Member',
-      role: 'Power User',
-    },
-  ]
-
-  const landingFaqs = [
-    {
-      q: 'Is Vedaansh only for experts?',
-      a: 'No. Beginners can start with guided chart interpretation, while advanced users can dive into varga, dasha, and deeper analysis.',
-    },
-    {
-      q: 'What makes this different from typical astrology apps?',
-      a: 'Vedaansh is built as a platform with analytics depth, timing tools, consultation readiness, and long-term Vedic life direction.',
-    },
-    {
-      q: 'Can I use this for client consultations?',
-      a: 'Yes. The workflow supports both personal use and practitioner-style consultation flow, including saved charts and CRM pathways.',
-    },
-    {
-      q: 'What should I start with first?',
-      a: 'Open Astrology App, cast your chart, then use Panchang and interpretation tabs to move into immediate practical actions.',
-    },
-  ]
-
-  const [landingFaqOpen, setLandingFaqOpen] = useState(0)
 
   const moveDashboardCard = (
     sourceCard: 'summary' | 'cosmic' | 'planetary' | 'astronomical',
@@ -1097,7 +1084,19 @@ function HomeContent() {
             
             {/* Compact Header Strip */}
             <div className="chart-header-row" style={isMobile ? { position: 'relative' } : undefined}>
-              <div className="chart-name-strip">
+              <div
+                className="chart-name-strip"
+                style={
+                  isMobile
+                    ? {
+                        paddingRight:
+                          status === 'authenticated'
+                            ? 'calc(5 * 34px + 4 * 0.4rem + 0.75rem)'
+                            : 'calc(3 * 34px + 2 * 0.4rem + 0.75rem)',
+                      }
+                    : undefined
+                }
+              >
                 <span className="name-primary">{chart.meta.name}</span>
                 <span className="name-sep hide-mobile">·</span>
                 <span className="name-detail hide-mobile">{chart.meta.birthDate} {chart.meta.birthTime}</span>
@@ -1121,6 +1120,32 @@ function HomeContent() {
                     alignItems: 'center',
                   }}
                 >
+                  <button
+                    type="button"
+                    onClick={() => handleCopyShareLink()}
+                    aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
+                    title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: `1px solid ${shareCopied ? 'var(--accent)' : 'var(--border-soft)'}`,
+                      background: shareCopied ? 'rgba(34,197,94,0.1)' : 'var(--surface-2)',
+                      color: shareCopied ? 'var(--accent)' : 'var(--text-primary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {shareCopied ? (
+                      <span style={{ fontSize: '0.85rem' }}>✓</span>
+                    ) : (
+                      <ShareLinkIcon />
+                    )}
+                  </button>
                   {status === 'authenticated' && (
                     <button
                       type="button"
@@ -1155,6 +1180,53 @@ function HomeContent() {
                         </svg>
                       )}
                     </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsFormOpen(true)}
+                    aria-label="Edit birth details"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: '1px solid var(--border-soft)',
+                      background: 'var(--surface-2)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                    </svg>
+                  </button>
+                  {status === 'authenticated' && (
+                    <Link
+                      href="/my/charts"
+                      aria-label="My charts library"
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 8,
+                        border: '1px solid var(--border-soft)',
+                        background: 'var(--surface-2)',
+                        color: 'var(--text-primary)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                      </svg>
+                    </Link>
                   )}
                   <button
                     type="button"
@@ -1209,6 +1281,22 @@ function HomeContent() {
                       gap: '0.45rem',
                     }}
                   >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileHeaderMenuOpen(false)
+                        void handleCopyShareLink()
+                      }}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        width: '100%',
+                        justifyContent: 'center',
+                        gap: '0.35rem',
+                      }}
+                    >
+                      <span style={{ display: 'inline-flex', alignItems: 'center' }} aria-hidden><ShareLinkIcon /></span>
+                      {shareCopied ? 'Copied link' : 'Copy chart link'}
+                    </button>
                     {status === 'authenticated' && (
                       <button
                         onClick={() => {
@@ -1221,6 +1309,23 @@ function HomeContent() {
                       >
                         {saving ? 'Saving…' : saveDone ? '✓ Saved' : '+ Save Chart'}
                       </button>
+                    )}
+                    {status === 'authenticated' && (
+                      <Link
+                        href="/my/charts"
+                        onClick={() => setMobileHeaderMenuOpen(false)}
+                        className="btn btn-secondary btn-sm"
+                        style={{
+                          width: '100%',
+                          justifyContent: 'center',
+                          textDecoration: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                        }}
+                      >
+                        <span aria-hidden>📚</span> My Charts
+                      </Link>
                     )}
                     <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
                       <ExportPdfButton chart={chart} compact />
@@ -1263,11 +1368,16 @@ function HomeContent() {
                 </>
               )}
 
-              <div className="chart-actions-compact" style={{ display: isMobile ? 'none' : 'flex' }}>
+              <div className="chart-actions-compact" style={{ display: isMobile ? 'none' : 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                   {status === 'authenticated' && (
                     <button onClick={() => handleSave('regular')} disabled={saving || saveDone} className={`btn ${saveDone ? 'btn-ghost' : 'btn-primary'} btn-sm`}>
                       {saving ? '…' : saveDone ? '✓ Saved' : '+ Save'}
                     </button>
+                  )}
+                  {status === 'authenticated' && (
+                    <Link href="/my/charts" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                      My Charts
+                    </Link>
                   )}
                   {status === 'authenticated' && userPlan === 'platinum' && (
                     <button onClick={handleSaveToCRM} disabled={crmSaving || crmDone} className={`btn ${crmDone ? 'btn-ghost' : 'btn-secondary'} btn-sm`}
@@ -1275,6 +1385,15 @@ function HomeContent() {
                       {crmSaving ? '…' : crmDone ? '✓ CRM' : 'CRM'}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyShareLink()}
+                    className={`btn btn-secondary btn-sm`}
+                    title={shareCopied ? 'Copied!' : 'Copy link — free, no login required'}
+                    aria-label={shareCopied ? 'Link copied' : 'Copy link to this chart'}
+                  >
+                    {shareCopied ? '✓' : <ShareLinkIcon />}
+                  </button>
                   <ExportPdfButton chart={chart} compact />
                   <EmailChartButton chart={chart} compact />
                   <button onClick={() => setIsFormOpen(true)} className="btn btn-secondary btn-sm">✎</button>
@@ -1945,92 +2064,21 @@ function HomeContent() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, padding: 'clamp(1rem, 2.5vw, 2rem)' }}>
           {!isFormOpen && (
             <div className="fade-in landing-shell" style={{ width: '100%', maxWidth: 1240 }}>
-              <section
-                className="card-gold fade-up landing-hero"
-                style={{
-                  padding: 'clamp(1.5rem, 3vw, 3rem)',
-                  borderRadius: 'var(--r-xl)',
-                  marginBottom: '1.25rem',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    width: 220,
-                    height: 220,
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(201,168,76,0.22), transparent 70%)',
-                    top: -80,
-                    right: -70,
-                    pointerEvents: 'none',
-                  }}
-                />
-                <div className="landing-hero-mark" aria-hidden>
-                  <Image
-                    src="/veda-icon.png"
-                    alt=""
-                    width={420}
-                    height={420}
-                    className="landing-hero-mark-img"
-                    priority
-                  />
-                </div>
-                <div className="landing-hero-content">
-                  <div className="label-caps" style={{ marginBottom: '0.75rem', color: 'var(--text-gold)' }}>
-                    Vedaansh spiritual intelligence platform
-                  </div>
-                  <h1 className="landing-hero-title" style={{ margin: 0, maxWidth: 820 }}>{heroCopy.headline}</h1>
-                  <p className="landing-hero-subline" style={{ marginTop: '0.9rem', maxWidth: 820, fontSize: '1.02rem' }}>
-                    {heroCopy.subline}
-                  </p>
-                  <div className="landing-trust-grid">
-                    {landingTrustStats.map((item) => (
-                      <div key={item.label} className="stat-chip landing-trust-chip">
-                        <span className="stat-value">{item.value}</span>
-                        <span className="stat-sub">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="landing-hero-cta-row">
-                    <div className="landing-hero-main-ctas">
-                      <button onClick={() => { trackLandingCta('hero_primary'); openAstrologyApp() }} className="btn btn-primary landing-hero-primary-btn">
-                        {heroCopy.cta}
-                      </button>
-                      <Link href="/panchang" onClick={() => trackLandingCta('hero_panchang')} className="btn btn-secondary landing-hero-secondary-btn" style={{ textDecoration: 'none' }}>
-                        Open Panchang App
-                      </Link>
-                    </div>
-                    <div className="landing-hero-sub-ctas">
-                      <Link href="/panchang/calendar" onClick={() => trackLandingCta('hero_calendar')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
-                        Panchang Calendar
-                      </Link>
-                      {status === 'authenticated' && defaultChart && (
-                        <button onClick={() => { trackLandingCta('hero_my_chart'); openMyDefaultChart() }} className="btn btn-ghost landing-hero-sub-btn">
-                          My Chart
-                        </button>
-                      )}
-                      <Link href="/pricing" onClick={() => trackLandingCta('hero_pricing')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
-                        View Plans
-                      </Link>
-                      <Link href="/my/charts" onClick={() => trackLandingCta('hero_my_charts')} className="btn btn-ghost landing-hero-sub-btn" style={{ textDecoration: 'none' }}>
-                        Explore My Charts
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <LandingHeroCarousel
+                trackLandingCta={trackLandingCta}
+                onOpenAstrology={openAstrologyApp}
+                onOpenMyChart={openMyDefaultChart}
+                showMyChart={status === 'authenticated' && !!defaultChart}
+                withChartGate={openSectionWithChartGate}
+              />
 
-              <section className="card fade-up-1" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
+              <section className="card landing-major-sections fade-up-1" style={{ marginBottom: '1.25rem', padding: '1.2rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Major sections</div>
-                <h3 style={{ margin: '0 0 0.45rem 0' }}>Explore all major Vedaansh features from one place</h3>
+                <h3 style={{ margin: '0 0 0.45rem 0' }}>Move quickly across all core Vedaansh journeys</h3>
                 <p style={{ margin: '0 0 0.9rem 0', color: 'var(--text-secondary)', maxWidth: 900 }}>
-                  Pick your next step instantly - Panchang, advanced astrology engine, transits, consultation workspace,
-                  and premium learning modules.
+                  Astrology, Prashna, Panchang, and Calendar are now surfaced first so users can start from the exact intent.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.8rem' }}>
+                <div className="landing-major-sections-grid">
                   {landingMajorSections.map((section) => (
                     <Link
                       key={section.title}
@@ -2040,7 +2088,12 @@ function HomeContent() {
                         openSectionWithChartGate(section.href, e)
                       }}
                       className="landing-portal-card"
-                      style={{ textDecoration: 'none', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-lg)', padding: '0.95rem' }}
+                      style={{
+                        textDecoration: 'none',
+                        border: '1px solid var(--border-soft)',
+                        borderRadius: 'var(--r-lg)',
+                        padding: '0.95rem',
+                      }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
                         <span style={{ fontSize: '1.1rem' }}>{section.icon}</span>
@@ -2055,34 +2108,32 @@ function HomeContent() {
                 </div>
               </section>
 
-              <section className="card fade-up-1 landing-compare-card" style={{ marginBottom: '1.25rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Why Vedaansh</div>
-                <h3 style={{ margin: '0 0 0.7rem 0' }}>Designed for depth + clarity, not just daily horoscope content</h3>
-                <div className="landing-compare-grid">
-                  <div className="landing-compare-col">
-                    <h4 style={{ margin: '0 0 0.6rem 0' }}>Vedaansh</h4>
-                    <ul className="landing-compare-list">
-                      <li>Integrated chart, panchang, dasha, varga, and interpretation flow</li>
-                      <li>Built for both personal seekers and practitioner consultations</li>
-                      <li>Action-oriented guidance from analysis to next step</li>
-                      <li>Platform vision: astrology + lifestyle + learning + community</li>
-                    </ul>
-                  </div>
-                  <div className="landing-compare-col">
-                    <h4 style={{ margin: '0 0 0.6rem 0' }}>Typical astrology apps</h4>
-                    <ul className="landing-compare-list is-muted">
-                      <li>Often fragmented between reports, chat, and tools</li>
-                      <li>Limited depth in advanced varga and workflow continuity</li>
-                      <li>Heavy focus on one-off predictions over guided execution</li>
-                      <li>Less structured path from insight to practical action</li>
-                    </ul>
-                  </div>
+              <section className="card fade-up-2 landing-vedic-gallery" style={{ marginBottom: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Vedic visuals</div>
+                <h3 style={{ margin: '0 0 0.65rem 0' }}>A spiritual aesthetic inspired by sages, scriptures, and sacred timing</h3>
+                <div className="landing-vedic-gallery-grid">
+                  {vedicVisuals.map((item) => (
+                    <article key={item.title} className="landing-vedic-gallery-card">
+                      <div className="landing-vedic-gallery-icon">{item.icon}</div>
+                      <h4 style={{ margin: '0 0 0.35rem 0' }}>{item.title}</h4>
+                      <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.88rem' }}>{item.text}</p>
+                    </article>
+                  ))}
                 </div>
               </section>
 
-              <section className="card fade-up-1 landing-trusted-strip" style={{ marginBottom: '1.25rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>Trusted by communities</div>
-                <div className="landing-marquee">
+              <section className="card fade-up-1" style={{ marginBottom: '1.25rem', border: '1px solid var(--border-bright)', padding: '1.25rem' }}>
+                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>Why this feels fresh</div>
+                <h3 style={{ margin: '0 0 0.75rem 0' }}>Relevant information first, deep tooling always one click away</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                  {landingFeaturePillars.map((item) => (
+                    <div key={item.title} className="stat-chip">
+                      <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
+                      <span className="stat-sub">{item.detail}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="landing-marquee" style={{ marginTop: '0.95rem' }}>
                   <div className="landing-marquee-track">
                     {[...trustedBy, ...trustedBy].map((item, idx) => (
                       <span key={`${item}-${idx}`} className="landing-trusted-pill">{item}</span>
@@ -2091,61 +2142,9 @@ function HomeContent() {
                 </div>
               </section>
 
-              <section
-                className="card fade-up-1"
-                style={{
-                  padding: 'clamp(1.25rem, 3vw, 2rem)',
-                  marginBottom: '1.25rem',
-                  border: '1px solid var(--border-bright)',
-                }}
-              >
-                <div className="label-caps" style={{ marginBottom: '0.7rem' }}>
-                  Live now
-                </div>
-                <h2 style={{ margin: '0 0 0.7rem 0' }}>A modern Jyotish command center is ready</h2>
-                <p style={{ margin: 0, maxWidth: 920 }}>
-                  Start with your birth chart, panchang, dasha, varga analysis, and nakshatra intelligence. Then move
-                  into consultation, remedy planning, and long-term Vedic life guidance.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem', marginTop: '1rem' }}>
-                  {landingFeaturePillars.map((item) => (
-                    <div key={item.title} className="stat-chip">
-                      <span className="stat-value" style={{ fontSize: '0.95rem' }}>{item.title}</span>
-                      <span className="stat-sub">{item.detail}</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1rem' }}>
-                  <button onClick={() => { trackLandingCta('live_now_launch'); openAstrologyApp() }} className="btn btn-primary">
-                    Launch Astrology App
-                  </button>
-                  <Link href="/astrology?new=true" onClick={() => trackLandingCta('live_now_new_consultation')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    New Consultation
-                  </Link>
-                </div>
-              </section>
-
-              <section className="card fade-up-4 landing-cta-band" style={{ marginBottom: '1.25rem' }}>
-                <div>
-                  <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Ready now</div>
-                  <h3 style={{ margin: 0 }}>Open your Vedic command center in one tap</h3>
-                  <p style={{ margin: '0.45rem 0 0 0', maxWidth: 760 }}>
-                    Cast your chart, review today&apos;s panchang, and move to clear action guidance in a single focused flow.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
-                  <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary">
-                    Start Now
-                  </button>
-                  <Link href="/pricing" onClick={() => trackLandingCta('cta_band_view_plans')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    View Plans
-                  </Link>
-                </div>
-              </section>
-
               <section className="card fade-up-2 landing-flow-card" style={{ marginBottom: '1.25rem' }}>
                 <div className="label-caps" style={{ marginBottom: '0.6rem' }}>How it flows</div>
-                <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to life direction in minutes</h3>
+                <h3 style={{ margin: '0 0 0.65rem 0' }}>From birth data to confident life direction in minutes</h3>
                 <div className="landing-flow-grid">
                   {landingJourney.map((item) => (
                     <article key={item.step} className="landing-flow-item">
@@ -2157,107 +2156,20 @@ function HomeContent() {
                 </div>
               </section>
 
-              <section className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.9rem', marginBottom: '1.25rem' }}>
-                {[
-                  { icon: '🔭', title: 'Astrology Workspace', text: 'Chart + varga + dasha + interpretation in one workspace.', href: '/astrology?new=true', comingSoon: false },
-                  { icon: '📆', title: 'Panchang & Calendar', text: 'Daily and monthly timing windows for practical planning.', href: '/panchang', comingSoon: false },
-                  { icon: '👥', title: 'Consultation CRM', text: 'Manage clients, sessions, and chart records with structure.', href: '/clients', comingSoon: false },
-                  { icon: '🧭', title: 'Muhurta Planner', text: 'Find suitable windows for action, events, and decisions.', href: '/muhurta', comingSoon: false },
-                  { icon: '📚', title: 'Learning Hub', text: 'Structured Jyotish and Vedic learning tracks.', href: '/roadmap', comingSoon: true },
-                  { icon: '🛍', title: 'Vedic Commerce', text: 'Future-ready layer for products, remedies, and rituals.', href: '/pricing', comingSoon: true },
-                  { icon: '🌿', title: 'Lifestyle Guidance', text: 'Daily dharmic routines with spiritual wellness alignment.', href: '/roadmap', comingSoon: true },
-                  { icon: '🤝', title: 'Community Layer', text: 'A seeker-first social and devotional ecosystem.', href: '/roadmap', comingSoon: true },
-                ].map((item) => (
-                  <Link
-                    key={item.title}
-                    href={item.href}
-                    className="card landing-portal-card"
-                    style={{ textDecoration: 'none', padding: '1rem', display: 'block' }}
-                  >
-                    <div style={{ fontSize: '1.1rem', marginBottom: '0.35rem' }}>{item.icon}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', marginBottom: '0.45rem' }}>
-                      <div className="label-caps">Portal</div>
-                      {item.comingSoon && <span className="badge badge-gold">Coming Soon</span>}
-                    </div>
-                    <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.15rem' }}>{item.title}</h3>
-                    <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>{item.text}</p>
-                  </Link>
-                ))}
-              </section>
-
-              <section className="card fade-up-3 landing-testimonials" style={{ marginBottom: '1.25rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.6rem' }}>What users want</div>
-                <h3 style={{ margin: '0 0 0.7rem 0' }}>Built for trust, depth, and practical action</h3>
-                <div className="landing-testimonial-grid">
-                  {landingTestimonials.map((item) => (
-                    <article key={item.name} className="landing-testimonial-item">
-                      <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: 1.6 }}>&quot;{item.quote}&quot;</p>
-                      <div style={{ marginTop: '0.7rem' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.86rem' }}>{item.name}</div>
-                        <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{item.role}</div>
-                      </div>
-                    </article>
-                  ))}
+              <section className="card fade-up-4 landing-cta-band" style={{ marginBottom: '1.25rem' }}>
+                <div>
+                  <div className="label-caps" style={{ marginBottom: '0.4rem', color: 'var(--text-gold)' }}>Start your journey</div>
+                  <h3 style={{ margin: 0 }}>Open your Vedic command center now</h3>
+                  <p style={{ margin: '0.45rem 0 0 0', maxWidth: 760 }}>
+                    Start with your chart, then move into Prashna, Panchang, and Calendar planning in one coherent workflow.
+                  </p>
                 </div>
-              </section>
-
-              <section className="card fade-up-4 landing-faq" style={{ marginBottom: '1.25rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.55rem' }}>FAQ</div>
-                <h3 style={{ margin: '0 0 0.75rem 0' }}>Everything you need to start with confidence</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-                  {landingFaqs.map((item, idx) => {
-                    const isOpen = landingFaqOpen === idx
-                    return (
-                      <div key={item.q} className="landing-faq-item">
-                        <button
-                          type="button"
-                          className="landing-faq-btn"
-                          onClick={() => setLandingFaqOpen(isOpen ? -1 : idx)}
-                        >
-                          <span>{item.q}</span>
-                          <span style={{ color: 'var(--text-gold)', fontWeight: 700 }}>{isOpen ? '−' : '+'}</span>
-                        </button>
-                        {isOpen ? (
-                          <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                            {item.a}
-                          </p>
-                        ) : null}
-                      </div>
-                    )
-                  })}
-                </div>
-              </section>
-
-              <section className="card fade-up-3" style={{ textAlign: 'center', padding: '1.4rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Vedic Vision</div>
-                <h3 style={{ margin: '0 0 0.45rem 0' }}>Astrology + Ayurveda + Scriptures + Conscious Living</h3>
-                <p style={{ margin: '0 auto', maxWidth: 780 }}>
-                  Vedaansh is designed as one spiritual-operating platform where guidance, practice, learning, and daily life
-                  come together.
-                </p>
-                <div style={{ marginTop: '0.95rem', display: 'flex', justifyContent: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
-                  <button onClick={() => { trackLandingCta('vision_start'); openAstrologyApp() }} className="btn btn-primary">
-                    Start with Astrology App
+                <div style={{ display: 'flex', gap: '0.7rem', flexWrap: 'wrap' }}>
+                  <button onClick={() => { trackLandingCta('cta_band_start_now'); openAstrologyApp() }} className="btn btn-primary">
+                    Open Astrology App
                   </button>
-                  <Link href="/roadmap" onClick={() => trackLandingCta('vision_roadmap')} className="btn btn-ghost" style={{ textDecoration: 'none' }}>
-                    See Expansion Journey
-                  </Link>
-                </div>
-              </section>
-
-              <section className="card fade-up-4" style={{ padding: '1.3rem', marginTop: '1rem' }}>
-                <div className="label-caps" style={{ marginBottom: '0.5rem' }}>Start journey</div>
-                <h3 style={{ margin: '0 0 0.55rem 0' }}>One click to enter your astrology workspace</h3>
-                <p style={{ margin: 0, color: 'var(--text-muted)' }}>
-                  Tap below and your birth details drawer opens instantly. From there, cast chart and continue into consultations,
-                  guidance, and your complete Vedaansh ecosystem.
-                </p>
-                <div style={{ marginTop: '0.9rem', display: 'flex', flexWrap: 'wrap', gap: '0.7rem' }}>
-                  <button onClick={() => { trackLandingCta('start_journey_open_app'); openAstrologyApp() }} className="btn btn-primary">
-                    Open Astrology App Now
-                  </button>
-                  <Link href="/pricing" onClick={() => trackLandingCta('start_journey_pricing')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-                    Compare Memberships
+                  <Link href="/prashna" onClick={() => trackLandingCta('cta_band_open_prashna')} className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+                    Open Prashna
                   </Link>
                 </div>
               </section>

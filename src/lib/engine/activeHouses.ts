@@ -1,9 +1,38 @@
-import { ChartOutput, GrahaId, GrahaData, LagnaData } from '@/types/astrology'
+import type { ChartOutput, GrahaId, GrahaData, LagnaData, DashaNode } from '@/types/astrology'
 
 // Simplified lordship mapping
 const RASHI_LORD: Record<number, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
   7: 'Ve', 8: 'Ma', 9: 'Ju', 10: 'Sa', 11: 'Sa', 12: 'Ju'
+}
+
+/**
+ * Houses where the current Vimśottari Mahādasha and Antardaśā lords sit (physical placement only).
+ * Used to tint chart cells — no sign-lordship, transit moon, or age progression.
+ */
+export function getDashaLordPlacementHouses(
+  chart: ChartOutput,
+  grahas: GrahaData[],
+  ascRashi: number,
+): number[] {
+  const nodes = chart.dashas?.vimshottari
+  if (!nodes?.length) return []
+
+  const path: DashaNode[] = []
+  let cur: DashaNode | undefined = nodes.find(n => n.isCurrent)
+  while (cur) {
+    path.push(cur)
+    cur = cur.children?.find(c => c.isCurrent)
+  }
+
+  const lords = path.slice(0, 2).map(n => n.lord)
+  const getHouseOfRashi = (r: number) => ((r - ascRashi + 12) % 12) + 1
+  const houses = new Set<number>()
+  for (const lord of lords) {
+    const g = grahas.find(p => p.id === lord)
+    if (g) houses.add(getHouseOfRashi(g.rashi))
+  }
+  return Array.from(houses).sort((a, b) => a - b)
 }
 
 export function getActiveHouses(
