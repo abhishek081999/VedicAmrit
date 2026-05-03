@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  POST /api/chart/save
 //  Saves a calculated chart to MongoDB for the logged-in user.
-//  Enforces per-plan chart limits: Free=10, Gold=200, Platinum=∞
+//  Enforces per-plan chart limits: Free=20, Gold=200, Platinum=∞
 //  Returns { success, chartId, slug }
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from 'next/server'
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({
             success: false,
             error:   `Chart limit reached. ${effectivePlan === 'free'
-              ? 'Free plan allows up to 10 saved charts. Upgrade to Gold for 200.'
+              ? 'Free plan allows up to 20 saved charts. Upgrade to Gold for 200.'
               : 'Gold plan allows up to 200 saved charts. Upgrade to Platinum for unlimited.'}`,
             limitReached: true,
             currentCount: count,

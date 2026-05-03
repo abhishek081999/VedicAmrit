@@ -365,6 +365,7 @@ function HomeContent() {
   const [dashExpandYogas, setDashExpandYogas] = useState(false)
   const [expandGraha, setExpandGraha] = useState(false)
   const [expandAstro, setExpandAstro] = useState(false)
+  const [planetaryDetailTab, setPlanetaryDetailTab] = useState<'planets' | 'dasha'>('planets')
   const [desktopDashboardCardOrder, setDesktopDashboardCardOrder] = useState<Array<'summary' | 'cosmic' | 'planetary' | 'astronomical'>>([
     'summary',
     'astronomical',
@@ -936,23 +937,113 @@ function HomeContent() {
       return (
         <div className="panel fade-up">
           <div className="panel-header">
-            <span>Planetary Details</span>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
-              {expandGraha ? '▴ Less' : '▾ More'}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span>Planetary Details</span>
+              <div style={{ display: 'inline-flex', gap: '0.22rem', marginLeft: '0.35rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setPlanetaryDetailTab('planets')}
+                  style={{
+                    padding: '0.12rem 0.45rem',
+                    fontSize: '0.64rem',
+                    borderRadius: 999,
+                    border: `1px solid ${planetaryDetailTab === 'planets' ? 'var(--gold)' : 'var(--border-soft)'}`,
+                    background: planetaryDetailTab === 'planets' ? 'var(--gold-faint)' : 'transparent',
+                    color: planetaryDetailTab === 'planets' ? 'var(--text-gold)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-body)',
+                    fontWeight: planetaryDetailTab === 'planets' ? 700 : 500,
+                  }}
+                >
+                  Planets
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlanetaryDetailTab('dasha')}
+                  style={{
+                    padding: '0.12rem 0.45rem',
+                    fontSize: '0.64rem',
+                    borderRadius: 999,
+                    border: `1px solid ${planetaryDetailTab === 'dasha' ? 'var(--gold)' : 'var(--border-soft)'}`,
+                    background: planetaryDetailTab === 'dasha' ? 'var(--gold-faint)' : 'transparent',
+                    color: planetaryDetailTab === 'dasha' ? 'var(--text-gold)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontFamily: 'var(--font-body)',
+                    fontWeight: planetaryDetailTab === 'dasha' ? 700 : 500,
+                  }}
+                >
+                  Dasha
+                </button>
+              </div>
+            </div>
+            {planetaryDetailTab === 'planets' ? (
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: '0.72rem', padding: '0.2rem 0.45rem', fontFamily: 'var(--font-body)' }} onClick={() => setExpandGraha(!expandGraha)}>
+                {expandGraha ? '▴ Less' : '▾ More'}
+              </button>
+            ) : (
+              <select
+                value={dashaSystem}
+                onChange={(e) => setDashaSystem(e.target.value as any)}
+                style={{ padding: '0.15rem 0.35rem', fontSize: '0.62rem', background: 'var(--surface-3)', color: 'var(--text-primary)', border: '1px solid var(--border-soft)', borderRadius: '3px', fontFamily: 'inherit' }}
+              >
+                <option value="vimshottari">Viṁśottarī</option>
+                <option value="ashtottari">Aṣṭottarī</option>
+                <option value="yogini">Yoginī</option>
+                <option value="chara">Chara</option>
+              </select>
+            )}
           </div>
-          <div style={{ padding: '0.4rem 0' }}>
-            <GrahaTable
-              grahas={dashboardChart.grahas}
-              vargas={dashboardChart.vargas}
-              vargaLagnas={dashboardChart.vargaLagnas}
-              lagnas={dashboardChart.lagnas}
-              upagrahas={dashboardChart.upagrahas}
-              activeVarga={activeVarga}
-              onVargaChange={setActiveVarga}
-              limited={!expandGraha}
-            />
-          </div>
+          {planetaryDetailTab === 'planets' ? (
+            <div style={{ padding: '0.4rem 0' }}>
+              <GrahaTable
+                grahas={dashboardChart.grahas}
+                vargas={dashboardChart.vargas}
+                vargaLagnas={dashboardChart.vargaLagnas}
+                lagnas={dashboardChart.lagnas}
+                upagrahas={dashboardChart.upagrahas}
+                activeVarga={activeVarga}
+                onVargaChange={setActiveVarga}
+                limited={!expandGraha}
+              />
+            </div>
+          ) : (
+            <div style={{ padding: '0.5rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {dashaSystem === 'vimshottari' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Tara:</span>
+                    {(['Mo', 'As', 'Su', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke'] as const).map((id) => {
+                      const locked = userPlan === 'free' && id !== 'Mo'
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => locked ? (window.location.href = '/pricing') : setVimshottariTara(id)}
+                          title={locked ? 'Requires Gold plan' : undefined}
+                          style={{
+                            padding: '0.1rem 0.3rem',
+                            fontSize: '0.65rem',
+                            fontFamily: 'inherit',
+                            background: vimshottariTara === id ? 'var(--gold-faint)' : 'var(--surface-3)',
+                            border: `1px solid ${vimshottariTara === id ? 'var(--gold)' : 'var(--border-soft)'}`,
+                            borderRadius: 3,
+                            cursor: 'pointer',
+                            color: locked ? 'var(--text-muted)' : (vimshottariTara === id ? 'var(--text-gold)' : 'var(--text-secondary)'),
+                            opacity: locked ? 0.5 : 1,
+                          }}
+                        >
+                          {locked ? '🔒' : ''}{id}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <DashaTree nodes={vimshottariTara === 'Mo' ? dashboardChart.dashas.vimshottari : (altVimshottari ?? dashboardChart.dashas.vimshottari)} birthDate={new Date(dashboardChart.meta.birthDate)} />
+                </div>
+              )}
+              {dashaSystem === 'ashtottari' && (dashboardChart.dashas.ashtottari?.length ? <DashaTree nodes={dashboardChart.dashas.ashtottari} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Aṣṭottarī computation required.</div>)}
+              {dashaSystem === 'yogini' && (dashboardChart.dashas.yogini?.length ? <DashaTree nodes={dashboardChart.dashas.yogini} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Yoginī computation required.</div>)}
+              {dashaSystem === 'chara' && (dashboardChart.dashas.chara?.length ? <DashaTree nodes={dashboardChart.dashas.chara} birthDate={new Date(dashboardChart.meta.birthDate)} /> : <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.75rem', textAlign: 'center' }}>Chara computation required.</div>)}
+            </div>
+          )}
         </div>
       )
     }
