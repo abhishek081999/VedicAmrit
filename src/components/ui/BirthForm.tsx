@@ -376,6 +376,7 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
           longitude: lngVal,
           timezone: tzVal,
           settings: settingsVal,
+          _t: Date.now(), // Cache buster to force re-calculation
         }),
       })
 
@@ -410,6 +411,50 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
       : place
 
     await submitChart(name, date, time, finalPlace, lat, lng, tz, settings)
+  }
+
+  // ── Date Part Handlers ────────────────────────────────────
+
+  const handleDatePartChange = (part: 'y' | 'm' | 'd', val: number) => {
+    if (isNaN(val)) return
+    const parts = date.split('-')
+    let y = parseInt(parts[0]) || 2000
+    let m = parseInt(parts[1]) || 1
+    let d = parseInt(parts[2]) || 1
+    
+    if (part === 'y') y = val
+    else if (part === 'm') m = val
+    else if (part === 'd') d = val
+
+    // Validate day count for the month (e.g. Feb 31 -> Feb 28/29)
+    const maxDays = new Date(y, m, 0).getDate()
+    if (d > maxDays) d = maxDays
+
+    const dStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    setDate(dStr)
+  }
+
+  const handleTimePartChange = (part: 'h' | 'm' | 's' | 'p', val: string | number) => {
+    const parts = time.split(':')
+    let h24 = parseInt(parts[0]) || 0
+    let m = parseInt(parts[1]) || 0
+    let s = parseInt(parts[2]) || 0
+    
+    // Current 12h state
+    let h12 = h24 % 12 || 12
+    let ampm = h24 >= 12 ? 'PM' : 'AM'
+
+    if (part === 'h') h12 = val as number
+    else if (part === 'm') m = val as number
+    else if (part === 's') s = val as number
+    else if (part === 'p') ampm = val as string
+
+    // Back to 24h
+    let newH24 = h12 % 12
+    if (ampm === 'PM') newH24 += 12
+    
+    const tStr = `${String(newH24).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    setTime(tStr)
   }
 
   // ── Refresh to now ────────────────────────────────────────
@@ -464,14 +509,14 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
   // ── Render ────────────────────────────────────────────────
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', overflow: 'visible' }}>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', overflow: 'visible' }}>
       
 
 
 
       {/* Name Field */}
       <div style={{ width: '100%' }}>
-        <label className="field-label">Name / Label</label>
+        <label className="field-label" style={{ marginBottom: '0.15rem' }}>Name / Label</label>
         <input
           className="input"
           type="text"
@@ -483,59 +528,164 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         />
       </div>
 
-      {/* Date + Time row */}
-      <div className="grid-responsive-2" style={{ width: '100%' }}>
+      {/* Date + Time section */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? '1fr 1.15fr' : '1fr 1.1fr', 
+        gap: isMobile ? '0.65rem' : '1.25rem', 
+        width: '100%' 
+      }}>
         {/* Date Field */}
         <div style={{ width: '100%', minWidth: 0 }}>
-          <label className="field-label">Date</label>
-          <input
-            className="input"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            style={{ colorScheme: 'auto', width: '100%', boxSizing: 'border-box' }}
-          />
+          <label className="field-label" style={{ marginBottom: '0.25rem' }}>Date</label>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 'var(--r-md)',
+            height: '42px',
+            overflow: 'hidden'
+          }}>
+            <select
+              value={parseInt(date.split('-')[2]) || 1}
+              onChange={(e) => handleDatePartChange('d', parseInt(e.target.value))}
+              style={{ 
+                width: isMobile ? '38px' : '48px', background: 'transparent', border: 'none', 
+                padding: isMobile ? '0 0 0 6px' : '0 4px', fontSize: '0.9rem', color: 'var(--text-primary)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center'
+              }}
+            >
+              {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                <option key={d} value={d}>{String(d).padStart(2, '0')}</option>
+              ))}
+            </select>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
+            <select
+              value={parseInt(date.split('-')[1]) || 1}
+              onChange={(e) => handleDatePartChange('m', parseInt(e.target.value))}
+              style={{ 
+                flex: 1, background: 'transparent', border: 'none', 
+                padding: '0 4px', fontSize: '0.9rem', color: 'var(--text-primary)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center'
+              }}
+            >
+              {[
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+              ].map((m, i) => (
+                <option key={m} value={i + 1}>{m}</option>
+              ))}
+            </select>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
+            <input
+              type="number"
+              value={date.split('-')[0]}
+              onChange={(e) => handleDatePartChange('y', parseInt(e.target.value))}
+              style={{ 
+                width: isMobile ? '48px' : '65px', background: 'transparent', border: 'none', 
+                padding: isMobile ? '0 6px 0 2px' : '0 8px', fontSize: '0.9rem', color: 'var(--text-primary)',
+                textAlign: 'center', appearance: 'none'
+              }}
+            />
+          </div>
         </div>
 
-        {/* Time Field */}
+        {/* Time Field - Same Pill Design */}
         <div style={{ width: '100%', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
             <label className="field-label" style={{ marginBottom: 0 }}>Time</label>
             <button
               type="button"
               onClick={setToNow}
-              title="Set to current time"
               style={{
-                background: 'none', 
-                border: 'none', 
-                cursor: 'pointer',
-                color: 'var(--gold)', 
-                fontSize: '0.68rem',
-                fontFamily: 'var(--font-body)',
-                letterSpacing: '0.06em', 
-                padding: 0,
-                textTransform: 'uppercase', 
-                fontWeight: 600,
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--gold)', fontSize: '0.6rem',
+                fontFamily: 'var(--font-body)', letterSpacing: '0.04em',
+                padding: 0, textTransform: 'uppercase', fontWeight: 600,
               }}
             >
               Now ↺
             </button>
           </div>
-          <input
-            className="input"
-            type="time"
-            value={formatTimeForInput(time)}
-            onChange={handleTimeChange}
-            step="1"
-            style={{ colorScheme: 'auto', width: '100%', boxSizing: 'border-box' }}
-          />
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            background: 'var(--surface-2)',
+            border: '1px solid var(--border-soft)',
+            borderRadius: 'var(--r-md)',
+            height: '42px',
+            overflow: 'hidden'
+          }}>
+            {/* Hours */}
+            <select
+              value={parseInt(time.split(':')[0]) % 12 || 12}
+              onChange={(e) => handleTimePartChange('h', parseInt(e.target.value))}
+              style={{ 
+                width: isMobile ? '32px' : '42px', background: 'transparent', border: 'none', 
+                padding: isMobile ? '0 0 0 4px' : '0 4px', fontSize: '0.9rem', color: 'var(--text-primary)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center'
+              }}
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                <option key={h} value={h}>{String(h).padStart(2, '0')}</option>
+              ))}
+            </select>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
+            
+            {/* Minutes */}
+            <select
+              value={parseInt(time.split(':')[1]) || 0}
+              onChange={(e) => handleTimePartChange('m', parseInt(e.target.value))}
+              style={{ 
+                width: isMobile ? '32px' : '42px', background: 'transparent', border: 'none', 
+                padding: '0', fontSize: '0.9rem', color: 'var(--text-primary)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center'
+              }}
+            >
+              {Array.from({ length: 60 }, (_, i) => i).map(m => (
+                <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+              ))}
+            </select>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
+            
+            {/* Seconds */}
+            <select
+              value={parseInt(time.split(':')[2]) || 0}
+              onChange={(e) => handleTimePartChange('s', parseInt(e.target.value))}
+              style={{ 
+                width: isMobile ? '32px' : '42px', background: 'transparent', border: 'none', 
+                padding: '0', fontSize: '0.9rem', color: 'var(--text-primary)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center'
+              }}
+            >
+              {Array.from({ length: 60 }, (_, i) => i).map(s => (
+                <option key={s} value={s}>{String(s).padStart(2, '0')}</option>
+              ))}
+            </select>
+            <div style={{ width: '1px', height: '16px', background: 'var(--border-soft)', opacity: 0.6 }} />
+            
+            {/* AM/PM */}
+            <select
+              value={parseInt(time.split(':')[0]) >= 12 ? 'PM' : 'AM'}
+              onChange={(e) => handleTimePartChange('p', e.target.value)}
+              style={{ 
+                flex: 1, background: 'transparent', border: 'none', 
+                padding: '0 4px 0 2px', fontSize: '0.9rem', color: 'var(--text-gold)',
+                cursor: 'pointer', appearance: 'none', textAlign: 'center', fontWeight: 600
+              }}
+            >
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Time Adjuster Stepper */}
       <div style={{
-        display: 'flex', gap: '0.35rem', justifyContent: 'center', width: '100%',
-        marginTop: '-0.3rem', marginBottom: '0.4rem', flexWrap: 'wrap'
+        display: 'flex', gap: '0.25rem', justifyContent: 'center', width: '100%',
+        marginTop: '-0.45rem', marginBottom: '0.2rem', flexWrap: 'nowrap'
       }}>
         {[
           { label: '-1d', val: -1440 },
@@ -552,15 +702,15 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             disabled={loading}
             style={{
               flex: '1',
-              padding: '0.25rem 0.2rem',
+              padding: '0.2rem 0',
               background: 'var(--surface-2)',
               border: '1px solid var(--border-soft)',
               borderRadius: 'var(--r-sm)',
-              fontSize: '0.72rem',
+              fontSize: '0.65rem',
               color: 'var(--text-secondary)',
               cursor: loading ? 'not-allowed' : 'pointer',
               fontFamily: 'var(--font-mono)',
-              minWidth: '40px'
+              minWidth: '32px'
             }}
             onMouseEnter={e => {
               if (!loading) e.currentTarget.style.borderColor = 'var(--border-bright)'
@@ -576,10 +726,10 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
 
       {/* Location Field with autocomplete */}
       <div style={{ position: 'relative', width: '100%' }} ref={dropdownRef}>
-        <label className="field-label">
+        <label className="field-label" style={{ marginBottom: '0.15rem', display: 'flex', alignItems: 'center' }}>
           Place
           {searching && (
-            <span style={{ marginLeft: 8, fontSize: '0.68rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            <span style={{ marginLeft: 8, fontSize: '0.62rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
               searching…
             </span>
           )}
@@ -589,34 +739,28 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
             title="Use current device location"
             style={{
               marginLeft: 'auto',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--gold)',
-              fontSize: '0.68rem',
-              fontFamily: 'var(--font-body)',
-              letterSpacing: '0.06em',
-              padding: 0,
-              textTransform: 'uppercase',
-              fontWeight: 600,
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--gold)', fontSize: '0.62rem',
+              fontFamily: 'var(--font-body)', letterSpacing: '0.04em',
+              padding: 0, textTransform: 'uppercase', fontWeight: 600,
             }}
           >
             Use My Location 📍
           </button>
         </label>
         {/* Mode Toggler */}
-        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
+        <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', marginBottom: '0.15rem' }}>
           <button
             type="button"
             onClick={() => setManualMode(!manualMode)}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               color: manualMode ? 'var(--gold)' : 'var(--text-muted)',
-              fontSize: '0.62rem', fontWeight: 600, letterSpacing: '0.04em',
+              fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.04em',
               textTransform: 'uppercase', padding: '0 2px'
             }}
           >
-            {manualMode ? '✓ Search City instead' : '✎ Enter Lat/Lng Manually'}
+            {manualMode ? '✓ Search City' : '✎ Enter Lat/Lng'}
           </button>
         </div>
 
@@ -744,8 +888,8 @@ export function BirthForm({ onResult, onLoading, autoSubmit = false, initialName
         )}
 
         {/* Unified Timezone Selection */}
-        <div style={{ marginTop: '0.9rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+        <div style={{ marginTop: '0.65rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
             <label className="field-label" style={{ marginBottom: 0 }}>Timezone (IANA)</label>
             {manualMode && (
               <button 

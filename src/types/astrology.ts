@@ -290,6 +290,7 @@ export interface GrahaData {
     subLord:  GrahaId
     subSubLord: GrahaId
   }
+  isWaxingMoon?: boolean
 }
 
 // ── Upagraha Data ────────────────────────────────────────────
@@ -529,6 +530,16 @@ export interface ShadbalaPlanet {
   required:       number
   ratio:          number
   isStrong:       boolean
+  qualityBand?:   'excellent' | 'strong' | 'average' | 'weak'
+  interpretation?: string
+  componentShash?: {
+    sthana: number
+    dig: number
+    kala: number
+    chesta: number
+    naisargika: number
+    drik: number
+  }
   details?: {
     sthana?: {
       uccha: number
@@ -541,14 +552,17 @@ export interface ShadbalaPlanet {
       targetDegree: number
       angularDistance: number
     }
-    kala?: {
-      natha: number
-      paksha: number
-      tribhaga: number
-      vaara: number
-      ayana: number
-      isDayBirth: boolean
-    }
+      kala?: {
+        natha: number
+        paksha: number
+        tribhaga: number
+        vaara: number
+        hora: number
+        maasa: number
+        varsha: number
+        ayana: number
+        isDayBirth: boolean
+      }
     chesta?: {
       method: 'retrograde' | 'luminary_constant' | 'speed_ratio' | 'sun_ayana' | 'moon_paksha'
       speedAbs: number
@@ -566,6 +580,8 @@ export interface ShadbalaResult {
   planets:   Record<string, ShadbalaPlanet>
   strongest: string
   weakest:   string
+  averageRatio?: number
+  generatedProfile?: 'balanced' | 'top-heavy' | 'strained'
 }
 
 // ── Bhava Bala (House Strength) ────────────────────────────────
@@ -589,7 +605,7 @@ export interface BhavaBalaResult {
 
 // ── Graha Yogas ───────────────────────────────────────────────
 
-export type YogaCategory = 'raja' | 'dhana' | 'mahapurusha' | 'viparita' | 'special' | 'lunar'
+export type YogaCategory = 'raja' | 'dhana' | 'mahapurusha' | 'viparita' | 'special' | 'lunar' | 'nabhasa' | 'malefic' | 'parivartana'
 
 export interface YogaResult {
   name:        string

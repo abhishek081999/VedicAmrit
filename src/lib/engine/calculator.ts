@@ -21,7 +21,7 @@ import {
   toSidereal,
   NODE_IDS,
 } from '@/lib/engine/ephemeris'
-import { calcHouses } from '@/lib/engine/houses'
+import { calcHouses, planetHouse } from '@/lib/engine/houses'
 import { calcAllBhavaArudhas, calcGrahaArudhas } from '@/lib/engine/arudhas'
 import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
@@ -370,6 +370,56 @@ export async function calculateChart(
     vargaLagnas[vname] = ascPos.rashi as Rashi
   }
 
+  // ── Chalit Chart (Bhava Chalit) ─────────────────────────────
+  // Standard Sripati system: Ascendant is 1st House Midpoint, MC is 10th House Midpoint.
+  // Quadrants are trisected to find intermediate house midpoints.
+  const asc = houses.ascendantSidereal
+  const mc = houses.mcSidereal
+  const dsc = (asc + 180) % 360
+  const ic = (mc + 180) % 360
+
+  const mps: number[] = new Array(12)
+  mps[0] = asc; mps[3] = ic; mps[6] = dsc; mps[9] = mc
+
+  // Trisect Quadrants
+  const q1Len = (ic - asc + 360) % 360;  mps[1] = (asc + q1Len/3) % 360;  mps[2] = (asc + 2*q1Len/3) % 360
+  const q2Len = (dsc - ic + 360) % 360;  mps[4] = (ic + q2Len/3) % 360;   mps[5] = (ic + 2*q2Len/3) % 360
+  const q3Len = (mc - dsc + 360) % 360;  mps[7] = (dsc + q3Len/3) % 360;  mps[8] = (dsc + 2*q3Len/3) % 360
+  const q4Len = (asc - mc + 360) % 360;  mps[10] = (mc + q4Len/3) % 360;  mps[11] = (mc + 2*q4Len/3) % 360
+
+  // Calculate Sandhis (boundaries between midpoints)
+  const sandhis: number[] = []
+  for (let i = 0; i < 12; i++) {
+    const c1 = mps[i]
+    const c2 = mps[(i + 1) % 12]
+    let mid = (c1 + c2) / 2
+    if (c2 < c1) mid = ((c1 + c2 + 360) / 2) % 360
+    sandhis.push(mid)
+  }
+
+  const chalitBodies = grahas.map(g => {
+    const lon = g.lonSidereal
+    let house = 1
+    for (let i = 0; i < 12; i++) {
+      const sStart = sandhis[(i + 11) % 12]
+      const sEnd   = sandhis[i]
+      if (sEnd > sStart) {
+        if (lon >= sStart && lon < sEnd) { house = i + 1; break }
+      } else {
+        if (lon >= sStart || lon < sEnd) { house = i + 1; break }
+      }
+    }
+    const syntheticRashi = (((houses.ascRashi - 1) + (house - 1)) % 12) + 1 as Rashi
+    return {
+      ...g,
+      rashi: syntheticRashi,
+      rashiName: RASHI_NAMES[syntheticRashi],
+      vargaCalculated: true,
+    }
+  })
+  vargas['Chalit'] = chalitBodies
+  vargaLagnas['Chalit'] = houses.ascRashi
+
   // Vimsopaka Bala
   const vimsopaka = calculateVimsopaka(grahas, vargas)
 
@@ -384,7 +434,6 @@ export async function calculateChart(
     moon.totalDegree,
     sun.totalDegree,
   ) as ShadbalaResult)
-  const bhavaBala = calculateBhavaBala(shadbala, grahas, lagnaData)
   const interpretation = buildChartInterpretation({
     grahas,
     shadbala,
@@ -399,6 +448,16 @@ export async function calculateChart(
 
   // Panchang
   const tithi = getTithi(moon.lonSidereal, sun.lonSidereal)
+  const isWaxing = tithi.paksha === 'shukla'
+  
+  // Update moon data with waxing status for Bhava Bala etc.
+  const moonIdx = grahas.findIndex(g => g.id === 'Mo')
+  if (moonIdx !== -1) {
+    grahas[moonIdx].isWaxingMoon = isWaxing
+  }
+
+  const bhavaBala = calculateBhavaBala(shadbala, grahas, lagnaData)
+
   const yoga = getYoga(sun.lonSidereal, moon.lonSidereal)
   const karana = getKarana(moon.lonSidereal, sun.lonSidereal)
   const moonNak = getNakshatra(moon.lonSidereal)

@@ -85,61 +85,81 @@ const PLANET_NAME: Record<string, string> = {
 
 function PulseMeter({ pulse }: { pulse: SBCAnalysis['financialPulse'] }) {
   const color =
-    pulse.score > 8  ? '#4db66a' :
-    pulse.score < -8 ? '#e84040' : '#c9a84c'
+    pulse.score > 8  ? 'var(--teal)' :
+    pulse.score < -8 ? 'var(--rose)' : 'var(--gold)'
   const pct      = Math.abs(pulse.score)
-  const barWidth = `${(pct / 50) * 50}%`
+  const barWidth = `${(pct / 50) * 100}%`
   const barLeft  = pulse.score >= 0 ? '50%' : `${50 - (pct / 50) * 50}%`
 
   return (
-    <div>
-      <div style={{ position: 'relative', height: 16, background: 'var(--surface-3)', borderRadius: 8, overflow: 'hidden', marginBottom: '0.5rem' }}>
-        <div style={{ position: 'absolute', top: 0, bottom: 0, left: barLeft, width: barWidth, background: color, transition: 'all 0.6s ease', borderRadius: pulse.score >= 0 ? '0 8px 8px 0' : '8px 0 0 8px' }} />
-        <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.3)' }} />
+    <div style={{ padding: '0.5rem 0' }}>
+      <div style={{ position: 'relative', height: 12, background: 'var(--surface-3)', borderRadius: 6, overflow: 'hidden', marginBottom: '0.75rem', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.2)' }}>
+        <div style={{ 
+          position: 'absolute', top: 0, bottom: 0, left: barLeft, width: barWidth, 
+          background: `linear-gradient(to right, ${color}cc, ${color})`, 
+          transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)', 
+          borderRadius: pulse.score >= 0 ? '0 6px 6px 0' : '6px 0 0 6px' 
+        }} />
+        <div style={{ position: 'absolute', left: '50%', top: 0, bottom: 0, width: 1, background: 'rgba(255,255,255,0.2)', zIndex: 5 }} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-        <span>Bear −50</span>
-        <span style={{ fontWeight: 800, color, fontSize: '0.82rem' }}>{pulse.score > 0 ? '+' : ''}{pulse.score}</span>
-        <span>Bull +50</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.75rem', fontWeight: 600 }}>
+        <span>BEARISH</span>
+        <span style={{ fontWeight: 900, color, fontSize: '1rem', fontFamily: 'var(--font-mono)' }}>{pulse.score > 0 ? '+' : ''}{pulse.score}</span>
+        <span>BULLISH</span>
       </div>
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.2rem 0.65rem', borderRadius: 20, background: `${color}18`, border: `1px solid ${color}44`, marginBottom: '0.65rem' }}>
-        <span>{pulse.trend === 'expansion' ? '📈' : pulse.trend === 'contraction' ? '📉' : '↔️'}</span>
-        <span style={{ fontSize: '0.75rem', fontWeight: 700, color, textTransform: 'capitalize' }}>{pulse.trend}</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.3rem 0.8rem', borderRadius: 20, background: `${color}12`, border: `1px solid ${color}33`, marginBottom: '1rem', boxShadow: 'var(--shadow-card)' }}>
+        <span style={{ fontSize: '0.9rem' }}>{pulse.trend === 'expansion' ? '📈' : pulse.trend === 'contraction' ? '📉' : '↔️'}</span>
+        <span style={{ fontSize: '0.75rem', fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{pulse.trend}</span>
       </div>
-      {pulse.bullish.map((f, i) => <div key={i} style={{ fontSize: '0.67rem', color: 'var(--teal)', marginBottom: 2, display: 'flex', gap: '0.3rem', lineHeight: 1.35 }}><span>↑</span><span>{f}</span></div>)}
-      {pulse.bearish.map((f, i) => <div key={i} style={{ fontSize: '0.67rem', color: 'var(--rose)', marginBottom: 2, display: 'flex', gap: '0.3rem', lineHeight: 1.35 }}><span>↓</span><span>{f}</span></div>)}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {pulse.bullish.map((f, i) => (
+          <div key={i} style={{ fontSize: '0.7rem', color: 'var(--teal)', display: 'flex', gap: '0.5rem', lineHeight: 1.4, padding: '4px 8px', background: 'rgba(78,205,196,0.04)', borderRadius: 6, border: '1px solid rgba(78,205,196,0.1)' }}>
+            <span style={{ fontWeight: 900 }}>↑</span><span>{f}</span>
+          </div>
+        ))}
+        {pulse.bearish.map((f, i) => (
+          <div key={i} style={{ fontSize: '0.7rem', color: 'var(--rose)', display: 'flex', gap: '0.5rem', lineHeight: 1.4, padding: '4px 8px', background: 'rgba(224,123,142,0.04)', borderRadius: 6, border: '1px solid rgba(224,123,142,0.1)' }}>
+            <span style={{ fontWeight: 900 }}>↓</span><span>{f}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
 
 function ScoreBar({ score, max = 100 }: { score: number; max?: number }) {
   const pct   = Math.min(100, Math.abs(score) / max * 100)
-  const color = score > 20 ? '#4db66a' : score < -20 ? '#e84040' : '#c9a84c'
+  const color = score > 20 ? 'var(--teal)' : score < -20 ? 'var(--rose)' : 'var(--gold)'
   return (
-    <div style={{ height: 4, borderRadius: 4, background: 'var(--surface-2)', overflow: 'hidden' }}>
-      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 4, transition: 'width 0.8s ease' }} />
+    <div style={{ height: 6, borderRadius: 6, background: 'var(--surface-3)', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
+      <div style={{ height: '100%', width: `${pct}%`, background: `linear-gradient(to right, ${color}99, ${color})`, borderRadius: 6, transition: 'width 1s cubic-bezier(0.16, 1, 0.3, 1)' }} />
     </div>
   )
 }
 
 function MuhurtaCard({ event }: { event: MuhurtaEvent }) {
   const verdictColor = {
-    excellent: '#4db66a', good: '#a3c65a', neutral: '#c9a84c', avoid: '#e84040',
+    excellent: 'var(--teal)', good: '#8ee07b', neutral: 'var(--gold)', avoid: 'var(--rose)',
   }[event.verdict ?? 'neutral']
 
   return (
-    <div style={{ padding: '0.75rem', background: 'var(--surface-2)', borderRadius: 12, border: `1px solid ${verdictColor}28` }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 700 }}>
-          <span>{event.icon}</span>
-          <span>{event.label}</span>
+    <div style={{ padding: '1rem', background: 'var(--surface-1)', borderRadius: 'var(--r-lg)', border: `1px solid ${verdictColor}33`, boxShadow: 'var(--shadow-card)', transition: 'transform 0.2s ease' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${verdictColor}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+            {event.icon}
+          </div>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>{event.label}</span>
         </div>
-        <span style={{ fontSize: '0.62rem', fontWeight: 800, color: verdictColor, textTransform: 'uppercase', letterSpacing: '0.06em', padding: '2px 7px', background: `${verdictColor}15`, borderRadius: 20 }}>
+        <span style={{ fontSize: '0.62rem', fontWeight: 900, color: verdictColor, textTransform: 'uppercase', letterSpacing: '0.08em', padding: '3px 9px', background: `${verdictColor}15`, borderRadius: 20, border: `1px solid ${verdictColor}33` }}>
           {event.verdict ?? 'neutral'}
         </span>
       </div>
       {event.note && (
-        <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>{event.note}</div>
+        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', lineHeight: 1.5, display: 'flex', gap: '0.4rem', marginTop: '0.4rem', fontStyle: 'italic' }}>
+          <span style={{ color: verdictColor }}>•</span>
+          <span>{event.note}</span>
+        </div>
       )}
     </div>
   )

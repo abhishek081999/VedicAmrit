@@ -154,6 +154,9 @@ export function PlanetDetailCard({ p, moonNakIdx, ascRashi }: PlanetDetailCardPr
                <span style={{fontSize:'0.9rem',fontWeight:700,color:p.shadbala.isStrong?'var(--teal)':'var(--rose)'}}>
                  {p.shadbala.total.toFixed(2)} <span style={{fontSize:'0.6rem'}}>Rupas</span>
                </span>
+               <div style={{fontSize:'0.58rem',marginTop:2,color:p.shadbala.isStrong?'var(--teal)':'var(--rose)',textTransform:'uppercase',letterSpacing:'0.05em',fontWeight:700}}>
+                 {p.shadbala.qualityBand || (p.shadbala.isStrong ? 'strong' : 'weak')}
+               </div>
              </div>
            ) : <div/>}
            {p.avastha && (

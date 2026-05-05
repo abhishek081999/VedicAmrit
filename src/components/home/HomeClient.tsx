@@ -13,6 +13,7 @@ import Image from 'next/image'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BirthForm }     from '@/components/ui/BirthForm'
+import { Sparkles, Info, Clock, Moon, Zap, Star } from 'lucide-react'
 
 // Dynamic imports for heavy tab-specific components
 const VarshaphalPanel = dynamic(() => import('@/components/ui/VarshaphalPanel').then(m => m.VarshaphalPanel), { ssr: false })
@@ -25,6 +26,7 @@ const AshtakavargaGrid = dynamic(() => import('@/components/ui/AshtakavargaGrid'
 const YogaList = dynamic(() => import('@/components/ui/YogaList').then(m => m.YogaList), { ssr: false })
 const TransitOverlay = dynamic(() => import('@/components/ui/TransitOverlay').then(m => m.TransitOverlay), { ssr: false })
 const ShadbalaTable = dynamic(() => import('@/components/ui/ShadbalaTable').then(m => m.ShadbalaTable), { ssr: false })
+const ShadbalaVisuals = dynamic(() => import('@/components/ui/ShadbalaVisuals').then(m => m.ShadbalaVisuals), { ssr: false })
 const BhavaBalaTable = dynamic(() => import('@/components/ui/BhavaBalaTable').then(m => m.BhavaBalaTable), { ssr: false })
 const VimsopakaBalaPanel = dynamic(() => import('@/components/ui/VimsopakaBalaPanel').then(m => m.VimsopakaBalaPanel), { ssr: false })
 const PlanetsWorkspace = dynamic(() => import('@/components/ui/PlanetsWorkspace').then(m => m.PlanetsWorkspace), { ssr: false })
@@ -139,6 +141,98 @@ function ChartSummary({ chart }: { chart: ChartOutput }) {
         ))}
       </div>
     </div>
+  )
+}
+
+function DashboardSavChart({ sav, ascRashi, size = 220 }: { sav: number[]; ascRashi: number; size?: number }) {
+  const CHART_COLOR = {
+    teal: 'var(--teal, #4fd1c5)',
+    blue: 'var(--blue, #60a5fa)',
+    gold: 'var(--text-gold, #f6d365)',
+    rose: 'var(--rose, #fb7185)',
+    muted: 'var(--text-muted, #94a3b8)',
+    border: 'var(--border-soft, #3b3f5c)',
+  } as const
+
+  const S = size
+  const Q = S / 4
+  const M = S / 2
+  const maxSav = Math.max(...sav, 1)
+
+  const polyPts = (h: number): [number, number][] => {
+    switch (h) {
+      case 1: return [[Q, Q], [M, M], [3 * Q, Q], [M, 0]]
+      case 2: return [[0, 0], [Q, Q], [M, 0]]
+      case 3: return [[0, 0], [0, M], [Q, Q]]
+      case 4: return [[0, M], [Q, 3 * Q], [M, M], [Q, Q]]
+      case 5: return [[0, M], [0, S], [Q, 3 * Q]]
+      case 6: return [[Q, 3 * Q], [0, S], [M, S]]
+      case 7: return [[Q, 3 * Q], [M, S], [3 * Q, 3 * Q], [M, M]]
+      case 8: return [[3 * Q, 3 * Q], [M, S], [S, S]]
+      case 9: return [[3 * Q, 3 * Q], [S, S], [S, M]]
+      case 10: return [[3 * Q, Q], [M, M], [3 * Q, 3 * Q], [S, M]]
+      case 11: return [[3 * Q, Q], [S, M], [S, 0]]
+      case 12: return [[M, 0], [3 * Q, Q], [S, 0]]
+      default: return []
+    }
+  }
+
+  const centroid = (pts: [number, number][]) => ({
+    x: pts.reduce((sum, p) => sum + p[0], 0) / pts.length,
+    y: pts.reduce((sum, p) => sum + p[1], 0) / pts.length,
+  })
+
+  const colorForSav = (v: number) => {
+    if (v >= 32) return CHART_COLOR.teal
+    if (v >= 28) return CHART_COLOR.blue
+    if (v >= 24) return CHART_COLOR.gold
+    return CHART_COLOR.rose
+  }
+
+  return (
+    <svg viewBox={`0 0 ${S} ${S}`} style={{ display: 'block', width: 'min(100%, 260px)', height: 'auto', margin: '0 auto' }}>
+      {Array.from({ length: 12 }, (_, i) => i + 1).map((houseNo) => {
+        const pts = polyPts(houseNo)
+        const pos = centroid(pts)
+        const rashi = ((ascRashi - 1 + houseNo - 1) % 12) + 1
+        const val = sav[rashi - 1] ?? 0
+        return (
+          <g key={houseNo}>
+            <polygon
+              points={pts.map((p) => p.join(',')).join(' ')}
+              fill="var(--surface-1)"
+              stroke={CHART_COLOR.border}
+              strokeWidth="1"
+            />
+            <text
+              x={pos.x}
+              y={pos.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize={S * 0.095}
+              fontWeight={800}
+              fill={colorForSav(val)}
+            >
+              {val}
+            </text>
+            <text
+              x={pos.x}
+              y={pos.y + S * 0.06}
+              textAnchor="middle"
+              fontSize={S * 0.03}
+              fill={rashi === ascRashi ? CHART_COLOR.gold : CHART_COLOR.muted}
+              fontWeight={700}
+            >
+              {RASHI_SHORT[rashi as Rashi]}
+            </text>
+          </g>
+        )
+      })}
+      <rect width={S} height={S} fill="none" stroke={CHART_COLOR.border} strokeWidth="1" />
+      <text x={S * 0.5} y={S * 0.47} textAnchor="middle" fontSize={S * 0.08} fill={CHART_COLOR.muted} fontWeight={700}>
+        {ascRashi}
+      </text>
+    </svg>
   )
 }
 
@@ -378,7 +472,7 @@ function HomeContent() {
   const [mobileHeaderMenuOpen, setMobileHeaderMenuOpen] = useState(false)
   const [mobileDashCategory, setMobileDashCategory] = useState<'astrology' | 'panchang' | 'nakshatra' | 'advanced'>('astrology')
   const [mobileDashTab, setMobileDashTab] = useState<'astro' | 'planetary' | 'dashas' | 'today' | 'panchang' | 'strengths' | 'yogas'>('astro')
-  const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('shadbala')
+  const [mobileStrengthTab, setMobileStrengthTab] = useState<'shadbala' | 'bhava' | 'vimsopaka' | 'ashtakavarga'>('ashtakavarga')
   const mobileDashboardCategories = [
     { id: 'astrology', label: 'Astrology' },
     { id: 'panchang', label: 'Panchang' },
@@ -441,13 +535,9 @@ function HomeContent() {
 
   const dashboardAshtakSummary = useMemo(() => {
     if (!chart?.ashtakavarga) return null
-    const ascRashi = chart.lagnas.ascRashi ?? 1
     const sav = chart.ashtakavarga.sav
-    const houses = sav.map((val, i) => {
-      const rashi = ((ascRashi - 1 + i) % 12) + 1
-      return { house: i + 1, val, rashi: rashi as Rashi }
-    })
-    const sorted = [...houses].sort((a, b) => b.val - a.val)
+    const signs = sav.map((val, i) => ({ sign: (i + 1) as Rashi, val }))
+    const sorted = [...signs].sort((a, b) => b.val - a.val)
     return {
       savTotal: chart.ashtakavarga.savTotal,
       avg: (chart.ashtakavarga.savTotal / 12).toFixed(1),
@@ -472,14 +562,19 @@ function HomeContent() {
         ratio: planets[id]?.ratio ?? 0,
       }))
       .sort((a, b) => b.total - a.total)
-    const top3 = ranked.slice(0, 3)
+    const top5 = ranked.slice(0, 5)
+    const maxTotal = ranked.length ? Math.max(...ranked.map((r) => r.total), 1) : 1
+    const minTotal = ranked.length ? Math.min(...ranked.map((r) => r.total)) : 0
+    const spread = (maxTotal - minTotal).toFixed(2)
     return {
       strongestLabel: sn,
       weakestLabel: wn,
       strongTotal: planets[strongest]?.total.toFixed(2) ?? '—',
       weakTotal: planets[weakest]?.total.toFixed(2) ?? '—',
       meanRatio,
-      top3,
+      spread,
+      maxTotal,
+      top5,
     }
   }, [chart])
 
@@ -518,6 +613,17 @@ function HomeContent() {
       top3,
     }
   }, [chart])
+
+  const showSecondaryAnalysisColumn =
+    activeTab === 'dashboard' ||
+    activeTab === 'dasha' ||
+    activeTab === 'panchang' ||
+    activeTab === 'astro-details' ||
+    activeTab === 'yogas' ||
+    activeTab === 'arudhas' ||
+    activeTab === 'shadbala' ||
+    activeTab === 'bhava-bala' ||
+    activeTab === 'vimsopaka'
 
   const handleAcgPlanetsChange = React.useCallback((planets: Set<any>, parans: any[], rawNatal?: any[]) => {
     setSelectedAcgPlanets(prev => {
@@ -748,10 +854,11 @@ function HomeContent() {
       const res = await fetch('/api/chart/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...defaultChart,
-          settings: { ...userPrefs, ...defaultChart.settings },
-        }),
+          body: JSON.stringify({
+            ...defaultChart,
+            settings: { ...userPrefs, ...defaultChart.settings },
+            _t: Date.now(), // Cache buster
+          }),
       })
       const json = await res.json()
       if (json.success) {
@@ -1122,6 +1229,7 @@ function HomeContent() {
             longitude={dashboardChart.meta.longitude}
             timezone={dashboardChart.meta.timezone}
             todayPanchang={todayPanchang}
+            birthDate={dashboardChart.meta.birthDate}
           />
 
           {/* Divider */}
@@ -1546,7 +1654,7 @@ function HomeContent() {
 
                   {/* ── MOBILE DASHBOARD CONTENT ─────────────────────── */}
                   {activeTab === 'dashboard' && isMobile && (
-                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '4.5rem' }}>
+                    <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '6rem' }}>
 
                       {/* ── Tab content ── */}
                       {mobileDashTab === 'astro' && (
@@ -1598,6 +1706,7 @@ function HomeContent() {
                                 birthMoonName={chart.panchang.nakshatra.name}
                                 latitude={chart.meta.latitude} longitude={chart.meta.longitude}
                                 timezone={chart.meta.timezone} todayPanchang={todayPanchang}
+                                birthDate={chart.meta.birthDate}
                               />
                             </div>
                           </div>
@@ -1645,10 +1754,10 @@ function HomeContent() {
                           {/* Sub-tabs */}
                           <div style={{ display: 'flex', gap: '0.3rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                             {([
+                              { id: 'ashtakavarga', label: 'Aṣṭaka' },
                               { id: 'shadbala', label: 'Ṣaḍbala' },
                               { id: 'bhava', label: 'Bhāva' },
                               { id: 'vimsopaka', label: 'Viṁśopaka' },
-                              { id: 'ashtakavarga', label: 'Aṣṭaka' },
                             ] as const).map(({ id, label }) => (
                               <button key={id} type="button" onClick={() => setMobileStrengthTab(id)}
                                 style={{ whiteSpace: 'nowrap', padding: '0.3rem 0.7rem', fontSize: '0.65rem', fontWeight: 700, borderRadius: 999, cursor: 'pointer', border: mobileStrengthTab === id ? '1.5px solid var(--gold)' : '1px solid var(--border-soft)', background: mobileStrengthTab === id ? 'var(--gold-faint)' : 'var(--surface-2)', color: mobileStrengthTab === id ? 'var(--text-gold)' : 'var(--text-muted)' }}>
@@ -1661,25 +1770,7 @@ function HomeContent() {
                               {mobileStrengthTab === 'shadbala' && (
                                 chart.shadbala ? (
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                                    <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.68rem' }}>
-                                      <span>⬆ <b style={{ color: 'var(--teal)' }}>{GRAHA_NAMES[chart.shadbala.strongest as GrahaId] ?? chart.shadbala.strongest}</b> {(chart.shadbala.planets[chart.shadbala.strongest as GrahaId]?.total ?? 0).toFixed(1)}R</span>
-                                      <span>⬇ <b style={{ color: 'var(--rose)' }}>{GRAHA_NAMES[chart.shadbala.weakest as GrahaId] ?? chart.shadbala.weakest}</b> {(chart.shadbala.planets[chart.shadbala.weakest as GrahaId]?.total ?? 0).toFixed(1)}R</span>
-                                    </div>
-                                    {(['Su','Mo','Ma','Me','Ju','Ve','Sa'] as GrahaId[])
-                                      .map(id => ({ id, name: GRAHA_NAMES[id], total: chart.shadbala.planets[id]?.total ?? 0, ratio: chart.shadbala.planets[id]?.ratio ?? 0 }))
-                                      .sort((a,b) => b.total - a.total)
-                                      .map(row => (
-                                        <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                          <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>{row.name}</span>
-                                          <div style={{ flex: 1, height: 5, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${Math.max(8, Math.min(100, row.ratio * 100))}%`, background: 'var(--teal)', borderRadius: 2 }} />
-                                          </div>
-                                          <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2.8rem', textAlign: 'right', flexShrink: 0 }}>{row.total.toFixed(1)}R</span>
-                                        </div>
-                                      ))}
-                                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', marginTop: '0.3rem' }}>
-                                      <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
-                                    </div>
+                                    <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} />
                                   </div>
                                 ) : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
                               )}
@@ -1693,7 +1784,7 @@ function HomeContent() {
                               )}
                               {mobileStrengthTab === 'ashtakavarga' && (
                                 chart.ashtakavarga
-                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} /></div>
+                                  ? <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}><AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /></div>
                                   : <p style={{ color: 'var(--text-muted)', fontSize: '0.72rem', margin: 0 }}>Unavailable.</p>
                               )}
                             </div>
@@ -1727,7 +1818,7 @@ function HomeContent() {
                </div>
 
                {/* RIGHT: Active Tab Content (Sidebar Analysis) — hidden on mobile dashboard */}
-               {!(isMobile && activeTab === 'dashboard') && (
+              {!(isMobile && activeTab === 'dashboard') && showSecondaryAnalysisColumn && (
                <div className="sticky-desktop" style={{ 
                  flex: `1 1 420px`, 
                  minWidth: `min(100%, 360px)`,
@@ -1886,7 +1977,7 @@ function HomeContent() {
                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
                    <div className="panel-header"><span>Ṣaḍbala Strength</span></div>
                    <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>}
+                     {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Shadbala.</div>}
                    </div>
                  </div>
                )}
@@ -1901,15 +1992,15 @@ function HomeContent() {
                  </div>
                )}
 
-               {/* BOTTOM: Full-width Ashtakavarga below charts */}
-               {activeTab === 'ashtakavarga' && (
-                 <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
-                   <div className="panel-header"><span>Aṣṭakavarga Intelligence</span></div>
-                   <div style={{ padding: '0.5rem 0.65rem' }}>
-                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Aṣṭakavarga.</div>}
-                   </div>
-                 </div>
-               )}
+                {/* BOTTOM: Full-width Ashtakavarga below charts */}
+                {activeTab === 'ashtakavarga' && (
+                  <div className="panel fade-up" style={{ marginTop: '0.75rem' }}>
+                    <div className="panel-header"><span>Aṣṭakavarga Intelligence</span></div>
+                    <div style={{ padding: '0.5rem 0.65rem' }}>
+                     {chart.ashtakavarga ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} /> : <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.78rem' }}>Recalculate chart to see Aṣṭakavarga.</div>}
+                    </div>
+                  </div>
+                )}
 
                 {/* BOTTOM: Full-width Vimsopaka below charts */}
                 {activeTab === 'vimsopaka' && (
@@ -1919,15 +2010,16 @@ function HomeContent() {
                   </div>
                 )}
 
-               {/* BOTTOM: Dashboard Extended Details */}
-               {activeTab === 'dashboard' && (
+                {/* BOTTOM: Dashboard Extended Details */}
+                {activeTab === 'dashboard' && (
                   <div style={{
                     flex: '1 1 100%',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
                     gap: '0.6rem',
                     marginTop: '0.6rem',
-                    order: 3
+                    order: 3,
+                    alignItems: 'start'
                   }}>
 
                     {/* ── Ashtakavarga ── */}
@@ -1938,33 +2030,64 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {!chart.ashtakavarga ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
-                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} />
+                        : dashExpandAv ? <AshtakavargaGrid ashtakavarga={chart.ashtakavarga} ascRashi={chart.lagnas.ascRashi ?? 1} transitGrahas={transitGrahas ?? chart.grahas} ayanamsha={chart.meta.settings.ayanamsha} />
                         : dashboardAshtakSummary ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                            {/* Key metrics row */}
-                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
-                              <div>
-                                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-gold)', fontFamily: 'var(--font-mono)' }}>{dashboardAshtakSummary.savTotal}</span>
-                                <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginLeft: 3 }}>SAV · avg {dashboardAshtakSummary.avg}/sign</span>
+                            <div
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '1fr auto',
+                                gap: '0.6rem',
+                                alignItems: 'center',
+                                padding: '0.35rem',
+                                border: '1px solid var(--border-soft)',
+                                borderRadius: 'var(--r-sm)',
+                                background: 'var(--surface-1)',
+                              }}
+                            >
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                  Sarva-Ashtakavarga
+                                </div>
+                                <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-gold)', fontFamily: 'var(--font-mono)' }}>
+                                  {dashboardAshtakSummary.savTotal}
+                                  <span style={{ marginLeft: 4, fontSize: '0.62rem', fontWeight: 600, color: 'var(--text-muted)' }}>total · {dashboardAshtakSummary.avg}/sign</span>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.14rem', fontSize: '0.62rem' }}>
+                                  <span style={{ color: 'var(--teal)' }}>
+                                    Strongest: {RASHI_SHORT[dashboardAshtakSummary.highest.sign]} ({dashboardAshtakSummary.highest.val})
+                                  </span>
+                                  <span style={{ color: 'var(--rose)' }}>
+                                    Weakest: {RASHI_SHORT[dashboardAshtakSummary.lowest.sign]} ({dashboardAshtakSummary.lowest.val})
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                style={{
+                                  width: 170,
+                                  maxWidth: '42vw',
+                                  border: '1px solid var(--border-soft)',
+                                  borderRadius: 'var(--r-sm)',
+                                  background: 'var(--surface-1)',
+                                  padding: '0.2rem',
+                                }}
+                              >
+                                <DashboardSavChart sav={chart.ashtakavarga.sav} ascRashi={chart.lagnas.ascRashi ?? 1} />
                               </div>
                             </div>
-                            {/* Mini house bar chart */}
-                            <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: 28 }}>
-                              {chart.ashtakavarga.sav.map((val, i) => {
-                                const maxVal = Math.max(...chart.ashtakavarga!.sav)
-                                const pct = (val / maxVal) * 100
-                                const isHigh = val === dashboardAshtakSummary!.highest.val
-                                const isLow = val === dashboardAshtakSummary!.lowest.val
-                                return (
-                                  <div key={i} title={`H${i+1}: ${val}b`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                                    <div style={{ width: '100%', height: `${pct}%`, minHeight: 2, background: isHigh ? 'var(--teal)' : isLow ? 'var(--rose)' : 'var(--border)', borderRadius: '1px 1px 0 0' }} />
-                                  </div>
-                                )
-                              })}
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)' }}>
-                              <span style={{ color: 'var(--teal)' }}>▲ H{dashboardAshtakSummary.highest.house} ({RASHI_SHORT[dashboardAshtakSummary.highest.rashi]}) {dashboardAshtakSummary.highest.val}b</span>
-                              <span style={{ color: 'var(--rose)' }}>▼ H{dashboardAshtakSummary.lowest.house} ({RASHI_SHORT[dashboardAshtakSummary.lowest.rashi]}) {dashboardAshtakSummary.lowest.val}b</span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>SAV Total</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardAshtakSummary.savTotal}</div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strong Sign</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--teal)', fontWeight: 800 }}>{RASHI_SHORT[dashboardAshtakSummary.highest.sign]}</div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weak Sign</div>
+                                <div style={{ fontSize: '0.82rem', color: 'var(--rose)', fontWeight: 800 }}>{RASHI_SHORT[dashboardAshtakSummary.lowest.sign]}</div>
+                              </div>
                             </div>
                           </div>
                         ) : null}
@@ -1979,23 +2102,41 @@ function HomeContent() {
                       </div>
                       <div style={{ padding: '0.35rem 0.55rem' }}>
                         {!chart.shadbala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
-                        : dashExpandShad ? <ShadbalaTable shadbala={chart.shadbala} classicMultiChartOnly />
+                        : dashExpandShad ? <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts={true} />
                         : dashboardShadbalaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem' }}>
-                              <span>⬆ <b style={{ color: 'var(--teal)' }}>{dashboardShadbalaSummary.strongestLabel}</b> {dashboardShadbalaSummary.strongTotal}R</span>
-                              <span>⬇ <b style={{ color: 'var(--rose)' }}>{dashboardShadbalaSummary.weakestLabel}</b> {dashboardShadbalaSummary.weakTotal}R</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(70px, 1fr))', gap: '0.35rem' }}>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Strongest</div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--teal)', fontWeight: 800 }}>{dashboardShadbalaSummary.strongestLabel}</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.strongTotal}R</div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Weakest</div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--rose)', fontWeight: 800 }}>{dashboardShadbalaSummary.weakestLabel}</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.weakTotal}R</div>
+                              </div>
+                              <div style={{ background: 'var(--surface-2)', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-sm)', padding: '0.3rem 0.4rem', boxSizing: 'border-box' }}>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)' }}>Avg / Spread</div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--text-gold)', fontWeight: 800 }}>{dashboardShadbalaSummary.meanRatio}x</div>
+                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{dashboardShadbalaSummary.spread}R</div>
+                              </div>
                             </div>
-                            {dashboardShadbalaSummary.top3.map((row, idx) => {
-                              const width = Math.max(8, Math.min(100, row.ratio * 100))
+                            {dashboardShadbalaSummary.top5.map((row, idx) => {
+                              const width = Math.max(8, Math.min(100, (row.total / dashboardShadbalaSummary.maxTotal) * 100))
                               const barColor = idx === 0 ? 'var(--teal)' : idx === 1 ? 'var(--text-gold)' : 'var(--accent)'
+                              const badgeBg = row.ratio >= 1 ? 'rgba(78,205,196,0.12)' : 'rgba(224,123,142,0.12)'
+                              const badgeColor = row.ratio >= 1 ? 'var(--teal)' : 'var(--rose)'
                               return (
                                 <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>#{idx+1} {row.name}</span>
-                                  <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
+                                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '4.4rem', flexShrink: 0 }}>#{idx+1} {row.name}</span>
+                                  <div style={{ flex: 1, height: 5, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}>
                                     <div style={{ height: '100%', width: `${width}%`, background: barColor, borderRadius: 2 }} />
                                   </div>
-                                  <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2.5rem', textAlign: 'right', flexShrink: 0 }}>{row.total.toFixed(1)}R</span>
+                                  <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2.3rem', textAlign: 'right', flexShrink: 0 }}>{row.total.toFixed(1)}R</span>
+                                  <span style={{ fontSize: '0.54rem', color: badgeColor, background: badgeBg, border: `1px solid ${badgeColor}33`, borderRadius: 4, padding: '1px 4px', width: '2.1rem', textAlign: 'center', flexShrink: 0 }}>
+                                    {(row.ratio * 100).toFixed(0)}%
+                                  </span>
                                 </div>
                               )
                             })}
@@ -2014,29 +2155,60 @@ function HomeContent() {
                         {!chart.vimsopaka ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
                         : dashExpandVim ? <VimsopakaBalaPanel vimsopaka={chart.vimsopaka} userPlan={userPlan} />
                         : dashboardVimsopakaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem', alignItems: 'baseline' }}>
-                              <span>⬆ <b style={{ color: 'var(--teal)' }}>{dashboardVimsopakaSummary.strongest}</b> {dashboardVimsopakaSummary.strongScore}/20</span>
-                              <span>⬇ <b style={{ color: 'var(--rose)' }}>{dashboardVimsopakaSummary.weakest}</b> {dashboardVimsopakaSummary.weakScore}/20</span>
-                              {dashboardVimsopakaSummary.avg && <span style={{ color: 'var(--text-muted)' }}>avg {dashboardVimsopakaSummary.avg}</span>}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.68rem', fontWeight: 700, alignItems: 'center' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>↑</span> 
+                                <span style={{ color: 'var(--teal)' }}>{dashboardVimsopakaSummary.strongest}</span> 
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.62rem' }}>{dashboardVimsopakaSummary.strongScore}/20</span>
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <span style={{ color: 'var(--text-muted)' }}>↓</span> 
+                                <span style={{ color: 'var(--rose)' }}>{dashboardVimsopakaSummary.weakest}</span> 
+                                <span style={{ color: 'var(--text-secondary)', fontSize: '0.62rem' }}>{dashboardVimsopakaSummary.weakScore}/20</span>
+                              </span>
+                              {dashboardVimsopakaSummary.avg && (
+                                <span style={{ color: 'var(--text-muted)', fontWeight: 500, marginLeft: 'auto' }}>
+                                  avg {dashboardVimsopakaSummary.avg}
+                                </span>
+                              )}
                             </div>
-                            {dashboardVimsopakaSummary.top3.length > 0 && (
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                {dashboardVimsopakaSummary.top3.map((row, idx) => {
-                                  const score = typeof row.score === 'number' ? row.score : 0
-                                  const pct = Math.max(8, Math.min(100, (score / 20) * 100))
-                                  return (
-                                    <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                      <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '3.5rem', flexShrink: 0 }}>#{idx+1} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}</span>
-                                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--surface-3)', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', width: `${pct}%`, background: idx === 0 ? 'var(--teal)' : 'var(--text-gold)', borderRadius: 2 }} />
-                                      </div>
-                                      <span style={{ fontSize: '0.58rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: '2rem', textAlign: 'right', flexShrink: 0 }}>{score.toFixed(1)}</span>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.1rem' }}>
+                              {dashboardVimsopakaSummary.top3.map((row, idx) => {
+                                const score = typeof row.score === 'number' ? row.score : 0
+                                const pct = Math.max(8, Math.min(100, (score / 20) * 100))
+                                const barColor = idx === 0 ? 'var(--teal)' : 'var(--gold)'
+                                
+                                return (
+                                  <div key={row.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700, width: '4.2rem', flexShrink: 0 }}>
+                                      #{idx + 1} {GRAHA_NAMES[row.id as GrahaId] ?? row.id}
+                                    </span>
+                                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--surface-3)', overflow: 'hidden' }}>
+                                      <div style={{ 
+                                        height: '100%', 
+                                        width: `${pct}%`, 
+                                        background: barColor, 
+                                        borderRadius: 2,
+                                        boxShadow: idx === 0 ? '0 0 10px rgba(78,205,196,0.3)' : 'none'
+                                      }} />
                                     </div>
-                                  )
-                                })}
-                              </div>
-                            )}
+                                    <span style={{ 
+                                      fontSize: '0.65rem', 
+                                      color: 'var(--text-secondary)', 
+                                      fontFamily: 'var(--font-mono)', 
+                                      fontWeight: 600,
+                                      width: '2.2rem', 
+                                      textAlign: 'right', 
+                                      flexShrink: 0 
+                                    }}>
+                                      {score.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                            </div>
                           </div>
                         ) : null}
                       </div>
@@ -2052,15 +2224,24 @@ function HomeContent() {
                         {!chart.bhavaBala ? <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', margin: 0 }}>Unavailable.</p>
                         : dashExpandBhava ? <BhavaBalaTable bhavaBala={chart.bhavaBala} chart={chart} />
                         : dashboardBhavaBalaSummary ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.65rem' }}>
-                              <span>⬆ <b style={{ color: 'var(--teal)' }}>H{dashboardBhavaBalaSummary.strongestHouse}</b> {dashboardBhavaBalaSummary.strongTotal}R</span>
-                              <span>⬇ <b style={{ color: 'var(--rose)' }}>H{dashboardBhavaBalaSummary.weakestHouse}</b> {dashboardBhavaBalaSummary.weakTotal}R</span>
-                              <span style={{ color: 'var(--text-muted)' }}>avg {dashboardBhavaBalaSummary.avgRupa}R</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            <div style={{ display: 'flex', gap: '0.6rem', fontSize: '0.68rem', fontWeight: 700, marginBottom: '0.2rem' }}>
+                              <span>⬆ <span style={{ color: 'var(--teal)' }}>H{dashboardBhavaBalaSummary.strongestHouse}</span> {dashboardBhavaBalaSummary.strongTotal}R</span>
+                              <span>⬇ <span style={{ color: 'var(--rose)' }}>H{dashboardBhavaBalaSummary.weakestHouse}</span> {dashboardBhavaBalaSummary.weakTotal}R</span>
+                              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>avg {dashboardBhavaBalaSummary.avgRupa}R</span>
                             </div>
                             {/* House strength mini-bars for all 12 */}
                             {chart.bhavaBala.houses && (
-                              <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: 24 }}>
+                              <div style={{ 
+                                display: 'flex', 
+                                gap: '3px', 
+                                alignItems: 'flex-end', 
+                                height: 32, 
+                                background: 'rgba(0,0,0,0.02)', 
+                                padding: '2px 4px', 
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-soft)'
+                              }}>
                                 {Array.from({ length: 12 }, (_, i) => {
                                   const h = chart.bhavaBala!.houses[i + 1]
                                   const val = h?.totalRupa ?? 0
@@ -2069,13 +2250,22 @@ function HomeContent() {
                                   const pct = maxVal > 0 ? (val / maxVal) * 100 : 0
                                   const isS = i + 1 === dashboardBhavaBalaSummary!.strongestHouse
                                   const isW = i + 1 === dashboardBhavaBalaSummary!.weakestHouse
+                                  
                                   return (
-                                    <div key={i} title={`H${i+1}: ${val.toFixed(1)}R`} style={{ flex: 1, height: `${Math.max(6, pct)}%`, background: isS ? 'var(--teal)' : isW ? 'var(--rose)' : 'var(--border)', borderRadius: '1px 1px 0 0', alignSelf: 'flex-end' }} />
+                                    <div key={i} title={`H${i+1}: ${val.toFixed(1)}R`} style={{ 
+                                      flex: 1, 
+                                      height: `${Math.max(10, pct)}%`, 
+                                      background: isS ? 'var(--teal)' : isW ? 'var(--rose)' : 'var(--border-bright)', 
+                                      borderRadius: '1px', 
+                                      alignSelf: 'flex-end',
+                                      transition: 'height 0.3s ease',
+                                      opacity: isS || isW ? 1 : 0.6
+                                    }} />
                                   )
                                 })}
                               </div>
                             )}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'var(--text-muted)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.58rem', color: 'var(--text-muted)', fontWeight: 700, padding: '0 2px' }}>
                               <span>H1</span><span>H6</span><span>H12</span>
                             </div>
                           </div>
@@ -2408,32 +2598,53 @@ function HomeContent() {
           background: 'var(--surface-1)',
           borderTop: '1px solid var(--border-soft)',
           display: 'flex', alignItems: 'stretch',
-          boxShadow: '0 -3px 16px rgba(0,0,0,0.14)',
-          paddingBottom: 'env(safe-area-inset-bottom)',
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.18)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
         }}>
           {([
-            { id: 'planetary', icon: '✦', label: 'Planets'  },
-            { id: 'astro',     icon: '◎', label: 'Details'  },
-            { id: 'dashas',    icon: '⏱', label: 'Dasha'    },
-            { id: 'today',     icon: '☽', label: 'Today'    },
-            { id: 'strengths', icon: '⚡', label: 'Strength' },
-            { id: 'yogas',     icon: '❋', label: 'Yogas'    },
-          ] as const).map(({ id, icon, label }) => {
+            { id: 'planetary', icon: Sparkles, label: 'Planets'  },
+            { id: 'astro',     icon: Info,     label: 'Details'  },
+            { id: 'dashas',    icon: Clock,    label: 'Dasha'    },
+            { id: 'today',     icon: Moon,     label: 'Today'    },
+            { id: 'strengths', icon: Zap,      label: 'Strength' },
+            { id: 'yogas',     icon: Star,     label: 'Yogas'    },
+          ] as const).map(({ id, icon: Icon, label }) => {
             const active = mobileDashTab === id
             return (
               <button key={id} type="button"
-                onClick={() => setMobileDashTab(id as typeof mobileDashTab)}
+                onClick={() => {
+                  setMobileDashTab(id as typeof mobileDashTab);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column',
                   alignItems: 'center', justifyContent: 'center',
-                  gap: '0.12rem', padding: '0.5rem 0.15rem 0.6rem',
+                  gap: '0.2rem', padding: '0.6rem 0.15rem 0.4rem',
                   border: 'none', background: 'none', cursor: 'pointer',
-                  borderTop: active ? '2px solid var(--accent)' : '2px solid transparent',
                   color: active ? 'var(--accent)' : 'var(--text-muted)',
-                  transition: 'color 0.15s',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
                 }}>
-                <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{icon}</span>
-                <span style={{ fontSize: '0.5rem', fontWeight: active ? 700 : 500, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{label}</span>
+                {active && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: '20%', right: '20%',
+                    height: 2, background: 'var(--accent)',
+                    boxShadow: '0 0 10px var(--accent)',
+                    borderRadius: '0 0 2px 2px'
+                  }} />
+                )}
+                <Icon size={18} strokeWidth={active ? 2.5 : 2} style={{ opacity: active ? 1 : 0.7 }} />
+                <span style={{ 
+                  fontSize: '0.58rem', 
+                  fontWeight: active ? 700 : 500, 
+                  letterSpacing: '0.02em', 
+                  whiteSpace: 'nowrap',
+                  marginTop: '0.1rem'
+                }}>
+                  {label}
+                </span>
               </button>
             )
           })}

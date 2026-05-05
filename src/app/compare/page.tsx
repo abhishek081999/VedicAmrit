@@ -418,7 +418,7 @@ function CompareContent() {
                     {(view === 'shadbala' || view === 'all') && (
                       <div className="card fade-up" style={{ padding: '1.25rem' }}>
                         <h3 className="label-caps" style={{ marginBottom: '1rem', fontSize: '0.65rem' }}>Shadbala Strength</h3>
-                        {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} /> : <p style={{ color:'var(--text-muted)' }}>Unavailable.</p>}
+                        {chart.shadbala ? <ShadbalaTable shadbala={chart.shadbala} hideDetails preferClassicCharts /> : <p style={{ color:'var(--text-muted)' }}>Unavailable.</p>}
                       </div>
                     )}
 

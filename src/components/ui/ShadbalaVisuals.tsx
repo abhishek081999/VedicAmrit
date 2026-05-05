@@ -19,8 +19,13 @@ const PLANET_SYMBOL: Record<string, string> = {
 }
 
 const PLANET_COLOR: Record<string, string> = {
-  Su: '#FDB813', Mo: '#E6E6E6', Ma: '#FF4D4D', Me: '#00D084',
-  Ju: '#FFD700', Ve: '#FF69B4', Sa: '#8B8B8B',
+  Su: '#c2410c', // Saffron
+  Mo: '#475569', // Slate
+  Ma: '#991b1b', // Maroon
+  Me: '#0d9488', // Teal
+  Ju: '#b45309', // Gold
+  Ve: '#db2777', // Pink
+  Sa: '#1e1b4b', // Indigo
 }
 
 const COMPONENTS = [
@@ -102,16 +107,19 @@ function RadarChart({ data, color, size = 120 }: { data: number[], color: string
  * Multi-planet comparison visual
  */
 function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> }) {
-  const maxTotal = useMemo(() => Math.max(...ORDER.map(id => planets[id]?.total || 0), 12), [planets]) // Increase to 12
+  const maxTotal = useMemo(() => Math.max(...ORDER.map(id => planets[id]?.total || 0), 12), [planets])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem', background: 'var(--surface-0)', borderRadius: 'var(--r-lg)', border: '1px solid var(--border)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', padding: '1.5rem', background: 'var(--surface-1)', borderRadius: 'var(--r-xl)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h4 className="label-caps" style={{ margin: 0, color: 'var(--text-gold)' }}>Total Strength Comparison (Rupas)</h4>
-        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Required vs Actual</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ width: 4, height: 16, background: 'var(--gold)', borderRadius: 2 }} />
+          <h4 className="label-caps" style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.8rem' }}>Planetary Power Index (Actual vs Required)</h4>
+        </div>
+        <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>1 Rupa = 60 Shastiamsas</span>
       </div>
 
-      <div style={{ height: 180, display: 'flex', alignItems: 'flex-end', gap: '1.5rem', padding: '0 1rem', paddingTop: '1rem' }}>
+      <div className="flex items-end gap-2 md:gap-8 px-2 md:px-6 pt-6" style={{ height: 220 }}>
         {ORDER.map(id => {
           const p = planets[id]
           if (!p) return null
@@ -120,11 +128,11 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
           const reqPct = (p.required / maxTotal) * 100
 
           return (
-            <div key={id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', position: 'relative', height: '100%' }}>
+            <div key={id} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'relative', height: '100%' }}>
               
               {/* Value label */}
               <div style={{ 
-                fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 600, 
+                fontFamily: 'var(--font-mono)', fontSize: '0.8rem', fontWeight: 800, 
                 color: p.isStrong ? 'var(--text-primary)' : 'var(--rose)',
                 marginBottom: 'auto'
               }}>
@@ -132,26 +140,30 @@ function ComparisonChart({ planets }: { planets: Record<string, ShadbalaPlanet> 
               </div>
 
               {/* Stacked bar visual */}
-              <div style={{ width: '100%', maxWidth: 40, flex: 1, position: 'relative', background: 'var(--surface-3)', borderRadius: '4px 4px 0 0', overflow: 'hidden' }}>
+              <div style={{ width: '100%', maxWidth: 36, flex: 1, position: 'relative', background: 'var(--surface-3)', borderRadius: '6px 6px 2px 2px', overflow: 'hidden', border: '1px solid var(--border-soft)' }}>
                 {/* Required marker */}
                 <div style={{ 
-                  position: 'absolute', bottom: `${reqPct}%`, width: '100%', height: 2, 
-                  background: 'var(--surface-4)', zIndex: 5, borderBottom: '1px dashed rgba(255,255,255,0.2)' 
+                  position: 'absolute', bottom: `${reqPct}%`, width: '100%', height: 0, 
+                  borderTop: '2px dashed rgba(255,255,255,0.4)', zIndex: 5,
+                  boxShadow: '0 0 8px rgba(0,0,0,0.3)'
                 }} />
                 
                 {/* Actual bar */}
                 <div style={{ 
                   position: 'absolute', bottom: 0, width: '100%', height: `${heightPct}%`, 
-                  background: `linear-gradient(to top, ${col}99, ${col})`,
-                  boxShadow: `0 0 12px ${col}33`,
-                  transition: 'height 1s cubic-bezier(0.16, 1, 0.3, 1)'
+                  background: `linear-gradient(to top, ${col}88, ${col})`,
+                  boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 0 15px ${col}22`,
+                  transition: 'height 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  borderRadius: '4px 4px 0 0'
                 }} />
               </div>
 
               {/* Planet icon */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                 <span style={{ color: col, fontSize: '0.9rem' }}>{PLANET_SYMBOL[id]}</span>
-                 <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)' }}>{id}</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: `${col}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${col}44` }}>
+                   <span style={{ color: col, fontSize: '0.85rem', fontWeight: 900 }}>{PLANET_SYMBOL[id]}</span>
+                 </div>
+                 <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>{id.toUpperCase()}</span>
               </div>
             </div>
           )
@@ -219,7 +231,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
       </div>
 
       {/* ── Detailed Breakdown Grid ────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
         {ORDER.map((id, index) => {
           const p = planets[id]
           if (!p) return null
@@ -269,7 +281,7 @@ export function ShadbalaVisuals({ shadbala }: { shadbala: ShadbalaResult }) {
               <div style={{ width: '100%', height: 1, background: 'var(--border-soft)' }} />
 
               {/* Content: Radar + Mini Stats */}
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <RadarChart data={componentValues} color={col} size={130} />
                 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

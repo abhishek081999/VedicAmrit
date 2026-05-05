@@ -20,7 +20,7 @@ import {
   getRashiTatva,
 } from '@/lib/engine/astroDetailsDerived'
 import { SIGN_INTERPRETATIONS, DIGNITY_INTERPRETATIONS } from '@/lib/engine/interpretations'
-import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL } from '@/lib/engine/sarvatobhadra'
+import { getSBCGrid, getPlanetsOnSBC, PLANET_COLOR, PLANET_SYMBOL, nameToNakshatra, DIAGONAL_PLANETS } from '@/lib/engine/sarvatobhadra'
 import { GRAHA_DISPLAY_COLOR } from '@/lib/engine/grahaDisplayColors'
 import type { PlanetOnSBC } from '@/lib/engine/sarvatobhadra'
 
@@ -109,60 +109,90 @@ function formatDateTime(value?: Date | string | null): string {
 function buildShadbalaMiniCharts(chart: ChartOutput): string {
   const planets = chart.shadbala?.planets || {}
   const order = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa']
+  
+  // 1. Total Strength Comparison Bar Chart (Similar to ComparisonChart in UI)
+  const maxTotal = Math.max(...order.map(id => planets[id]?.total || 0), 1)
+  
+  const comparisonBars = order.map(id => {
+    const p = planets[id]
+    if (!p) return ''
+    const col = GRAHA_DISPLAY_COLOR[id as GrahaId] || THEME.text
+    const heightPct = (p.total / maxTotal) * 100
+    const reqPct = (p.required / maxTotal) * 100
+    
+    return `
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; position:relative; height:180px">
+        <div style="font-family:monospace; font-size:9px; font-weight:700; color:${p.isStrong ? THEME.text : THEME.rose}; margin-bottom:auto">
+          ${p.total.toFixed(1)}
+        </div>
+        <div style="width:100%; max-width:32px; flex:1; position:relative; background:#f1f5f9; border-radius:4px 4px 0 0; overflow:hidden; border:1px solid ${THEME.border}">
+          <div style="position:absolute; bottom:${reqPct}%; width:100%; height:1px; background:${THEME.muted}; z-index:5; border-bottom:1px dashed rgba(0,0,0,0.2)"></div>
+          <div style="position:absolute; bottom:0; width:100%; height:${heightPct}%; background:linear-gradient(to top, ${col}99, ${col}); box-shadow:0 0 8px ${col}33"></div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center">
+           <span style="color:${col}; font-size:12px; font-weight:900">${PLANET_SYMBOL[id as GrahaId] || id}</span>
+           <span style="font-size:8px; font-weight:800; color:${THEME.muted}">${id}</span>
+        </div>
+      </div>
+    `
+  }).join('')
+
+  // 2. Component Breakdowns (Mini charts for each planet)
   const metrics = [
-    { key: 'sthanaBala', title: 'Sthaana Bala', decimals: 2, allowNegative: false, scale: 60 },
-    { key: 'kalaBala', title: 'Kaala Bala', decimals: 2, allowNegative: false, scale: 60 },
-    { key: 'digBala', title: 'DigBala', decimals: 2, allowNegative: false, scale: 60 },
-    { key: 'chestaBala', title: 'Cheshta Bala', decimals: 2, allowNegative: false, scale: 60 },
-    { key: 'drikBala', title: 'DrigBala', decimals: 2, allowNegative: true, scale: 60 },
-    { key: 'naisargikaBala', title: 'Naisargika Bala', decimals: 2, allowNegative: false, scale: 60 },
-    { key: 'totalShash', title: 'Shadbala', decimals: 1, allowNegative: false, scale: 1 },
-    { key: 'total', title: 'Shadbala (rupas)', decimals: 2, allowNegative: false, scale: 1 },
-    { key: 'ratio', title: 'Shadbala (% strength)', decimals: 0, allowNegative: false, scale: 100 },
+    { key: 'sthanaBala', title: 'Sthaana Bala', decimals: 2, scale: 60 },
+    { key: 'kalaBala', title: 'Kaala Bala', decimals: 2, scale: 60 },
+    { key: 'digBala', title: 'DigBala', decimals: 2, scale: 60 },
+    { key: 'chestaBala', title: 'Cheshta Bala', decimals: 2, scale: 60 },
+    { key: 'naisargikaBala', title: 'Naisargika Bala', decimals: 2, scale: 60 },
+    { key: 'total', title: 'Total Rupa', decimals: 2, scale: 1 },
   ] as const
 
   const cards = metrics.map(metric => {
     const vals = order.map(id => {
       const p = planets[id]
       if (!p) return 0
-      if (metric.key === 'ratio') return p.ratio * metric.scale
       return (p[metric.key as keyof typeof p] as number) * metric.scale
     })
-    const maxAbs = Math.max(...vals.map(v => Math.abs(v)), 1)
+    const maxVal = Math.max(...vals, 1)
 
     const bars = vals.map((v, idx) => {
       const id = order[idx]
-      const h = Math.max(2, (Math.abs(v) / maxAbs) * 42)
-      const isNeg = metric.allowNegative && v < 0
-      const label = metric.key === 'ratio' ? v.toFixed(0) : v.toFixed(metric.decimals)
-      const align = isNeg ? 'flex-start' : 'flex-end'
-      const barBg = isNeg
-        ? 'linear-gradient(180deg, #c86a7b, #a64557)'
-        : 'linear-gradient(180deg, #b5868f, #946870)'
+      const h = Math.max(2, (v / maxVal) * 42)
+      const label = v.toFixed(metric.decimals === 2 ? 1 : 0)
+      const col = GRAHA_DISPLAY_COLOR[id as GrahaId] || THEME.text
 
       return `
         <div style="display:flex; flex-direction:column; align-items:center; gap:2px">
-          <div style="font-size:8px; color:${THEME.muted}; font-family:monospace">${label}</div>
-          <div style="width:100%; max-width:16px; height:50px; display:flex; align-items:${align}">
-            <div style="width:100%; height:${h}px; border-radius:2px; background:${barBg}"></div>
+          <div style="font-size:7px; color:${THEME.muted}; font-family:monospace">${label}</div>
+          <div style="width:100%; max-width:12px; height:50px; display:flex; align-items:flex-end">
+            <div style="width:100%; height:${h}px; border-radius:1px; background:${col}ee"></div>
           </div>
-          <div style="font-size:8px; color:${THEME.secondary}; font-weight:800">${id}</div>
+          <div style="font-size:7px; color:${THEME.secondary}; font-weight:800">${id}</div>
         </div>
       `
     }).join('')
 
     return `
-      <div class="mini-chart-card">
-        <div class="mini-chart-title">${metric.title}</div>
-        <div class="mini-chart-grid">${bars}</div>
+      <div class="mini-chart-card" style="border:1px solid ${THEME.border}">
+        <div class="mini-chart-title" style="font-size:8px">${metric.title}</div>
+        <div class="mini-chart-grid" style="min-height:55px">${bars}</div>
       </div>
     `
   }).join('')
 
   return `
-    <div class="mini-charts-wrap">
-      <div class="small-meta" style="margin-bottom:8px">Classic Multi-Chart View</div>
-      <div class="mini-charts-grid">${cards}</div>
+    <div style="margin: 2rem 0">
+      <div style="padding:20px; background:#fff; border:1px solid ${THEME.border}; border-radius:12px; margin-bottom:2rem">
+        <h4 style="margin-bottom:20px; color:${THEME.primary}; font-family:'Playfair Display', serif">Total Strength (Actual vs Required)</h4>
+        <div style="display:flex; align-items:flex-end; gap:12px">
+          ${comparisonBars}
+        </div>
+      </div>
+      
+      <div class="mini-charts-wrap">
+        <div class="small-meta" style="margin-bottom:12px; color:${THEME.accent}">Relative Distribution by Component</div>
+        <div class="mini-charts-grid">${cards}</div>
+      </div>
     </div>
   `
 }
@@ -643,35 +673,71 @@ function buildSBCSVG(chart: ChartOutput, size = 320): string {
   const grid = getSBCGrid()
   const natal = getPlanetsOnSBC(chart.grahas, true)
   
-  // Use a slightly larger viewBox to prevent edge clipping of text
-  const pad = 10
+  // Highlights
+  const birthNakIdx = chart.panchang.nakshatra.index
+  const nameNakIdx = nameToNakshatra(chart.meta.name)
+  
+  const pad = 12
   let content = `<rect width="${S}" height="${S}" fill="#fff" stroke="${THEME.primary}" stroke-width="2"/>`
   
+  // Directions
+  const dirStyle = `font-family:Outfit, sans-serif; font-size:${cs*0.18}px; font-weight:900; fill:${THEME.accent}; opacity:0.6`
+  content += `<text x="${S/2}" y="-4" style="${dirStyle}" text-anchor="middle">NORTH (Uttara)</text>`
+  content += `<text x="${S/2}" y="${S+14}" style="${dirStyle}" text-anchor="middle">SOUTH (Dakshina)</text>`
+  content += `<text x="-6" y="${S/2}" style="${dirStyle}" transform="rotate(-90, -6, ${S/2})" text-anchor="middle">WEST (Paschim)</text>`
+  content += `<text x="${S+6}" y="${S/2}" style="${dirStyle}" transform="rotate(90, ${S+6}, ${S/2})" text-anchor="middle">EAST (Purva)</text>`
+
   for (let r = 0; r < 9; r++) {
     for (let c = 0; c < 9; c++) {
       const cell = grid[r][c]
       const x = c * cs, y = r * cs
       const isEdge = r === 0 || r === 8 || c === 0 || c === 8
-      const fill = cell.type === 'center' ? THEME.accentLight : isEdge ? THEME.surface : '#fff'
       
-      content += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${fill}" stroke="${THEME.border}" stroke-width="0.3"/>`
+      let fill = cell.type === 'center' ? THEME.accentLight : isEdge ? THEME.surface : '#fff'
+      let stroke = THEME.border
+      let sw = 0.3
+      
+      // Birth/Name Star Highlighting
+      const isBirth = cell.nakshatraIndex === birthNakIdx
+      const isName = cell.nakshatraIndex === nameNakIdx && nameNakIdx !== null
+      
+      if (isBirth) {
+        fill = '#fffdeb'
+        stroke = THEME.accent
+        sw = 1.2
+      } else if (isName) {
+        fill = '#f0f9ff'
+        stroke = '#0ea5e9'
+        sw = 1.2
+      }
+      
+      content += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`
       
       if (cell.label) {
         let label = cell.label
-        // Abbreviate very long interior names
         if (cell.type === 'vara') {
             if (label === 'Maṅgal') label = 'Maṅg'
             if (label === 'Budha') label = 'Bud'
             if (label === 'Śukra') label = 'Śuk'
-            if (label === 'Śani') label = 'Śani'
         }
         
-        let fontSize = cs * 0.32
-        if (cell.type === 'nakshatra') fontSize = cs * 0.18 // Smaller for long names
-        if (cell.type === 'vowel' || cell.type === 'consonant') fontSize = cs * 0.38
+        let fontSize = cs * 0.22
+        if (cell.type === 'nakshatra') fontSize = cs * 0.14
+        if (cell.type === 'vowel' || cell.type === 'consonant') fontSize = cs * 0.25
         
-        const color = cell.type === 'center' ? THEME.primary : THEME.text
-        content += `<text x="${x + cs/2}" y="${y + cs/2 + 2}" font-family="Arial, sans-serif" font-size="${fontSize}" fill="${color}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${label}</text>`
+        const color = isBirth ? THEME.primary : isName ? '#0369a1' : cell.type === 'center' ? THEME.primary : THEME.text
+        const lines = label.split('\n')
+        lines.forEach((line, li) => {
+            const ly = y + cs/2 + (li - (lines.length-1)/2) * (fontSize * 1.1) + 2
+            content += `<text x="${x + cs/2}" y="${ly}" font-family="Arial, sans-serif" font-size="${fontSize}" fill="${color}" font-weight="700" text-anchor="middle" dominant-baseline="middle">${line}</text>`
+        })
+        
+        if (isBirth) {
+            content += `<text x="${x+4}" y="${y+cs-4}" font-size="${cs*0.2}" fill="${THEME.accent}">⭐</text>`
+        }
+        if (isName) {
+            content += `<text x="${x+cs-4}" y="${y+cs-4}" font-size="${cs*0.2}" fill="#0ea5e9" text-anchor="end">🔤</text>`
+        }
       }
     }
   }
@@ -686,65 +752,87 @@ function buildSBCSVG(chart: ChartOutput, size = 320): string {
   natalMap.forEach((ps, k) => {
     const [r, c] = k.split(',').map(Number)
     const x = c * cs, y = r * cs
-    const badgeSize = cs * 0.28
+    const badgeSize = cs * 0.30
     
-    ps.slice(0, 3).forEach((p, i) => {
-      // Position badges along the bottom edge of the cell
-      const cx = x + (i + 1) * (cs / (ps.length + 1))
-      const cy = y + cs - (badgeSize/2) - 2
+    ps.slice(0, 4).forEach((p, i) => {
+      const colIdx = i % 2
+      const rowIdx = Math.floor(i / 2)
+      const bx = x + cs - (colIdx + 0.6) * (badgeSize + 2)
+      const by = y + cs - (rowIdx + 0.6) * (badgeSize + 2)
+      
       const color = PLANET_COLOR[p.planet] || '#888'
+      const isDiag = DIAGONAL_PLANETS.has(p.planet)
+      
       content += `
-        <circle cx="${cx}" cy="${cy}" r="${badgeSize/2}" fill="${color}" stroke="#fff" stroke-width="0.5"/>
-        <text x="${cx}" y="${cy + 1}" font-family="Arial" font-size="${badgeSize*0.5}" fill="#fff" font-weight="900" text-anchor="middle" dominant-baseline="middle">${PLANET_SYMBOL[p.planet] || p.planet[0]}</text>
+        <circle cx="${bx}" cy="${by}" r="${badgeSize/2}" fill="${color}" stroke="#fff" stroke-width="0.8"/>
+        <text x="${bx}" y="${by + 1}" font-family="Arial" font-size="${badgeSize*0.6}" fill="#fff" font-weight="900" text-anchor="middle" dominant-baseline="middle">${PLANET_SYMBOL[p.planet] || p.planet[0]}</text>
       `
+      if (isDiag) {
+        content += `<circle cx="${bx}" cy="${by}" r="${badgeSize/2 + 1.5}" fill="none" stroke="${color}" stroke-width="0.5" stroke-dasharray="1,1"/>`
+      }
     })
   })
   
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S + pad*2}" height="${S + pad*2}" viewBox="-${pad} -${pad} ${S + pad*2} ${S + pad*2}">${content}</svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${S + pad*3}" height="${S + pad*3}" viewBox="-${pad} -18 ${S + pad*3} ${S + pad*3}">${content}</svg>`
 }
 
 function buildSBCLegend(chart: ChartOutput): string {
-    const ids = ['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as GrahaId[]
-    const items = ids.map(id => {
+    const items = [
+        { label: 'Birth Star', icon: '⭐', color: THEME.accent, bg: '#fffdeb' },
+        { label: 'Name Star', icon: '🔤', color: '#0ea5e9', bg: '#f0f9ff' },
+        { label: 'Diagonal Vedha', icon: '✦', color: THEME.muted, bg: '#fff', border: `1px dashed ${THEME.muted}` },
+    ]
+    
+    const legendItems = items.map(it => `
+        <div style="display:flex; align-items:center; gap:6px; background:${it.bg}; padding:4px 10px; border-radius:4px; border:${it.border || '1px solid ' + THEME.border}">
+            <span style="font-size:12px">${it.icon}</span>
+            <span style="font-size:10px; font-weight:800; color:${it.color}">${it.label}</span>
+        </div>
+    `).join('')
+    
+    const planets = (['Su','Mo','Ma','Me','Ju','Ve','Sa','Ra','Ke'] as GrahaId[]).map(id => {
         const color = PLANET_COLOR[id] || '#888'
-        const symbol = PLANET_SYMBOL[id] || id[0]
-        return `
-            <div style="display:flex; align-items:center; gap:8px; background:#fff; padding:4px 8px; border-radius:4px; border:1px solid ${THEME.border}">
-                <div style="width:16px; height:16px; border-radius:50%; background:${color}; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:900">${symbol}</div>
-                <div style="font-size:11px; font-weight:700; color:${THEME.secondary}">${GRAHA_NAMES[id]}</div>
-            </div>
-        `
+        return `<div style="display:flex; align-items:center; gap:4px">
+            <div style="width:12px; height:12px; border-radius:50%; background:${color}; display:flex; align-items:center; justify-content:center; color:#fff; font-size:7px; font-weight:900">${PLANET_SYMBOL[id]}</div>
+            <span style="font-size:9px; font-weight:700">${id}</span>
+        </div>`
     }).join('')
-    return `<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:1rem">${items}</div>`
+
+    return `
+        <div style="width:100%; display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:1.5rem">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center">${legendItems}</div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:center; opacity:0.8">${planets}</div>
+        </div>
+    `
 }
 
 function buildSBCSection(chart: ChartOutput): string {
   return `
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem; margin-top: 1rem">
-        <div style="padding: 10px; background: white; border-radius: 8px; border: 1px solid ${THEME.border}; box-shadow: 0 4px 12px rgba(0,0,0,0.03)">
-            ${buildSBCSVG(chart, 400)}
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-top: 1rem">
+        <div style="padding: 15px; background: white; border-radius: 12px; border: 1px solid ${THEME.border}; box-shadow: 0 8px 30px rgba(0,0,0,0.04)">
+            ${buildSBCSVG(chart, 440)}
         </div>
         
         ${buildSBCLegend(chart)}
         
-        <div style="width: 100%; padding: 2.5rem; border: 2px double ${THEME.accent}; background: ${THEME.bg}; position: relative; margin-top: 1rem">
-            <h4 style="margin-bottom: 1.5rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif">Sarvatobhadra Chakra - Vedha Insights</h4>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px">
-                <div class="card" style="text-align: center; background: #fff; padding: 15px">
-                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Left Vedha</div>
-                    <div style="font-size: 11px">Focus: Past Karma & Inheritance. Influences subconscious patterns and early-life foundations.</div>
+        <div style="width: 100%; padding: 2rem; border: 1px solid ${THEME.border}; background: ${THEME.surface}; border-radius:12px; position: relative; margin-top: 1rem">
+            <h4 style="margin-bottom: 1.2rem; text-align: center; color: ${THEME.primary}; font-family: 'Playfair Display', serif; text-transform:uppercase; letter-spacing:1px">Vedha Geometry & Life Impact</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px">
+                <div style="text-align: center; background: #fff; padding: 12px; border-radius:8px; border:1px solid ${THEME.border}">
+                    <div style="color:${THEME.accent}; font-weight:900; font-size:10px; margin-bottom:6px; text-transform:uppercase">Vāma (Left)</div>
+                    <div style="font-size: 10px; line-height:1.4">Past tendencies and inherited patterns. Impact on the subconscious and foundations.</div>
                 </div>
-                <div class="card" style="text-align: center; background: #fff; padding: 15px">
-                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Front Vedha</div>
-                    <div style="font-size: 11px">Focus: Current Identity & Path. Direct impact on health, status, and professional trajectory.</div>
+                <div style="text-align: center; background: #fff; padding: 12px; border-radius:8px; border:1px solid ${THEME.border}">
+                    <div style="color:${THEME.accent}; font-weight:900; font-size:10px; margin-bottom:6px; text-transform:uppercase">Sammukha (Front)</div>
+                    <div style="font-size: 10px; line-height:1.4">Direct external manifestation. Impact on status, health, and worldly achievements.</div>
                 </div>
-                <div class="card" style="text-align: center; background: #fff; padding: 15px">
-                    <div class="card-title" style="color:${THEME.secondary}; margin-bottom:10px">Right Vedha</div>
-                    <div style="font-size: 11px">Focus: Future Potential & Goals. Shows the opening of fortune and expansionary trends.</div>
+                <div style="text-align: center; background: #fff; padding: 12px; border-radius:8px; border:1px solid ${THEME.border}">
+                    <div style="color:${THEME.accent}; font-weight:900; font-size:10px; margin-bottom:6px; text-transform:uppercase">Dakshina (Right)</div>
+                    <div style="font-size: 10px; line-height:1.4">Future potential and growth vectors. Shows the fruit of current actions.</div>
                 </div>
             </div>
-            <p style="text-align: center; margin-top: 2rem; font-size: 12px; color: ${THEME.muted}; font-style: italic">
-              Note: This grid maps the ${chart.panchang.nakshatra.name} nakshatra at birth to see the "fortress" of your cosmic geometry.
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 11px; color: ${THEME.muted}; font-style: italic">
+              Note: Highlighted star (⭐) represents your Janma Nakshatra (${chart.panchang.nakshatra.name}).
             </p>
         </div>
     </div>
@@ -794,11 +882,11 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
 <head>
   <meta charset="UTF-8">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap');
     
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { 
-      background: #e2dfcb; 
+      background: #f1f5f9; 
       -webkit-print-color-adjust: exact !important; 
       print-color-adjust: exact !important;
     }
@@ -830,7 +918,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         top: 50%; 
         left: 50%; 
         transform: translate(-50%, -50%); 
-        font-size: 50rem; 
+        font-size: 12rem; 
         color: ${THEME.border}; 
         z-index: -1; 
         opacity: 0.1; 
@@ -866,7 +954,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
         position: relative; 
         border: 1px solid #eee; 
       }
-      .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
+      .page::before { content: 'ॐ'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 12rem; color: #f8fafc; z-index: -1; opacity: 0.5; pointer-events: none; }
     }
 
     /* Aesthetics */
@@ -874,7 +962,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     .print-bar button { background: ${THEME.accent}; color:#fff; border:none; padding: 10px 24px; border-radius: 30px; font-weight:700; cursor:pointer; font-family:inherit; }
 
     .title-page { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; border: 20px solid ${THEME.surface}; }
-    .main-title { font-family: 'Playfair Display', serif; font-size: 4.5rem; font-weight: 700; color: ${THEME.primary}; margin: 1rem 0; letter-spacing: -2px; }
+    .main-title { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 700; color: ${THEME.primary}; margin: 1rem 0; letter-spacing: -2px; }
     .sub-title { font-size: 1.25rem; font-weight: 600; color: ${THEME.accent}; text-transform: uppercase; letter-spacing: 0.4em; }
     
     .section-badge { display: inline-block; background: ${THEME.accentLight}; color: ${THEME.accent}; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; border: 1px solid #f5deb3; }
@@ -911,7 +999,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     .focus-card { padding: 25px; border-radius: 15px; background: ${THEME.surface}; border: 1px solid ${THEME.border}; }
     .focus-card.active { background: ${THEME.primary}; color: #fff; }
     .focus-card label { font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.7; }
-    .focus-card .value { font-size: 2.5rem; font-weight: 900; margin: 10px 0; }
+    .focus-card .value { font-size: 2rem; font-weight: 900; margin: 10px 0; }
     .focus-card .period { font-size: 14px; opacity: 0.9; }
 
     .footer { position: absolute; bottom: 1cm; left: 2cm; right: 2cm; border-top: 1px solid ${THEME.border}; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: ${THEME.muted}; font-weight: 600; text-transform: uppercase; }
@@ -946,7 +1034,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
   ${brandName.toUpperCase().includes('VEDAANSH') ? `<div style="text-align:center; color: ${THEME.accent}; font-weight: 800; font-size: 1.1rem; margin-top: 0.5rem; letter-spacing: 0.1em;">॥ श्री गणेशाय नमः ॥</div>` : ''}
   <div style="margin: 1.5rem auto; width: 80px; height: 3px; background: ${THEME.secondary}; opacity: 0.6;"></div>
   <div style="font-size: 1.1rem; color: ${THEME.secondary}; text-transform: uppercase; letter-spacing: 0.6em; margin-bottom: 1rem; text-align:center; font-family: 'Playfair Display', serif">Aura of the Divine Path</div>
-  <h1 class="main-title" style="text-align:center; font-family: 'Playfair Display', serif; font-size: 4rem">${meta.name}</h1>
+  <h1 class="main-title" style="text-align:center; font-family: 'Playfair Display', serif; font-size: 3.5rem">${meta.name}</h1>
   <div class="sub-title" style="text-align:center">Jyotish Master Dossier</div>
   
   <div style="margin-top: 3rem; color: ${THEME.accent}; opacity: 0.4; text-align:center">${ICONS.om}</div>
@@ -1214,7 +1302,7 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
             <td>${pb.totalShash.toFixed(1)}</td>
             <td>${pb.required.toFixed(2)}</td>
             <td>${pb.ratio.toFixed(2)}x</td>
-            <td style="color:${pb.isStrong?THEME.emerald:THEME.rose};font-weight:800">${pb.isStrong?'STRONG':'NEEDS BOOST'}</td>
+            <td style="color:${pb.isStrong?THEME.emerald:THEME.rose};font-weight:800">${(pb.qualityBand || (pb.isStrong ? 'strong' : 'weak')).toUpperCase()}</td>
           </tr>`
       }).join('') || '<tr><td colspan="12">Shadbala data unavailable.</td></tr>'}
     </tbody>
@@ -1226,6 +1314,10 @@ export function generateChartHTML(chart: ChartOutput, branding?: Branding): stri
     <div style="margin-top:6px">
       Strongest Graha: <strong>${GRAHA_NAMES[strongestId as GrahaId] || strongestId}</strong> |
       Weakest Graha: <strong>${GRAHA_NAMES[weakestId as GrahaId] || weakestId}</strong>
+    </div>
+    <div style="margin-top:4px">
+      Chart profile: <strong>${(chart.shadbala?.generatedProfile || 'balanced').toUpperCase()}</strong> |
+      Mean ratio: <strong>${(chart.shadbala?.averageRatio || 0).toFixed(2)}x</strong>
     </div>
     <div style="margin-top:6px; font-size:11px; color:${THEME.muted}">
       A ratio above 1.00 means the graha crosses its traditional minimum required bala.

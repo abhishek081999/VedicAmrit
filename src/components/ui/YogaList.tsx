@@ -6,14 +6,18 @@
 
 import { useState } from 'react'
 import type { YogaResult, YogaCategory } from '@/types/astrology'
+import { Crown, Gem, Sparkles, Moon, Anchor, Sword, ArrowLeftRight, Star, Info, Zap } from 'lucide-react'
 
-const CATEGORY_CONFIG: Record<YogaCategory, { label: string; color: string; bg: string; icon: string }> = {
-  mahapurusha: { label: 'Pancha Mahāpuruṣa', color: '#e2c97e', bg: 'rgba(201,168,76,0.10)', icon: '⭐' },
-  raja:        { label: 'Rāja Yoga',          color: '#f59e42', bg: 'rgba(245,158,66,0.10)',  icon: '👑' },
-  dhana:       { label: 'Dhana Yoga',         color: '#4ecdc4', bg: 'rgba(78,205,196,0.10)',  icon: '💎' },
-  special:     { label: 'Special Yoga',       color: '#8b7cf6', bg: 'rgba(139,124,246,0.10)', icon: '✦' },
-  viparita:    { label: 'Viparīta Rāja',      color: '#f0a0c0', bg: 'rgba(240,160,192,0.10)', icon: '☯' },
-  lunar:       { label: 'Lunar Yoga',         color: '#b0c8e0', bg: 'rgba(176,200,224,0.10)', icon: '☽' },
+const CATEGORY_CONFIG: Record<YogaCategory, { label: string; color: string; bg: string; icon: any }> = {
+  mahapurusha: { label: 'Pancha Mahāpuruṣa', color: '#e2c97e', bg: 'rgba(201,168,76,0.10)', icon: Star },
+  raja:        { label: 'Rāja Yoga',          color: '#f59e42', bg: 'rgba(245,158,66,0.10)',  icon: Crown },
+  dhana:       { label: 'Dhana Yoga',         color: '#4ecdc4', bg: 'rgba(78,205,196,0.10)',  icon: Gem },
+  special:     { label: 'Special Yoga',       color: '#8b7cf6', bg: 'rgba(139,124,246,0.10)', icon: Sparkles },
+  viparita:    { label: 'Viparīta Rāja',      color: '#f0a0c0', bg: 'rgba(240,160,192,0.10)', icon: Zap },
+  lunar:       { label: 'Lunar Yoga',         color: '#b0c8e0', bg: 'rgba(176,200,224,0.10)', icon: Moon },
+  nabhasa:     { label: 'Nabhasa Yoga',       color: '#76c7c0', bg: 'rgba(118,199,192,0.10)', icon: Anchor },
+  malefic:     { label: 'Malefic Yoga',       color: '#e07b8e', bg: 'rgba(224,123,142,0.10)', icon: Sword },
+  parivartana: { label: 'Parivartana',        color: '#f59e42', bg: 'rgba(245,158,66,0.10)',  icon: ArrowLeftRight },
 }
 
 const PLANET_NAMES: Record<string, string> = {
@@ -27,7 +31,7 @@ const STRENGTH_CONFIG = {
   weak:     { label: 'Weak',     color: 'var(--rose)', bg: 'rgba(224,123,142,0.10)',  border: 'rgba(224,123,142,0.25)' },
 }
 
-const CATEGORY_ORDER: YogaCategory[] = ['mahapurusha','raja','dhana','special','viparita','lunar']
+const CATEGORY_ORDER: YogaCategory[] = ['mahapurusha', 'raja', 'dhana', 'parivartana', 'special', 'viparita', 'lunar', 'nabhasa', 'malefic']
 
 function YogaCard({ yoga }: { yoga: YogaResult }) {
   const cat = CATEGORY_CONFIG[yoga.category]
@@ -46,23 +50,24 @@ function YogaCard({ yoga }: { yoga: YogaResult }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.9rem' }}>{cat.icon}</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            <cat.icon size={16} style={{ color: cat.color }} />
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
               {yoga.name}
             </span>
           </div>
-          <div style={{ fontSize: '0.75rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: cat.color, marginTop: 1 }}>
+          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-display)', fontStyle: 'italic', color: 'var(--text-muted)', marginTop: 2 }}>
             {yoga.sanskrit}
           </div>
         </div>
         {/* Strength badge */}
         <span style={{
-          padding: '0.15rem 0.55rem', borderRadius: 99,
-          fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.06em',
-          textTransform: 'uppercase', fontFamily: 'var(--font-display)',
+          padding: '0.15rem 0.5rem', borderRadius: 6,
+          fontSize: '0.6rem', fontWeight: 800, letterSpacing: '0.05em',
+          textTransform: 'uppercase', fontFamily: 'var(--font-mono)',
           background: str.bg, color: str.color, border: `1px solid ${str.border}`,
-          whiteSpace: 'nowrap',
+          whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.25rem'
         }}>
+          {yoga.strength === 'strong' && <Zap size={10} fill="currentColor" />}
           {str.label}
         </span>
       </div>
@@ -133,7 +138,10 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
   }, {})
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div style={{ 
+      display: 'flex', flexDirection: 'column', gap: '1rem',
+      height: '100%',
+    }}>
 
       {/* Summary */}
       <div style={{
@@ -181,7 +189,14 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
       </div>
 
       {/* Grouped yoga cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ 
+        display: 'flex', flexDirection: 'column', gap: '1rem',
+        maxHeight: 'calc(100vh - 260px)',
+        overflowY: 'auto',
+        paddingRight: '0.4rem',
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'var(--border) transparent'
+      }}>
         {CATEGORY_ORDER.map(cat => {
           const items = grouped[cat]
           if (!items?.length) return null
@@ -191,11 +206,11 @@ export function YogaList({ yogas }: { yogas: YogaResult[] }) {
               <div style={{
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
               }}>
-                <span style={{ fontSize: '0.85rem' }}>{cfg.icon}</span>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: cfg.color }}>
+                <cfg.icon size={14} style={{ color: cfg.color }} />
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: cfg.color }}>
                   {cfg.label}
                 </span>
-                <div style={{ flex: 1, height: 1, background: `${cfg.color}22` }} />
+                <div style={{ flex: 1, height: 1, background: `${cfg.color}15` }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {items.map((yoga, i) => <YogaCard key={`${cat}-${i}`} yoga={yoga} />)}

@@ -155,10 +155,10 @@ export async function POST(req: NextRequest) {
     // Parallelize session check and cache lookup to reduce total latency
     const [session, cached] = await Promise.all([
       auth(),
-      redis.get(cacheKey)
+      null // redis.get(cacheKey) - Bypassing cache to reflect Shadbala logic changes
     ])
 
-    const cachedChart = parseCachedChart(cached)
+    const cachedChart = null as any // parseCachedChart(cached)
 
     if (cachedChart && hasVimsopakaData(cachedChart) && hasAdvancedFeatures(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation

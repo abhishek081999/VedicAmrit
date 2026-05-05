@@ -41,7 +41,7 @@ function getNak(totalDeg: number) {
   const nakIdx    = Math.floor(totalDeg / nakSize)
   const degInNak  = totalDeg % nakSize
   const pada      = Math.floor(degInNak / (nakSize / 4)) + 1
-  return { name: NAKSHATRA_SHORT[nakIdx % 27], pada }
+  return { name: NAKSHATRA_NAMES[nakIdx % 27], pada }
 }
 
 function getNav(totalDeg: number): Rashi {
@@ -138,24 +138,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
 
   useEffect(() => { setIsMounted(true) }, [])
 
-  // Reveal right-side columns when wide mode is enabled.
-  useEffect(() => {
-    if (!showWideColumns) return
-    const el = tableScrollerRef.current
-    if (!el) return
-    requestAnimationFrame(() => {
-      el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' })
-    })
-  }, [showWideColumns, selectedVarga, limited])
 
-  // Sync with prop ONLY if it changes from its previous value
-  const lastActiveVarga = useRef(activeVarga)
-  useEffect(() => {
-    if (activeVarga !== lastActiveVarga.current) {
-      if (activeVarga) setSelectedVarga(activeVarga)
-      lastActiveVarga.current = activeVarga
-    }
-  }, [activeVarga])
 
   // 1. Identify which Graha set to use for coordinates
   // Use the selected varga's grahas if available, otherwise fallback to root grahas (D1)
@@ -167,7 +150,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
     const mainIds = ['Su', 'Mo', 'Ma', 'Me', 'Ju', 'Ve', 'Sa', 'Ra', 'Ke']
     
     // Filter and map the planets for the current varga
-    currentVargaGrahas
+    const displayGrahas = (vargas && vargas[selectedVarga]) || vargas?.D1 || []
+
+    displayGrahas
       .filter(g => !limited || mainIds.includes(g.id))
       .forEach(g => {
         list.push({
@@ -224,8 +209,9 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
   }, [currentVargaGrahas, selectedVarga, lagnas, upagrahas, vargaLagnas, isSa, limited])
 
   const vargaOptions = vargas ? Object.keys(vargas)
-    .filter(opt => SHODASHA_VARGAS.includes(opt as any) || opt === 'D1')
+    .filter(opt => SHODASHA_VARGAS.includes(opt as any) || opt === 'D1' || opt === 'Chalit')
     .sort((a, b) => {
+      if (a === 'Chalit') return -1; if (b === 'Chalit') return 1;
       const numA = parseInt(a.replace(/\D/g, '') || '0', 10)
       const numB = parseInt(b.replace(/\D/g, '') || '0', 10)
       return numA - numB || a.localeCompare(b)
@@ -273,7 +259,7 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
             <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Varga:</span>
             <select
               value={selectedVarga}
-              onChange={(e) => { const val = e.target.value; setSelectedVarga(val); if (onVargaChange) onVargaChange(val) }}
+              onChange={(e) => { const val = e.target.value; setSelectedVarga(val) }}
               style={{
                 background: 'var(--primary-brand)', color: '#fff',
                 border: '1px solid var(--gold)', borderRadius: '4px',
@@ -295,12 +281,12 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
       <div ref={tableScrollerRef} style={{ overflowX: 'auto', width: '100%' }}>
         <table style={{ width: '100%', minWidth: showWideColumns ? 700 : 520, borderCollapse: 'collapse', background: 'var(--surface-1)', tableLayout: 'fixed' }}>
           <colgroup>
-            <col style={{ width: '20%' }} />
+            <col style={{ width: '18%' }} />
             <col style={{ width: '14%' }} />
-            <col style={{ width: '15%' }} />
+            <col style={{ width: '20%' }} />
             <col style={{ width: '17%' }} />
-            <col style={{ width: '13%' }} />
-            <col style={{ width: '21%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '19%' }} />
           </colgroup>
 
           <thead>
@@ -364,8 +350,8 @@ export function GrahaTable({ grahas, lagnas, upagrahas, limited = false, vargas,
                     <b>{deg}°</b>{String(min).padStart(2,'0')}′{String(sec).padStart(2,'0')}″
                   </td>
                   {/* Nakshatra */}
-                  <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>
-                    <b>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
+                  <td style={{ textAlign: 'center', fontSize: '0.72rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <b title={nak.name}>{nak.name}</b> <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem' }}>({nak.pada})</span>
                   </td>
                   {/* Rashi · D9 */}
                   <td style={{ textAlign: 'center', fontSize: '0.72rem' }}>

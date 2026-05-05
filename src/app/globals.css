@@ -3393,3 +3393,102 @@ select.input {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Viṁśopaka UI System (Premium) ───────────────────────────── */
+
+.vp-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.vp-card:hover {
+  border-color: var(--border-bright);
+}
+
+.vp-header {
+  background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%);
+  border-left: 4px solid var(--gold);
+}
+
+.vp-caps {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.vp-pill {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vp-pill:hover {
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border-color: var(--border-bright);
+}
+
+.vp-pill-active {
+  background: var(--gold-faint) !important;
+  color: var(--text-gold) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 16px rgba(201, 168, 76, 0.15);
+}
+
+.vp-planet-card {
+  min-width: 96px;
+  padding: 0.85rem;
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  border: 2px solid transparent;
+}
+
+.vp-planet-card:hover {
+  transform: translateY(-2px);
+}
+
+.vp-stat-chip {
+  background: var(--surface-2);
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.vp-rank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--r-md);
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-soft);
+}
+
+.vp-rank-row:hover {
+  transform: translateX(4px);
+  background: var(--surface-2);
+}
