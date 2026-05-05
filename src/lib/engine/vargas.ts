@@ -359,6 +359,7 @@ export type VargaName =
   | 'D12_Ganaamsha' | 'D24_Paravidya' | 'D30_Venkatesa'
   | 'D60_Nadi' | 'D81' | 'D81_Nadi'
   | 'D108_Guru' | 'D108_Shukra' | 'D144' | 'D150'
+  | 'Chalit'
 
 export const VARGA_FUNCTIONS: Record<VargaName, (lon: number) => number> = {
   D1, D2, D3, D4, D7, D9, D10, D12,
@@ -370,6 +371,7 @@ export const VARGA_FUNCTIONS: Record<VargaName, (lon: number) => number> = {
   D12_Ganaamsha, D24_Paravidya, D30_Venkatesa,
   D60_Nadi, D81, D81_Nadi,
   D108_Guru, D108_Shukra, D144, D150,
+  Chalit: D1,
 }
 
 // Standard Parashara Shodashavarga (16 divisional charts)

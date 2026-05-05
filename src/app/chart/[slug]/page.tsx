@@ -429,7 +429,7 @@ export default function PublicChartPage() {
               {tab === 'shadbala' && (
                 <div className="card">
                   <div className="label-caps" style={{ marginBottom: '1rem' }}>Ṣaḍbala — Six-fold Strength</div>
-                  <ShadbalaTable shadbala={chart.shadbala} />
+                  <ShadbalaTable shadbala={chart.shadbala} preferClassicCharts />
                 </div>
               )}
 

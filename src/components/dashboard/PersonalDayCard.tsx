@@ -12,6 +12,7 @@ interface PersonalDayCardProps {
   longitude:       number
   timezone:        string
   todayPanchang?:  PanchangData | null
+  birthDate:       string
 }
 
 export function PersonalDayCard({
@@ -20,7 +21,8 @@ export function PersonalDayCard({
   latitude,
   longitude,
   timezone,
-  todayPanchang
+  todayPanchang,
+  birthDate
 }: PersonalDayCardProps) {
   const [todayNak, setTodayNak] = useState<{ index: number; name: string } | null>(null)
   const [loading, setLoading] = useState(!todayPanchang)
@@ -79,6 +81,17 @@ export function PersonalDayCard({
   const accentColor  = isAuspicious ? 'var(--teal)' : isDanger ? 'var(--rose)' : 'var(--gold)'
   const qualityLabel = isAuspicious ? 'Auspicious' : isDanger ? 'Caution' : 'Neutral'
 
+  // BCP Calculation
+  const birthDateObj = new Date(birthDate)
+  const now = new Date()
+  let age = now.getFullYear() - birthDateObj.getFullYear()
+  const mDiff = now.getMonth() - birthDateObj.getMonth()
+  if (mDiff < 0 || (mDiff === 0 && now.getDate() < birthDateObj.getDate())) {
+    age--
+  }
+  const bcpYear = age + 1
+  const bcpHouse = ((bcpYear - 1) % 12) + 1
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.72rem' }}>
 
@@ -90,6 +103,14 @@ export function PersonalDayCard({
           color: accentColor, letterSpacing: '0.05em', textTransform: 'uppercase'
         }}>
           {qualityLabel}
+        </span>
+        <span style={{
+          fontSize: '0.6rem', fontWeight: 700, padding: '1px 7px',
+          borderRadius: 3, border: '1px solid var(--border-soft)',
+          background: 'var(--gold-faint)', color: 'var(--text-gold)',
+          letterSpacing: '0.05em', textTransform: 'uppercase'
+        }} title={`Bhrigu Chakra Paddhati - Year ${bcpYear}`}>
+          BCP: H{bcpHouse}
         </span>
         <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
           Tarabala: <strong style={{ color: accentColor }}>{taraName} #{taraIdx + 1}</strong>

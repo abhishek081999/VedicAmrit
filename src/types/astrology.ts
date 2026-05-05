@@ -290,6 +290,7 @@ export interface GrahaData {
     subLord:  GrahaId
     subSubLord: GrahaId
   }
+  isWaxingMoon?: boolean
 }
 
 // ── Upagraha Data ────────────────────────────────────────────
@@ -529,6 +530,16 @@ export interface ShadbalaPlanet {
   required:       number
   ratio:          number
   isStrong:       boolean
+  qualityBand?:   'excellent' | 'strong' | 'average' | 'weak'
+  interpretation?: string
+  componentShash?: {
+    sthana: number
+    dig: number
+    kala: number
+    chesta: number
+    naisargika: number
+    drik: number
+  }
   details?: {
     sthana?: {
       uccha: number
@@ -566,6 +577,8 @@ export interface ShadbalaResult {
   planets:   Record<string, ShadbalaPlanet>
   strongest: string
   weakest:   string
+  averageRatio?: number
+  generatedProfile?: 'balanced' | 'top-heavy' | 'strained'
 }
 
 // ── Bhava Bala (House Strength) ────────────────────────────────

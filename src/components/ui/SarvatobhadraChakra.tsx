@@ -457,22 +457,22 @@ function findNakPos(grid: SBCCell[][], nakIdx: number): [number, number] {
 
 function DirectionLabel({ label, sub, size, vertical }: { label: string; sub: string; size: number; vertical?: boolean }) {
   const style: CSSProperties = vertical
-    ? { writingMode: 'vertical-rl', textOrientation: 'mixed', padding: '4px', minWidth: 18 }
-    : { textAlign: 'center', padding: '2px 0' }
+    ? { writingMode: 'vertical-rl', textOrientation: 'mixed', padding: '6px', minWidth: 20 }
+    : { textAlign: 'center', padding: '4px 0' }
 
   return (
-    <div style={{ ...style, display: 'flex', flexDirection: vertical ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-      <span style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</span>
-      <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>{sub}</span>
+    <div style={{ ...style, display: 'flex', flexDirection: vertical ? 'column' : 'row', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+      <span style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--gold)', letterSpacing: '0.12em', textTransform: 'uppercase', textShadow: '0 1px 1px rgba(0,0,0,0.1)' }}>{label}</span>
+      <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontStyle: 'italic', opacity: 0.8 }}>{sub}</span>
     </div>
   )
 }
 
 function LegendItem({ color, border, label, icon }: { color: string; border: string; label: string; icon?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.62rem', color: 'var(--text-muted)' }}>
-      <div style={{ width: 11, height: 11, borderRadius: 2, background: color, border, flexShrink: 0 }} />
-      {icon && <span style={{ fontSize: '0.65rem' }}>{icon}</span>}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+      <div style={{ width: 12, height: 12, borderRadius: 3, background: color, border, flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} />
+      {icon && <span style={{ fontSize: '0.7rem', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.2))' }}>{icon}</span>}
       <span>{label}</span>
     </div>
   )

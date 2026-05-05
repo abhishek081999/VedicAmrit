@@ -15,6 +15,9 @@ export type YogaCategory =
   | 'viparita'    // Reversal yogas
   | 'special'     // Gajakesari, Budhaditya, etc.
   | 'lunar'       // Moon-based yogas (Sunapha, Anapha, etc.)
+  | 'nabhasa'     // Geometric/Shape yogas
+  | 'malefic'     // Negative combinations
+  | 'parivartana' // Exchange of lords
 
 export interface YogaResult {
   name:        string
@@ -63,11 +66,31 @@ function inSameHouse(a: GrahaData, b: GrahaData, ascDeg: number): boolean {
   return getHouse(a, ascDeg) === getHouse(b, ascDeg)
 }
 
-function aspects(a: GrahaData, b: GrahaData): boolean {
-  // Mutual aspect — within 30° orb (house-based for simplicity)
-  const diff = Math.abs((a.totalDegree ?? 0) - (b.totalDegree ?? 0))
-  const norm = Math.min(diff, 360 - diff)
-  return norm < 35
+/**
+ * Proper Vedic Drishti (Aspects)
+ */
+function hasAspect(source: GrahaData, target: GrahaData, ascDeg: number): boolean {
+  if (source.id === target.id) return false
+  const h1 = getHouse(source, ascDeg)
+  const h2 = getHouse(target, ascDeg)
+  const diff = ((h2 - h1 + 12) % 12) + 1 // 1-indexed house difference
+
+  // All planets aspect 7th
+  if (diff === 7) return true
+
+  // Special aspects
+  if (source.id === 'Ma' && (diff === 4 || diff === 8)) return true
+  if (source.id === 'Ju' && (diff === 5 || diff === 9)) return true
+  if (source.id === 'Sa' && (diff === 3 || diff === 10)) return true
+  
+  return false
+}
+
+function areRelated(a: GrahaData, b: GrahaData, ascDeg: number): boolean {
+  // Related if conjunct, mutually aspecting, or in parivartana
+  if (inSameHouse(a, b, ascDeg)) return true
+  if (hasAspect(a, b, ascDeg) || hasAspect(b, a, ascDeg)) return true
+  return false
 }
 
 // ── Pancha Mahapurusha Yogas ──────────────────────────────────
@@ -317,8 +340,54 @@ function checkSpecialYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[]
         strength:    in2ndFromSun.some(g => BENEFICS.includes(g.id)) ? 'strong' : 'moderate',
         planets:     ['Su', ...in2ndFromSun.map(g => g.id)],
         houses:      [suH, (suH % 12) + 1],
-        description: `${in2ndFromSun.map(g => g.id).join(', ')} in 2nd house from Sun (H${(suH % 12) + 1})`,
-        effect:      'Balanced personality, good memory, happiness, truthfulness',
+        description: `${in2ndFromSun.map(g => g.id).join(', ')} in 2nd house from Sun`,
+        effect:      'Balanced personality, good memory, happiness, truthfulness.',
+    })
+  }
+
+    if (in12thFromSun.length > 0) {
+      yogas.push({
+        name:        'Vosi Yoga',
+        sanskrit:    'वोसी योग',
+        category:    'special',
+        strength:    in12thFromSun.some(g => BENEFICS.includes(g.id)) ? 'strong' : 'moderate',
+        planets:     ['Su', ...in12thFromSun.map(g => g.id)],
+        houses:      [suH, ((suH - 2 + 12) % 12) + 1],
+        description: `${in12thFromSun.map(g => g.id).join(', ')} in 12th house from Sun`,
+        effect:      'Skillful, charitable, good orator, famous, and successful in undertakings.',
+      })
+    }
+
+    if (in2ndFromSun.length > 0 && in12thFromSun.length > 0) {
+      yogas.push({
+        name:        'Ubhayacharī Yoga',
+        sanskrit:    'उभयचारी योग',
+        category:    'special',
+        strength:    'strong',
+        planets:     ['Su', ...in2ndFromSun.map(g => g.id), ...in12thFromSun.map(g => g.id)],
+        houses:      [suH, (suH % 12) + 1, ((suH - 2 + 12) % 12) + 1],
+        description: 'Planets in both 2nd and 12th from Sun.',
+        effect:      'Well-proportioned body, eloquent speaker, wealthy, and stable mind.',
+      })
+    }
+  }
+
+  // 7. Adhi Yoga — Benefics in 6, 7, 8 from Moon (or Lagna)
+  if (mo) {
+    const moH = getHouse(mo, ascDeg)
+    const houses678 = [(moH + 4) % 12 + 1, (moH + 5) % 12 + 1, (moH + 6) % 12 + 1]
+    const beneficsIn678 = grahas.filter(g => BENEFICS.includes(g.id) && houses678.includes(getHouse(g, ascDeg)))
+    
+    if (beneficsIn678.length >= 2) {
+      yogas.push({
+        name:        'Chandra Adhi Yoga',
+        sanskrit:    'चन्द्र अधि योग',
+        category:    'raja',
+        strength:    beneficsIn678.length === 3 ? 'strong' : 'moderate',
+        planets:     ['Mo', ...beneficsIn678.map(g => g.id)],
+        houses:      [moH, ...houses678],
+        description: `Benefics (${beneficsIn678.map(g => g.id).join(', ')}) in 6th, 7th, or 8th from Moon`,
+        effect:      'Leader of others, famous, stable wealth, victory over competitors.',
       })
     }
   }
@@ -415,6 +484,171 @@ function checkLunarYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
     })
   }
 
+  // Durudhara — planets in both 2nd and 12th from Moon
+  if (in2ndFromMoon.length > 0 && in12thFromMoon.length > 0) {
+    yogas.push({
+      name:        'Durudharā Yoga',
+      sanskrit:    'दुरुधरा योग',
+      category:    'lunar',
+      strength:    'strong',
+      planets:     ['Mo', ...in2ndFromMoon.map(g => g.id), ...in12thFromMoon.map(g => g.id)],
+      houses:      [moH, (moH % 12) + 1, ((moH - 2 + 12) % 12) + 1],
+      description: 'Planets in both 2nd and 12th from Moon',
+      effect:      'Wealth, wisdom, fame, vehicles, and a happy life.',
+    })
+  }
+
+  // 4. Śakaṭa Yoga — Moon in 6, 8, 12 from Jupiter
+  const ju = grahas.find(g => g.id === 'Ju')
+  if (mo && ju) {
+    const moH = getHouse(mo, ascDeg)
+    const juH = getHouse(ju, ascDeg)
+    const diff = ((moH - juH + 12) % 12) + 1
+    if ([6, 8, 12].includes(diff)) {
+      yogas.push({
+        name:        'Śakaṭa Yoga',
+        sanskrit:    'शकट योग',
+        category:    'malefic',
+        strength:    isKendra(moH) ? 'weak' : 'strong',
+        planets:     ['Mo', 'Ju'],
+        houses:      [moH, juH],
+        description: `Moon in H${moH} is in 6/8/12 position from Jupiter in H${juH}`,
+        effect:      'Fluctuating fortune, loss of wealth and position but regaining it through effort.',
+      })
+    }
+  }
+
+  return yogas
+}
+
+// ── Parivartana Yogas ─────────────────────────────────────────
+// Exchange of lords between houses
+
+function checkParivartana(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
+  const yogas: YogaResult[] = []
+  const ascRashi = lagnas.ascRashi ?? 1
+  const ascDeg   = lagnas.ascDegree ?? 0
+
+  for (let i = 1; i <= 12; i++) {
+    for (let j = i + 1; j <= 12; j++) {
+      const lordI = houseLord(i, ascRashi)
+      const lordJ = houseLord(j, ascRashi)
+      if (lordI === lordJ) continue
+
+      const gI = grahas.find(g => g.id === lordI)
+      const gJ = grahas.find(g => g.id === lordJ)
+      if (!gI || !gJ) continue
+
+      const hI = getHouse(gI, ascDeg)
+      const hJ = getHouse(gJ, ascDeg)
+
+      if (hI === j && hJ === i) {
+        // Formed!
+        let name = 'Maha Parivartana'
+        let effect = 'Success, power, and mutual support between life areas.'
+
+        if (isDusthana(i) || isDusthana(j)) {
+          name = 'Dainya Parivartana'
+          effect = 'Obstacles, fluctuations, and growth through struggle.'
+        } else if (i === 3 || j === 3) {
+          name = 'Khala Parivartana'
+          effect = 'Fluctuating fortunes, sometimes high, sometimes low.'
+        }
+
+        yogas.push({
+          name:        `${name} (H${i} ⇄ H${j})`,
+          sanskrit:    'परिवर्तन योग',
+          category:    'parivartana',
+          strength:    'strong',
+          planets:     [lordI, lordJ],
+          houses:      [i, j],
+          description: `Lord of H${i} (${lordI}) in H${j} and Lord of H${j} (${lordJ}) in H${i}`,
+          effect,
+        })
+      }
+    }
+  }
+  return yogas
+}
+
+// ── Nabhasa Yogas (Geometric Patterns) ────────────────────────
+
+function checkNabhasaYogas(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
+  const yogas: YogaResult[] = []
+  const ascDeg = lagnas.ascDegree ?? 0
+  const mainGrahas = grahas.filter(g => !['Ra', 'Ke', 'Ur', 'Ne', 'Pl'].includes(g.id))
+  const houseOccupancy = new Set(mainGrahas.map(g => getHouse(g, ascDeg)))
+  
+  // 1. Sankhya Yogas (based on number of signs occupied)
+  const nSigns = houseOccupancy.size
+  const SANKHYA: Record<number, { name: string; sk: string; eff: string }> = {
+    1: { name: 'Gola',  sk: 'गोल',   eff: 'Short life, poverty, low status (unlikely in reality)' },
+    2: { name: 'Yuga',  sk: 'युग',   eff: 'Financial struggle, unconventional path' },
+    3: { name: 'Shula', sk: 'शूल',   eff: 'Brave but potentially aggressive, strong willpower' },
+    4: { name: 'Kedara', sk: 'केदार', eff: 'Agricultural success, truthfulness, wealth from land' },
+    5: { name: 'Pasha', sk: 'पाश',   eff: 'Binding nature, many followers, potentially talkative' },
+    6: { name: 'Dama',  sk: 'दाम',   eff: 'Charitable, wealthy, helpful to others' },
+    7: { name: 'Veena', sk: 'वीणा',  eff: 'Love for music and arts, wisdom, leadership qualities' },
+  }
+
+  if (SANKHYA[nSigns]) {
+    yogas.push({
+      name:        `${SANKHYA[nSigns].name} Yoga`,
+      sanskrit:    `${SANKHYA[nSigns].sk} योग`,
+      category:    'nabhasa',
+      strength:    'moderate',
+      planets:     mainGrahas.map(g => g.id),
+      houses:      Array.from(houseOccupancy),
+      description: `All main planets occupy exactly ${nSigns} houses.`,
+      effect:      SANKHYA[nSigns].eff,
+    })
+  }
+
+  return yogas
+}
+
+// ── Kartari Yogas ─────────────────────────────────────────────
+// Hemming in of a house by benefics or malefics
+
+function checkKartari(grahas: GrahaData[], lagnas: LagnaData): YogaResult[] {
+  const yogas: YogaResult[] = []
+  const ascDeg = lagnas.ascDegree ?? 0
+  const BENEFICS = ['Mo', 'Me', 'Ju', 'Ve']
+  const MALEFICS = ['Su', 'Ma', 'Sa', 'Ra', 'Ke']
+
+  // Check Kartari for Lagna (House 1)
+  const in2nd = grahas.filter(g => getHouse(g, ascDeg) === 2)
+  const in12th = grahas.filter(g => getHouse(g, ascDeg) === 12)
+
+  if (in2nd.length > 0 && in12th.length > 0) {
+    const isShubha = in2nd.every(g => BENEFICS.includes(g.id)) && in12th.every(g => BENEFICS.includes(g.id))
+    const isPapa = in2nd.every(g => MALEFICS.includes(g.id)) && in12th.every(g => MALEFICS.includes(g.id))
+
+    if (isShubha) {
+      yogas.push({
+        name:        'Śubha Kartarī Yoga',
+        sanskrit:    'शुभ कर्तरी योग',
+        category:    'special',
+        strength:    'strong',
+        planets:     [...in2nd.map(g=>g.id), ...in12th.map(g=>g.id)],
+        houses:      [1, 2, 12],
+        description: 'Lagna hemmed in by natural benefics.',
+        effect:      'Protection, health, support from environment, obstacles are easily overcome.',
+      })
+    } else if (isPapa) {
+      yogas.push({
+        name:        'Pāpa Kartarī Yoga',
+        sanskrit:    'पाप कर्तरी योग',
+        category:    'malefic',
+        strength:    'strong',
+        planets:     [...in2nd.map(g=>g.id), ...in12th.map(g=>g.id)],
+        houses:      [1, 2, 12],
+        description: 'Lagna hemmed in by natural malefics.',
+        effect:      'Pressure, health issues, feeling restricted or trapped by circumstances.',
+      })
+    }
+  }
+
   return yogas
 }
 
@@ -431,6 +665,9 @@ export function detectYogas(
     ...checkSpecialYogas(grahas, lagnas),
     ...checkViparitaYogas(grahas, lagnas),
     ...checkLunarYogas(grahas, lagnas),
+    ...checkParivartana(grahas, lagnas),
+    ...checkNabhasaYogas(grahas, lagnas),
+    ...checkKartari(grahas, lagnas),
   ]
 
   // Remove duplicates by name

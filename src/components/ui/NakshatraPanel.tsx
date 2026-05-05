@@ -473,6 +473,12 @@ function PlanetTab({positions, chart, moonNakIdx}:{positions:any[], chart: Chart
           </div>
         </div>
       )}
+      {shadbala && (
+        <div style={{padding:'0.7rem 0.85rem',background:'var(--surface-2)',border:'1px solid var(--border-soft)',borderRadius:'var(--r-md)',fontSize:'0.72rem',color:'var(--text-secondary)'}}>
+          Chart profile: <b style={{color:'var(--text-primary)'}}>{shadbala.generatedProfile ?? 'balanced'}</b> ·
+          Mean ratio: <b style={{color:'var(--text-gold)'}}> {(shadbala.averageRatio ?? 0).toFixed(2)}x</b>
+        </div>
+      )}
       <div style={{display:'flex',flexDirection:'column',gap:'0.75rem'}}>
         <p style={{fontSize:'0.75rem',color:'var(--text-muted)',fontStyle:'italic',margin:0}}>Graha Nakshatras — Planet positions with their Pada and Navtara relative to Birth Moon ({NAK_NAMES[moonNakIdx]}).</p>
         <div style={{ overflowX: 'auto', border: '1px solid var(--border-soft)', borderRadius: 'var(--r-md)', background: 'var(--surface-1)' }}>

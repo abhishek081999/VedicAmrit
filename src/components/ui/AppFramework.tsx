@@ -248,6 +248,10 @@ export function AppFramework({ children }: { children: React.ReactNode }) {
         setIsFormOpen(true)
       }
       setActiveTab(t.id)
+      // Ensure content starts from top when switching side-nav tabs.
+      // This avoids large blank gaps on mobile when previous tab was deeply scrolled.
+      mainRef.current?.scrollTo({ top: 0, behavior: 'auto' })
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'auto' })
       if (window.innerWidth < 1024) setIsSidenavOpen(false)
     }
 

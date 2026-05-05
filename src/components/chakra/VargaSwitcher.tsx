@@ -11,6 +11,7 @@ interface VargaMeta { name: string; full: string; topic: string; tier: 'free'|'g
 
 const VARGA_META: VargaMeta[] = [
   { name:'D1',  full:'Rashi',           topic:'Lagna chart — personality, body, overall life',        tier:'free' },
+  { name:'Chalit', full:'Bhava Chalit', topic:'House positions — actual house placements (Sripati)', tier:'free' },
   { name:'D9',  full:'Navamsha',        topic:'Spouse & marriage — inner self, manifests after 35',   tier:'free' },
   { name:'D60', full:'Shastyamsha',     topic:'Past-life karma — karmic influences, soul evolution',  tier:'free' },
   { name:'D2',  full:'Hora',            topic:'Wealth & assets — income, Sun Hora and Moon Hora',     tier:'free' },

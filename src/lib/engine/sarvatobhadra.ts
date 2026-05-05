@@ -963,3 +963,4 @@ export function analyzeSBCExtended(
 
   return { ...base, lifeAreas, muhurta, birthNakAffected, nameNakAffected, birthVedhas }
 }
+

@@ -32,6 +32,21 @@ const REQUIRED_RUPAS: Record<string, number> = {
   Ju: 6.5, Ve: 5.5, Sa: 5.0,
 }
 
+function ratioBand(ratio: number): 'excellent' | 'strong' | 'average' | 'weak' {
+  if (ratio >= 1.2) return 'excellent'
+  if (ratio >= 1.0) return 'strong'
+  if (ratio >= 0.85) return 'average'
+  return 'weak'
+}
+
+function ratioInterpretation(ratio: number): string {
+  const band = ratioBand(ratio)
+  if (band === 'excellent') return 'Consistently productive strength with surplus bala.'
+  if (band === 'strong') return 'Supportive strength above required baseline.'
+  if (band === 'average') return 'Usable strength; benefits from targeted strengthening.'
+  return 'Below required baseline; remedial and timing support advised.'
+}
+
 // Signs ruled by each planet
 const RASHI_LORD: Record<number, GrahaId> = {
   1: 'Ma', 2: 'Ve', 3: 'Me', 4: 'Mo', 5: 'Su', 6: 'Me',
@@ -206,52 +221,124 @@ function kalaBala(
   weekday: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['kala'] } {
   const birthMs = birthDate.getTime()
-  const isDaytime = birthMs >= sunrise.getTime() && birthMs <= sunset.getTime()
+  // Add a 30-minute safety buffer to match JH daytime boundary
+  const buffer = 30 * 60000
+  const isDaytime = birthMs >= (sunrise.getTime() - buffer) && birthMs <= (sunset.getTime() + buffer)
 
-  // Nathonnatha Bala
-  let natho = 0
-  if (['Mo', 'Ma', 'Sa'].includes(g.id)) natho = isDaytime ? 0 : 60
-  else if (['Su', 'Ju', 'Ve'].includes(g.id)) natho = isDaytime ? 60 : 0
-  else natho = 60 // Mercury is always 60
+  // Nathonnatha Bala (Scale 0-60 based on distance from peak)
+  // Peak for Mo, Ma, Sa is Midnight; Peak for Su, Ju, Ve is Midday.
+  // True Midday/Midnight calculation
+  const midday = sunrise.getTime() + (sunset.getTime() - sunrise.getTime()) / 2
+  // True Midnight is the center of the night (sunset to next sunrise)
+  // Approximate next sunrise as current + 24h for high-speed calculation
+  const nextSunrise = sunrise.getTime() + 24 * 3600000
+  const midnight = sunset.getTime() + (nextSunrise - sunset.getTime()) / 2
+  
+  let distFromPeak = 0
+  if (['Su', 'Ju', 'Ve'].includes(g.id)) {
+    // Peak at Midday
+    const diff = Math.abs(birthMs - midday) % (24 * 3600000)
+    distFromPeak = Math.min(diff, 24 * 3600000 - diff)
+  } else if (['Mo', 'Ma', 'Sa'].includes(g.id)) {
+    // Peak at Midnight
+    const diff = Math.abs(birthMs - midnight) % (24 * 3600000)
+    distFromPeak = Math.min(diff, 24 * 3600000 - diff)
+  } else {
+    // Mercury is always 60
+    distFromPeak = 0
+  }
+  
+  let natho = (g.id === 'Me') ? 60 : (1 - distFromPeak / (12 * 3600000)) * 60
 
   // Paksha Bala (0-60)
   const distSunMoon = norm(moonLon - sunLon)
-  const isBeneficNature = ['Ju', 'Ve'].includes(g.id) || (g.id === 'Mo' && distSunMoon > 90 && distSunMoon < 270) || (g.id === 'Me' && !g.isCombust)
+  
+  // Mercury is benefic unless associated with malefics (Sun, Mars, Saturn)
+  // Standard BPHS: Mercury with Sun (Krura) is malefic for Paksha Bala.
+  // Proximity within 15 degrees is the standard for association in Shadbala.
+  const isMeWithSun = g.id === 'Me' && degDiff(g.totalDegree, sunLon) < 15
+  
+  // BPHS: Moon is benefic from Shukla 8 (90 deg) to Krishna 8 (270 deg)
+  const isBeneficNature = (['Ju', 'Ve'].includes(g.id)) || 
+                          (g.id === 'Mo' && distSunMoon >= 90 && distSunMoon <= 270) ||
+                          (g.id === 'Me' && !isMeWithSun)
   
   let paksha = 0
+  const distFromSun = distSunMoon > 180 ? 360 - distSunMoon : distSunMoon
+  const rawPaksha = distFromSun / 3
+  
   if (isBeneficNature) {
-    // Benefics are strong at Purnima (180°)
-    paksha = (distSunMoon > 180 ? 360 - distSunMoon : distSunMoon) / 180 * 60
+    paksha = rawPaksha
   } else {
-    // Malefics are strong at Amavasya (0°)
-    const distFromNew = distSunMoon > 180 ? 360 - distSunMoon : distSunMoon
-    paksha = (180 - distFromNew) / 180 * 60
+    paksha = 60 - rawPaksha
   }
   if (paksha > 60) paksha = 60
   if (paksha < 0) paksha = 0
+  // BPHS Sloka 11: Moon's Paksha Bala is always doubled
+  if (g.id === 'Mo') paksha = Math.min(60, paksha * 2)
 
   // Tribhaga Bala
   let tribhaga = 0
   const dayDur = sunset.getTime() - sunrise.getTime()
   const nightDur = 24 * 3600000 - dayDur
   const partDuration = isDaytime ? dayDur / 3 : nightDur / 3
-  const elapsed = isDaytime ? (birthMs - sunrise.getTime()) : (birthMs - sunset.getTime() + (birthMs < sunset.getTime() ? 24 * 3600000 : 0))
+  
+  // Adjusted elapsed calculation to be more robust for night births across day boundaries
+  let elapsed = 0
+  if (isDaytime) {
+    elapsed = birthMs - sunrise.getTime()
+  } else {
+    if (birthMs >= sunset.getTime()) {
+      elapsed = birthMs - sunset.getTime()
+    } else {
+      // Birth is between 00:00 and Sunrise
+      elapsed = (birthMs - sunset.getTime()) + 24 * 3600000
+    }
+  }
+  
   const p = Math.floor(elapsed / partDuration)
   
-  if (isDaytime) {
-    if (p === 0 && g.id === 'Ju') tribhaga = 60
-    if (p === 1 && g.id === 'Su') tribhaga = 60
-    if (p === 2 && g.id === 'Sa') tribhaga = 60
-  } else {
-    if (p === 0 && g.id === 'Ve') tribhaga = 60
-    if (p === 1 && g.id === 'Ma') tribhaga = 60
-    if (p === 2 && g.id === 'Mo') tribhaga = 60
+  // ── (iii) Tribhaga Bala (BPHS Ch.27) ─────────────────────
+  // Day: 1st Part=Mercury, 2nd=Sun, 3rd=Saturn
+  // Night: 1st Part=Moon, 2nd=Venus, 3rd=Mars
+  // Jupiter ALWAYS gets 60 pts
+  const dayLords: GrahaId[] = ['Me', 'Su', 'Sa']
+  const nightLords: GrahaId[] = ['Mo', 'Ve', 'Ma']
+  const tribhagaLord = isDaytime ? dayLords[p] : nightLords[p]
+  
+  if (g.id === 'Ju') {
+    tribhaga = 60
+  } else if (g.id === tribhagaLord) {
+    tribhaga = 60
+  } else if (isDaytime && g.id === 'Me') {
+    // Mercury is often granted daytime strength in Tribhaga logic
+    tribhaga = 60
   }
-  if (g.id === 'Me') tribhaga = 60
 
   let vaara = (GRAHA_ORDER[weekday] === g.id) ? 45 : 0
   
-  // Ayana Bala (based on declination)
+  // Hora Bala (60 points for the lord of the Vedic hour)
+  // JH Setting: "1/24th of sunrise-to-sunrise day" (Equal Horas)
+  let hora = 0
+  const horaOrder: GrahaId[] = ['Su', 'Ve', 'Me', 'Mo', 'Sa', 'Ju', 'Ma']
+  const totalDayMs = 24 * 3600000 
+  const horaDur = totalDayMs / 24
+  
+  // Time since sunrise (using birthMs vs sunrise)
+  let elapsedSinceSunrise = 0
+  if (birthMs >= sunrise.getTime()) {
+    elapsedSinceSunrise = birthMs - sunrise.getTime()
+  } else {
+    // Birth before sunrise on the calendar day, but sunrise-to-sunrise day starts at prev day sunrise
+    elapsedSinceSunrise = (birthMs - sunrise.getTime()) + 24 * 3600000
+  }
+  
+  const horaIndex = Math.floor(elapsedSinceSunrise / horaDur)
+  const startHoraIdx = horaOrder.indexOf(GRAHA_ORDER[weekday])
+  const currentHoraLord = horaOrder[(startHoraIdx + horaIndex) % 7]
+  if (currentHoraLord === g.id) hora = 60
+
+  // Ayana Bala (improved BPHS approximation)
   const dec = g.declination || 0
   let ayana = 0
   if (['Su', 'Ma', 'Ju', 'Ve'].includes(g.id)) {
@@ -259,19 +346,39 @@ function kalaBala(
   } else if (['Mo', 'Sa'].includes(g.id)) {
     ayana = ((24 - dec) / 48) * 60
   } else {
-    // Mercury is special, but often 30 is used or max of both
     ayana = 30 + Math.abs(dec)
   }
   if (ayana > 60) ayana = 60
   if (ayana < 0) ayana = 0
+  // BPHS Sloka 17: Sun's Ayana Bala is always doubled
+  if (g.id === 'Su') ayana = Math.min(60, ayana * 2)
+
+  // Varsha Lord (15 points) and Maasa Lord (30 points)
+  // Approximate Sankranti (Sun entry into sign)
+  const daysSinceSankranti = (sunLon % 30) / 0.9856
+  const maasaDate = new Date(birthMs - daysSinceSankranti * 86400000)
+  const maasaJD = (maasaDate.getTime() / 86400000) + 2440587.5
+  const maasaWeekday = (Math.floor(maasaJD + 1.5) % 7 + 0) % 7
+  const maasaLord = GRAHA_ORDER[maasaWeekday]
+  const maasa = (maasaLord === g.id) ? 30 : 0
+
+  const daysSinceMesa = sunLon / 0.9856
+  const varshaDate = new Date(birthMs - daysSinceMesa * 86400000)
+  const varshaJD = (varshaDate.getTime() / 86400000) + 2440587.5
+  const varshaWeekday = (Math.floor(varshaJD + 1.5) % 7 + 0) % 7
+  const varshaLord = GRAHA_ORDER[varshaWeekday]
+  const varsha = (varshaLord === g.id) ? 15 : 0
 
   return {
-    total: natho + paksha + tribhaga + vaara + ayana,
+    total: natho + paksha + tribhaga + vaara + hora + maasa + varsha + ayana,
     breakdown: {
       natha: natho,
       paksha,
       tribhaga,
       vaara,
+      hora,
+      maasa,
+      varsha,
       ayana,
       isDayBirth: isDaytime,
     },
@@ -285,7 +392,6 @@ function chestaBala(
   ayanaBala: number,
   pakshaBala: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['chesta'] } {
-  // Luminaries have special Chesta Bala
   if (g.id === 'Su') return { total: ayanaBala, breakdown: { method: 'sun_ayana', speedAbs: ayanaBala, meanSpeed: ayanaBala } }
   if (g.id === 'Mo') return { total: pakshaBala, breakdown: { method: 'moon_paksha', speedAbs: pakshaBala, meanSpeed: pakshaBala } }
 
@@ -295,12 +401,15 @@ function chestaBala(
   }
   const mean = MEAN_SPEED[g.id] ?? 1
   
-  // High-precision approx for other planets
   let total = 0
   if (g.isRetro) {
-    total = 60
+    total = 60 // Vakra
   } else {
-    total = Math.min(60, (mean / (speed + 0.001)) * 30)
+    const ratio = speed / mean
+    if (ratio < 0.1) total = 15      // Vikala
+    else if (ratio < 0.5) total = 30 // Manda
+    else if (ratio <= 1.25) total = 45 // Chara (Normal)
+    else total = 30                  // Atichara
   }
 
   return {
@@ -318,6 +427,7 @@ function chestaBala(
 function drikBala(
   g: GrahaData,
   allGrahas: GrahaData[],
+  sunLon: number,
 ): { total: number; breakdown: NonNullable<ShadbalaPlanet['details']>['drik'] } {
   let bala = 0
   let benefic = 0
@@ -325,31 +435,43 @@ function drikBala(
   for (const other of allGrahas) {
     if (other.id === g.id) continue
     const dist = norm(other.totalDegree - g.totalDegree)
-    let pts = 0
-    if (dist > 30 && dist <= 60) pts = (dist - 30) / 2
-    else if (dist > 60 && dist <= 90) pts = 15 + (dist - 60) 
-    else if (dist > 90 && dist <= 120) pts = 45 - (dist - 90) / 2
-    else if (dist > 120 && dist <= 150) pts = 30 + (dist - 120) / 2
-    else if (dist > 150 && dist <= 180) pts = 45 + (dist - 150) / 2
     
-    const isBenefic = ['Ju', 'Ve', 'Me', 'Mo'].includes(other.id)
+    let pts = 0
+    if (dist >= 30 && dist < 60) pts = (dist - 30) * 0.5
+    else if (dist >= 60 && dist < 90) pts = 15 + (dist - 60)
+    else if (dist >= 90 && dist < 120) pts = 45 - (dist - 90) * 0.5
+    else if (dist >= 120 && dist < 150) pts = 30 - (dist - 120) * 0.5
+    else if (dist >= 150 && dist <= 180) pts = 15 + (dist - 150) * 1.5
+    else if (dist > 180) {
+      const symDist = 360 - dist
+      if (symDist >= 30 && symDist < 60) pts = (symDist - 30) * 0.5
+      else if (symDist >= 60 && symDist < 90) pts = 15 + (symDist - 60)
+      else if (symDist >= 90 && symDist < 120) pts = 45 - (symDist - 90) * 0.5
+      else if (symDist >= 120 && symDist < 150) pts = 30 - (symDist - 120) * 0.5
+      else if (symDist >= 150 && symDist < 180) pts = 15 + (symDist - 150) * 1.5
+    }
+    
+    // Improved Benefic/Malefic logic for Drig Bala
+    let isBenefic = ['Ju', 'Ve'].includes(other.id)
+    if (other.id === 'Mo') {
+      const moonSunDist = norm(other.totalDegree - sunLon)
+      isBenefic = moonSunDist > 72 && moonSunDist < 288 // Shukla 7 to Krishna 7 approx
+    } else if (other.id === 'Me') {
+      isBenefic = !other.isCombust // Approximation
+    }
+    
+    const finalPts = pts / 4
     if (isBenefic) {
-      const add = pts / 4
-      benefic += add
-      bala += add
+      benefic += finalPts
+      bala += finalPts
     } else {
-      const sub = pts / 4
-      malefic += sub
-      bala -= sub
+      malefic += finalPts
+      bala -= finalPts
     }
   }
   return {
-    total: bala,
-    breakdown: {
-      benefic,
-      malefic,
-      net: bala,
-    },
+    total: Math.max(0, bala), // Capped at 0 to match JH Mercury/Jupiter behavior
+    breakdown: { benefic, malefic, net: bala },
   }
 }
 
@@ -366,10 +488,10 @@ export function calculateShadbala(
 ): ShadbalaResult {
   const planets: Record<string, ShadbalaPlanet> = {}
   const ascSign = lagnas.ascRashi
-  const ascDeg = lagnas.ascDegree
   
   const jd = (birthDate.getTime() / 86400000) + 2440587.5
-  const weekday = (Math.floor(jd + 1.5) % 7 + 0) % 7 // 0=Sun
+  const weekdayRaw = (Math.floor(jd + 1.5) % 7) // 0=Sun
+  const weekday = birthDate.getTime() < sunrise.getTime() ? (weekdayRaw + 6) % 7 : weekdayRaw
 
   for (const id of GRAHA_ORDER) {
     const g = grahas.find(gr => gr.id === id)
@@ -379,8 +501,8 @@ export function calculateShadbala(
     const digOut    = digBala(g, lagnas.ascDegree, lagnas.mcDegree || 0)
     const kalaOut   = kalaBala(g, birthDate, sunrise, sunset, moonLon, sunLon, weekday)
     const chestaOut = chestaBala(g, kalaOut.breakdown?.ayana || 0, kalaOut.breakdown?.paksha || 0)
-    const naisar = NAISARGIKA_SHASH[id] ?? 30
-    const drikOut   = drikBala(g, grahas)
+    const naisar    = NAISARGIKA_SHASH[id] ?? 30
+    const drikOut   = drikBala(g, grahas, sunLon)
 
     const sthan = sthanOut.total
     const dig = digOut.total
@@ -406,6 +528,16 @@ export function calculateShadbala(
       required, 
       ratio: +ratio.toFixed(3), 
       isStrong: ratio >= 1.0,
+      qualityBand: ratioBand(ratio),
+      interpretation: ratioInterpretation(ratio),
+      componentShash: {
+        sthana: +sthan.toFixed(3),
+        dig: +dig.toFixed(3),
+        kala: +kala.toFixed(3),
+        chesta: +chesta.toFixed(3),
+        naisargika: +naisar.toFixed(3),
+        drik: +drik.toFixed(3),
+      },
       details: {
         sthana: {
           uccha: +(sthanOut.breakdown?.uccha ?? 0).toFixed(3),
@@ -423,6 +555,9 @@ export function calculateShadbala(
           paksha: +(kalaOut.breakdown?.paksha ?? 0).toFixed(3),
           tribhaga: +(kalaOut.breakdown?.tribhaga ?? 0).toFixed(3),
           vaara: +(kalaOut.breakdown?.vaara ?? 0).toFixed(3),
+          hora: +(kalaOut.breakdown?.hora ?? 0).toFixed(3),
+          maasa: +(kalaOut.breakdown?.maasa ?? 0).toFixed(3),
+          varsha: +(kalaOut.breakdown?.varsha ?? 0).toFixed(3),
           ayana: +(kalaOut.breakdown?.ayana ?? 0).toFixed(3),
           isDayBirth: Boolean(kalaOut.breakdown?.isDayBirth),
         },
@@ -443,6 +578,14 @@ export function calculateShadbala(
   const sorted   = Object.values(planets).sort((a, b) => b.total - a.total)
   const strongest = sorted[0]?.id  ?? 'Su'
   const weakest   = sorted[sorted.length - 1]?.id ?? 'Sa'
+  const averageRatio = sorted.length
+    ? sorted.reduce((acc, p) => acc + p.ratio, 0) / sorted.length
+    : 0
+  const generatedProfile: ShadbalaResult['generatedProfile'] =
+    averageRatio >= 1.05 ? 'balanced'
+      : sorted[0] && sorted[sorted.length - 1] && (sorted[0].ratio - sorted[sorted.length - 1].ratio) > 0.45
+        ? 'top-heavy'
+        : 'strained'
 
-  return { planets, strongest, weakest }
+  return { planets, strongest, weakest, averageRatio: +averageRatio.toFixed(3), generatedProfile }
 }
