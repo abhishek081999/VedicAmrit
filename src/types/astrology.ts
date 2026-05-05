@@ -552,14 +552,17 @@ export interface ShadbalaPlanet {
       targetDegree: number
       angularDistance: number
     }
-    kala?: {
-      natha: number
-      paksha: number
-      tribhaga: number
-      vaara: number
-      ayana: number
-      isDayBirth: boolean
-    }
+      kala?: {
+        natha: number
+        paksha: number
+        tribhaga: number
+        vaara: number
+        hora: number
+        maasa: number
+        varsha: number
+        ayana: number
+        isDayBirth: boolean
+      }
     chesta?: {
       method: 'retrograde' | 'luminary_constant' | 'speed_ratio' | 'sun_ayana' | 'moon_paksha'
       speedAbs: number
@@ -602,7 +605,7 @@ export interface BhavaBalaResult {
 
 // ── Graha Yogas ───────────────────────────────────────────────
 
-export type YogaCategory = 'raja' | 'dhana' | 'mahapurusha' | 'viparita' | 'special' | 'lunar'
+export type YogaCategory = 'raja' | 'dhana' | 'mahapurusha' | 'viparita' | 'special' | 'lunar' | 'nabhasa' | 'malefic' | 'parivartana'
 
 export interface YogaResult {
   name:        string

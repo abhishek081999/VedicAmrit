@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
       null // redis.get(cacheKey) - Bypassing cache to reflect Shadbala logic changes
     ])
 
-    const cachedChart = null // parseCachedChart(cached)
+    const cachedChart = null as any // parseCachedChart(cached)
 
     if (cachedChart && hasVimsopakaData(cachedChart) && hasAdvancedFeatures(cachedChart)) {
       // Overwrite name, place, etc. from input — these don't affect calculation

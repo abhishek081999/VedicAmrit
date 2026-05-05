@@ -301,7 +301,7 @@ export function calculateVimsopaka(grahas: GrahaData[], vargas: Record<string, G
   const planetsResult: Record<string, VimsopakaPlanet> = {}
   for (const id of PLANETS) {
     const d1 = (vargas['D1'] ?? grahas).find(g => g.id === id)
-    const lon = d1?.longitude ?? 0
+    const lon = d1?.lonSidereal ?? 0
     const vDignities: Record<string, Dignity | null> = {}
     const vContribs: Record<string, number> = {}
     let shadvarga = 0, saptavarga = 0, dashavarga = 0, shodasvarga = 0
