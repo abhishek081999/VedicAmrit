@@ -76,7 +76,9 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
   const lookupPromise = (async () => {
     try {
       // 3. Query BigDataCloud reverse geocode API (free tier)
-      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`, {
+      // Use fixed precision to avoid malformed URL issues with very long floats
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}&localityLanguage=en`
+      const res = await fetch(bdcUrl, {
         next: { revalidate: 604800 }
       })
       if (!res.ok) throw new Error(`API failed [${res.status}]`)
@@ -112,6 +114,23 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
       await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
       return tz
     } catch (err) {
+      // 3.5 Fallback to secondary free API before giving up
+      try {
+        const timeApiRes = await fetch(`https://www.timeapi.io/api/TimeZone/coordinate?latitude=${lat.toFixed(5)}&longitude=${lng.toFixed(5)}`, {
+          next: { revalidate: 604800 }
+        })
+        if (timeApiRes.ok) {
+          const timeData = await timeApiRes.json()
+          if (timeData.timeZone && typeof timeData.timeZone === 'string') {
+            const tz = timeData.timeZone
+            await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
+            return tz
+          }
+        }
+      } catch (e2) {
+        // ignore secondary failure
+      }
+
       // Emergency fallback for Region context
       const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
       const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
