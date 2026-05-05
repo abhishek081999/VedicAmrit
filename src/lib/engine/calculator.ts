@@ -27,7 +27,7 @@ import { calcCharaKarakas } from '@/lib/engine/karakas'
 import { getDignity, checkYuddha, getYuddhaForPlanet } from '@/lib/engine/dignity'
 import {
   VARGA_FUNCTIONS,
-  FREE_VARGAS, GOLD_VARGAS, ALL_VARGAS,
+  FREE_VARGAS, GOLD_VARGAS, ALL_VARGAS, SHODASHA_VARGAS,
   getVargaPosition,
   type VargaName,
 } from '@/lib/engine/vargas'
@@ -62,12 +62,12 @@ import { checkMrityuBhaga } from './mrityuBhaga'
 import { calculateYogiPoint } from './yogiPoint'
 import { buildChartInterpretation } from './advancedInterpretation'
 import { calculateBhavaBala } from './bhavaBala'
-import { getKPSeedDegree } from './kpSeeds'
 import {
   getKPStellar,
   calculateKPSignificators,
   calculateKPCusps,
-  calculateRulingPlanets
+  calculateRulingPlanets,
+  getKPSeedDegree
 } from './kpEngine'
 import {
   calculateGulikaMaandi,
@@ -221,7 +221,8 @@ function buildGrahas(
 }
 
 function vargaNamesForPlan(plan: UserPlan): VargaName[] {
-  return ALL_VARGAS
+  if (plan === 'platinum') return ALL_VARGAS
+  return SHODASHA_VARGAS
 }
 
 function dashaDepthForPlan(plan: UserPlan): number {
@@ -322,8 +323,9 @@ export async function calculateChart(
 
   for (const vname of vargaNames) {
     if (vname === 'D1') continue
-    const fn = VARGA_FUNCTIONS[vname] // eslint-disable-line
-    if (!vname) continue
+    const fn = VARGA_FUNCTIONS[vname]
+    if (!fn) continue
+
     const vargaBodies = grahas.map((g) => {
       const pos = getVargaPosition(g.lonSidereal, vname as VargaName)
       const vRashi = pos.rashi as Rashi
@@ -340,8 +342,14 @@ export async function calculateChart(
       }
       const vJagradadi = (vDignity === 'exalted' || vDignity === 'own') ? 'Jāgrat' : (vDignity === 'neutral' || vDignity === 'friend') ? 'Swapna' : 'Suṣupti'
 
+      // Return optimized object (don't spread the whole natal g if not needed)
       return { 
-        ...g, 
+        id: g.id,
+        name: g.name,
+        lonTropical: g.lonTropical,
+        lonSidereal: pos.totalDegree,
+        latitude: g.latitude,
+        speed: g.speed,
         rashi: vRashi, 
         rashiName: RASHI_NAMES[vRashi],
         degree: pos.degree,
@@ -350,7 +358,11 @@ export async function calculateChart(
         nakshatraName: vNak.name,
         pada: vNak.pada,
         dignity: vDignity,
-        avastha: { baladi: vBaladi, jagradadi: vJagradadi }
+        avastha: { baladi: vBaladi, jagradadi: vJagradadi },
+        charaKaraka: g.charaKaraka,
+        isRetro: g.isRetro,
+        isCombust: g.isCombust,
+        vargaCalculated: true
       }
     })
 
@@ -363,8 +375,8 @@ export async function calculateChart(
       pushkara: checkPushkara(v.totalDegree),
       mrityuBhaga: checkMrityuBhaga(v.totalDegree),
       yuddha: getYuddhaForPlanet(v.id as any, mercuryLon, venusLon),
-      vargaCalculated: true,
     }))
+    
     // Ascendant's varga lagna
     const ascPos = getVargaPosition(houses.ascendantSidereal, vname as VargaName)
     vargaLagnas[vname] = ascPos.rashi as Rashi
@@ -502,8 +514,12 @@ export async function calculateChart(
     dashas: {
       vimshottari,
       yogini: calcYoginiDasha(moonNak.index, moonNak.degreeInNak, birthUtc, Math.min(dashaDepth, 4)),
-      ashtottari: calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth),
-      chara: calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)),
+      ashtottari: (plan === 'gold' || plan === 'platinum') 
+        ? calcAshtottari(moon.lonSidereal, birthUtc, dashaDepth) 
+        : [],
+      chara: (plan === 'gold' || plan === 'platinum') 
+        ? calcCharaDasha(grahas, lagnaData, birthUtc, Math.min(dashaDepth, 3)) 
+        : [],
       narayana: [], tithi_ashtottari: [], naisargika: [],
     },
     panchang: {
