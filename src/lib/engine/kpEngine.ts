@@ -237,3 +237,35 @@ export function calculateRulingPlanets(
     lagnaSignLord: ascStellar.signLord
   }
 }
+
+/**
+ * Returns the starting sidereal degree for a KP Horary seed number (1-249).
+ */
+export function getKPSeedDegree(seed: number): number {
+  const NAK_SPAN = 360 / 27
+  const SUB_SPAN = NAK_SPAN / 120
+  if (seed < 1 || seed > 249) return 0
+  
+  let currentSeed = 1
+  for (let nak = 0; nak < 27; nak++) {
+    const nakStart = nak * NAK_SPAN
+    const nakLord = NAKSHATRA_LORDS[nak]
+    const nakLordIdx = KP_SEQUENCE.indexOf(nakLord)
+    
+    let cursor = nakStart
+    for (let i = 0; i < 9; i++) {
+       const subLordId = KP_SEQUENCE[(nakLordIdx + i) % 9]
+       const span = (VIMSHOTTARI_YEARS[subLordId] || 0) * SUB_SPAN
+       
+       if (currentSeed === seed) {
+          return cursor 
+       }
+       
+       cursor += span
+       currentSeed++
+       if (currentSeed > 249) break
+    }
+    if (currentSeed > 249) break
+  }
+  return 0
+}

@@ -131,6 +131,18 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
         // ignore secondary failure
       }
 
+      // 3.7 Offline Fallback (Very reliable)
+      try {
+        const tzlookup = (await import('tz-lookup')).default
+        const tz = tzlookup(lat, lng)
+        if (tz) {
+          await redis.set(cacheKey, tz, CACHE_TTL.ATLAS).catch(() => {})
+          return tz
+        }
+      } catch (e3) {
+        // ignore
+      }
+
       // Emergency fallback for Region context
       const isNepalFallback = (lat > 26.0 && lat < 30.5 && lng > 80.0 && lng < 88.5)
       const isIndiaFallback = !isNepalFallback && (lat > 6.7 && lat < 37.5 && lng > 68.1 && lng < 97.4)
@@ -139,7 +151,7 @@ async function fetchTimezone(lat: number, lng: number): Promise<string> {
       
       // Only log if it's not a common regional fallback
       if (flavor === 'UTC') {
-        console.error('[tz] Fetch failed and no regional fallback found:', lat, lng, err)
+        console.error('[tz] Fetch failed and offline fallback missing for:', lat, lng, err)
       }
       
       return flavor

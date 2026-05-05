@@ -62,12 +62,12 @@ import { checkMrityuBhaga } from './mrityuBhaga'
 import { calculateYogiPoint } from './yogiPoint'
 import { buildChartInterpretation } from './advancedInterpretation'
 import { calculateBhavaBala } from './bhavaBala'
-import { getKPSeedDegree } from './kpSeeds'
 import {
   getKPStellar,
   calculateKPSignificators,
   calculateKPCusps,
-  calculateRulingPlanets
+  calculateRulingPlanets,
+  getKPSeedDegree
 } from './kpEngine'
 import {
   calculateGulikaMaandi,

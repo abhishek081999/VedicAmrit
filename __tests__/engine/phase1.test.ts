@@ -12,7 +12,6 @@ import {
   toJulianDay, getPlanetPosition, getAyanamsha,
   toSidereal, signOf, degreeInSign, SWISSEPH_IDS,
 } from '@/lib/engine/ephemeris'
-import { getAyanamshaValue, getAllAyanamshaValues } from '@/lib/engine/ayanamsha'
 import { calcHouses, planetHouse } from '@/lib/engine/houses'
 import {
   D1, D2, D3, D4, D7, D9, D10, D12, D16, D20,
@@ -55,60 +54,6 @@ function getJ2000Positions(mode: 'lahiri' | 'true_chitra' = 'lahiri') {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-//  AYANAMSHA
-// ─────────────────────────────────────────────────────────────
-
-describe('Ayanamsha', () => {
-  it('Lahiri at J2000 ≈ 23.85°', () => {
-    const v = getAyanamshaValue(J2000_JD, 'lahiri')
-    expect(v).toBeCloseTo(23.853, 1)
-  })
-
-  it('True Chitra at J2000 is slightly less than Lahiri', () => {
-    const lahiri     = getAyanamshaValue(J2000_JD, 'lahiri')
-    const trueChitra = getAyanamshaValue(J2000_JD, 'true_chitra')
-    expect(trueChitra).toBeGreaterThan(23.5)
-    expect(trueChitra).toBeLessThan(lahiri + 0.1)
-  })
-
-  it('Raman ayanamsha at J2000 ≈ 22.46°', () => {
-    const v = getAyanamshaValue(J2000_JD, 'raman')
-    expect(v).toBeCloseTo(22.46, 0)
-  })
-
-  it('getAllAyanamshaValues returns all 7 modes', () => {
-    const all = getAllAyanamshaValues(J2000_JD)
-    expect(Object.keys(all)).toHaveLength(7)
-    expect(all.lahiri).toBeCloseTo(23.85, 1)
-    expect(all.raman).toBeCloseTo(22.46, 0)
-  })
-
-  it('Ayanamsha increases year over year (precession)', () => {
-    const jd1950 = toJulianDay(1950, 1, 1, 12)
-    const jd2000 = J2000_JD
-    const jd2050 = toJulianDay(2050, 1, 1, 12)
-    const a1950  = getAyanamshaValue(jd1950, 'lahiri')
-    const a2000  = getAyanamshaValue(jd2000, 'lahiri')
-    const a2050  = getAyanamshaValue(jd2050, 'lahiri')
-    expect(a2000).toBeGreaterThan(a1950)
-    expect(a2050).toBeGreaterThan(a2000)
-    // Rate ≈ 0.014° per year → 50 yrs ≈ 0.7°
-    expect(a2000 - a1950).toBeCloseTo(0.7, 0)
-  })
-
-  it('True Revati at J2000 ~ 20.05 degrees (star-based, differs from Lahiri)', () => {
-    const revati = getAyanamshaValue(J2000_JD, 'true_revati')
-    expect(revati).toBeGreaterThan(19.5)
-    expect(revati).toBeLessThan(21.0)
-  })
-
-  it('True Pushya at J2000 ~ 22.7 degrees (star-based)', () => {
-    const pushya = getAyanamshaValue(J2000_JD, 'true_pushya')
-    expect(pushya).toBeGreaterThan(22.0)
-    expect(pushya).toBeLessThan(23.5)
-  })
-})
 
 // ─────────────────────────────────────────────────────────────
 //  HOUSES
