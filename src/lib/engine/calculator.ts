@@ -72,7 +72,7 @@ import {
 import {
   calculateGulikaMaandi,
   calculateNonLuminous,
-  calculateBeejaSphuta,
+  calculateBeejaSphuta,   
   calculateKshetraSphuta,
   buildUpagrahaData
 } from './upagrahas'
