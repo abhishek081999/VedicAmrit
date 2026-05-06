@@ -36,7 +36,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 // ── Google Analytics 4 ───────────────────────────────────────
-const GA_ID = 'G-JR4B530J4G'
+const GA_ID = 'G-FPWC15LRJY'
 const gaScript = `
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
