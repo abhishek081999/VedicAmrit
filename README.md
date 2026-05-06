@@ -3,9 +3,9 @@
 > **Next.js 14 · TypeScript · MongoDB · Mongoose · NextAuth.js · swisseph**  
 > **Free · Gold (₹175/mo) · Platinum (₹999/mo)**
 
-A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, and interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
+A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScript. The platform provides arc-second-accurate ephemeris calculations, multiple Dasha systems, divisional charts, Ashtakavarga, Shadbala, Muhurta finding, interactive SVG chakra renderers — all powered by the Swiss Ephemeris C library via the `swisseph` npm package.
 
-**Build Status: Phases 1–9 complete. Phase 10: Sarvatobhadra Chakra live. Remaining Phase 8 items: Full i18n rollout.**
+**Build Status: All 10 phases complete. v2.6.0 live. Remaining: Full i18n rollout.**
 
 ---
 
@@ -56,6 +56,12 @@ A full-featured Vedic astrology (Jyotish) web platform built entirely in TypeScr
 | **Save Charts** | Up to 20 charts per account (free) |
 | **Atlas** | 5.1M locations via GeoNames FTS5 SQLite — sub-50ms search |
 | **Sarvatobhadra Chakra** | Classical 9×9 predictive grid; transit Vedha analysis; Dhana (financial) pulse meter; body-part resonance alerts; cell-level interaction with row/column vedha glow |
+| **Prashna (Horary)** | Oracle compass with remedial directions, ruling planets, KP significators (A–D levels) |
+| **Jaimini** | Dedicated Jaimini workspace with Chara Dasha + special aspects |
+| **Nakshatra Lab** | Recursive Pada maps, Navtara analysis, Best Days forecasts, activity-specific Muhurta ratings |
+| **Planets Workspace** | Interactive dual-chart (D1/D9) view with diagnostic micro-details table |
+| **Interactive Aspects** | Parashari Drishti visualized on all chakras with animated lines |
+| **Vastu Analysis** | Correlate birth chart with Vastu orientations |
 
 ### Gold — ₹175/month or ₹1,800/year ✅ Live
 
@@ -80,7 +86,7 @@ Everything in Gold, plus:
 | Feature | Detail |
 |---|---|
 | **White-label Sharing** | Custom brand name + logo on all public share pages and PDF exports |
-| **Admin Dashboard** | ✅ Internal metrics, user management, and system health |
+| **Admin Dashboard** | Internal metrics, user management, and system health |
 | **Client Dashboard** | CRM-style client management — track sessions, active Dasha, notes per client |
 | **Custom Ayanamsha** | Set personal default ayanamsha (Lahiri, Raman, Yukteshwar, etc.) |
 | **Bulk PDF Export** | Export entire chart collections as a ZIP download |
@@ -89,34 +95,29 @@ Everything in Gold, plus:
 
 ---
 
-### 🚀 Latest Improvements (v2.6.x — April 2026) ✅
+### 🚀 Latest Improvements (v2.6.x — May 2026) ✅
 
-- **Interactive Aspect (Dṛṣṭi) System**: Standard Parashari aspects visualized across all chakras with animated dashed lines (North/Circle) and sign highlights (South).
-- **Professional Prashna Dashboard**: Horary astrology finalized with an **SVG Oracle Compass** for remedial directions, **Ruling Planets** analytics, and **KP Significators** (A-D levels).
-- **Platinum CRM 2.0**: Expanded practice management with global **session-note search**, **follow-up date tracking**, and automated dasha-transition alerts.
-- **Consultancy-Grade Reporting**: "Copy Report to Clipboard" for Prashna results; restricted tooltips to planet names in details tables for a cleaner workspace.
-- **Shared Analytics Tooltips**: Refactored interpretive engine into a platform-wide `PlanetTooltipCard` for consistent diagnostic insights.
-
-- **Elite Astrocartography Suite**: NASA-grade relocation mapping with **Cyclo-Carto-Graphy** (real-time transits), **Local Space (Azimuth)** lines, **Paran (Latitude Crossing)** detection, and **Aspect Harmonics** (Trines/Squares to MC).
+- **Sarvatobhadra Chakra (SBC)**: Classical 9×9 predictive grid fully interactive — transit Vedha analysis, Dhana (financial) pulse meter, body-part resonance alerts, cell-level interaction with row/column vedha glow.
+- **Consultation Booking System**: Full-featured client/practitioner booking portal with categories, service listings, practitioner profiles, booking flow, and admin management — including automated reminders and pending-cleanup cron jobs.
+- **KP Significators Engine**: Krishnamurti Paddhati significator levels (A–D) for all 12 houses, integrated into Prashna dashboard.
+- **Prashna (Horary) Professional**: Oracle compass SVG for remedial directions, ruling planets analytics, KP significators, and "Copy Report to Clipboard" feature.
+- **Vastu Analysis**: Correlate birth chart placements with classical Vastu directions and zones.
+- **Upagraha Support**: Engine-level calculation for all Upagrahas (Dhooma, Vyatipata, Parivesha, Indrachapa, Upaketu, plus the five Dhuma chain nodes).
+- **Jaimini Workspace**: Dedicated page with Chara Dasha visualization and Jaimini special aspects.
+- **Elite Astrocartography Suite**: NASA-grade relocation mapping with Cyclo-Carto-Graphy (real-time transits), Local Space (Azimuth) lines, Paran (Latitude Crossing) detection, and Aspect Harmonics (Trines/Squares to MC).
 - **Progressive Web App (PWA)**: Full offline resilience with Service Workers, Web manifest v3, and native-grade installability for iOS/Android/Desktop.
-
-- **Bhava Bala**: Full BPHS house strength engine live — Adhipati, Dig, and Drishti Bala for all 12 houses, with grid/table/bar-chart UI and strongest/weakest house callout.
+- **Consultancy-Grade Reporting**: Restricted tooltips to planet names in details tables, "Copy Report to Clipboard" for all analysis panels.
+- **Bhava Bala**: Full BPHS house strength engine — Adhipati, Dig, and Drishti Bala for all 12 houses, with grid/table/bar-chart UI and strongest/weakest house callout.
 - **Client CRM Dashboard**: Full Platinum CRM at `/clients` — add, edit, tag clients; session notes; remedy tracker; active Dasha progress bar; Dasha-transition alerts.
 - **White-label Sharing**: Platinum `brandName` + `brandLogo` rendered on all public share pages and future PDF exports.
-- **Public Chart Routing**: Fixed `/api/chart/public` endpoint and branding injection for Platinum consultants.
-- **Advanced Engine Modules**: Added `bhavaBala.ts`, `gandanta.ts`, `pushkara.ts`, `mrityuBhaga.ts`, `yogiPoint.ts`, `advancedInterpretation.ts`, `doshas.ts`, `tajika.ts`, `transits.ts`, `activeHouses.ts` to the calculation pipeline.
+- **Admin Command Center**: Internal metrics, user management, and system health monitoring at `/admin`.
 - **Vedaansh Rebranding** (March 2026): Full ecosystem rename from "Vedic Amrit" to **Vedaansh**.
-- **Planets Workspace**: New interactive dual-chart (D1/D9) view with diagnostic micro-details table.
-- **Nakshatra Lab**: Recursive Pada maps, Navtara analysis, Best Days forecasts, and activity-specific Muhurta ratings.
-- **Varshaphal Redesign**: Dynamic full-width Solar Return workspace with split-screen comparative layout.
 - **Dashboard v2**: Responsive mobile-first dashboard with integrated "Personal Day" cosmic insights.
-- **Engine Precision**: Refined D4, D10, D16, and D60 divisional calculations; absolute sidereal longitude for house cusps.
 - **i18n**: Initial Hindi translation rollout for birth forms and planetary tables.
-- **Hosting Migration**: Moved from Vercel to Render (production) to support `sweph` native addon. Two-branch deploy: `main → Render → vedaansh.com`, `dev → Cloudflare Tunnel → staging`.
 
 ---
 
-## Calculation Engine — 34 Modules
+## Calculation Engine — 43 Modules
 
 All engine modules are pure TypeScript functions (no side effects). Given the same inputs, they always return the same outputs.
 
@@ -149,16 +150,25 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 | `tajika.ts` | ✅ | Tajika annual chart aspects — Ithasala, Ishrafa, Nakta, Yamaya |
 | `transits.ts` | ✅ | Real-time transit overlay against natal chart |
 | `activeHouses.ts` | ✅ | Activated house detection from current transits + dashas |
+| `muhurtaAdvanced.ts` | ✅ | Advanced Muhurta — Tara, Panchaka, Graha Hora filtering |
+| `muhurtaAnalysis.ts` | ✅ | Muhurta window analysis with graded suitability |
 | `muhurtaPersonal.ts` | ✅ | Personal muhurta suitability scoring for birth chart |
 | `astroInterpretation.ts` | ✅ | Elite ACG reading engine — Career, Home, and Love meanings |
 | `aspects.ts` | ✅ | Visual Parashari Drishti — standard and special planetary house aspects |
+| `astrocartography.ts` | ✅ | NASA-grade relocation: Cyclo-Carto-Graphy, Local Space, Paran lines |
+| `kpEngine.ts` | ✅ | Krishnamurti Paddhati — house significators at A (star lord) through D levels |
+| `krishneeyam.ts` | ✅ | Krishneeyam — refinement of KP sub-lord theory |
+| `sarvatobhadra.ts` | ✅ | Sarvatobhadra Chakra — 9×9 predictive grid with transit Vedha |
+| `sbcUseCases.ts` | ✅ | SBC use-case categorization (Dhana, health, travel, etc.) |
+| `upagrahas.ts` | ✅ | Upagraha calculation (Dhooma, Vyatipata, Parivesha, Indrachapa, Upaketu, etc.) |
+| `astroDetailsDerived.ts` | ✅ | Derived planetary details for UI display |
+| `interpretations.ts` | ✅ | General chart interpretations and narrative text |
+| `grahaDisplayColors.ts` | ✅ | Standard planetary color mappings for UI rendering |
 | `calculator.ts` | ✅ | Main orchestrator — all engines wired, returns `ChartOutput` |
 | `dasha/vimshottari.ts` | ✅ | 120yr cycle, 6-level tree (Maha→Antar→Pratyantar→Sukshma→Prana→Deha) |
 | `dasha/yogini.ts` | ✅ | 36yr, 8 Yoginis, birth balance from Moon nakshatra position |
 | `dasha/chara.ts` | ✅ | Jaimini sign dasha, forward/reverse per parity, birth balance from Lagna degree |
 | `dasha/ashtottari.ts` | ✅ | 108yr conditional Dasha — active for Krishna paksha births outside Rahu nakshatra |
-
-**Planned engine modules (Phase 7 — remaining):**
 
 ---
 
@@ -168,44 +178,125 @@ All engine modules are pure TypeScript functions (no side effects). Given the sa
 Vedaansh/
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx                  # Home / Chart form
-│   │   ├── compare/page.tsx          # Chart Comparison + Ashtakoot
-│   │   ├── panchang/page.tsx         # Daily Panchang
-│   │   ├── panchang/calendar/        # Monthly Panchang calendar
-│   │   ├── muhurta/page.tsx          # Muhurta Finder
-│   │   ├── my/charts/page.tsx        # Saved charts library
-│   │   ├── chart/[slug]/             # Public share page
-│   │   ├── account/page.tsx          # User preferences
-│   │   ├── pricing/page.tsx          # Subscription tiers
+│   │   ├── page.tsx                    # Home / Chart form
+│   │   ├── layout.tsx                  # Root layout with providers
+│   │   ├── home/                       # Landing page sections
+│   │   ├── account/                    # User profile + preferences
+│   │   ├── acg/                        # Astrocartography relocation map
+│   │   ├── admin/                      # Admin command center
+│   │   │   ├── charts/                 # All charts admin view
+│   │   │   ├── reel/                   # Reel management
+│   │   │   ├── revenue/                # Revenue analytics
+│   │   │   └── users/                  # User management
+│   │   ├── astrology/                  # Astrology workspace
+│   │   ├── chart/[slug]/               # Public share page
+│   │   ├── clients/                    # Platinum CRM dashboard
+│   │   ├── compare/                    # Chart Comparison + Ashtakoot
+│   │   ├── consult/                    # Consultation booking portal
+│   │   │   ├── [categorySlug]/         # Category listing
+│   │   │   ├── admin/                  # Consult admin
+│   │   │   ├── book/                   # Booking flow
+│   │   │   ├── booking/                # Booking management
+│   │   │   ├── dept/                   # Department view
+│   │   │   ├── me/                     # My consultations
+│   │   │   └── p/                      # Practitioner profiles
+│   │   ├── forgot/                     # Password reset request
+│   │   ├── jaimini/                    # Jaimini workspace
+│   │   ├── login/                      # Login page
+│   │   ├── muhurta/                    # Muhurta Finder
+│   │   ├── my/
+│   │   │   ├── charts/                 # Saved charts library
+│   │   │   └── consultations/          # My consultation history
+│   │   ├── nakshatra/                  # Nakshatra Lab workspace
+│   │   ├── panchang/                   # Daily Panchang + Calendar
+│   │   ├── prashna/                    # Horary (Prashna) dashboard
+│   │   ├── pricing/                    # Subscription tiers
+│   │   ├── reset-password/             # Password reset form
+│   │   ├── roadmap/                    # Development roadmap
+│   │   ├── sbc/                        # Sarvatobhadra Chakra
+│   │   ├── scrubber/                   # Scrubber tool
+│   │   ├── signup/                     # Registration
+│   │   ├── vastu/                      # Vastu analysis
+│   │   ├── verify-email/               # Email verification
 │   │   └── api/
-│   │       ├── chart/calculate/      # Main chart calculation
-│   │       ├── chart/save/           # Save to MongoDB
-│   │       ├── chart/list/           # Paginated chart list
-│   │       ├── chart/delete/         # Delete chart
-│   │       ├── chart/notes/          # Per-chart annotations
-│   │       ├── chart/export/         # PDF export (Gold+)
-│   │       ├── chart/public/         # GET by slug — no auth ⚠️ fix path
-│   │       ├── chart/toggle-public/  # Share toggle
-│   │       ├── chart/bulk-import/    # CSV/JSON import (Gold+)
-│   │       ├── chart/varshaphal/     # Solar Return calculation
-│   │       ├── panchang/             # Daily Panchang
-│   │       ├── atlas/search/         # 5.1M location search
-│   │       ├── auth/                 # NextAuth + custom auth
-│   │       ├── payment/checkout/     # Razorpay order
-│   │       ├── payment/verify/       # Verify payment
-│   │       ├── user/me/              # Profile + preferences
-│   │       └── webhooks/razorpay/    # Subscription activation
-│   ├── lib/engine/                   # 🔑 Core Jyotish engine
-│   ├── lib/db/models/                # User, Chart, ChartCache, Subscription
-│   ├── lib/atlas/                    # Geo atlas SQLite + FTS5
-│   ├── lib/pdf/                      # PDF generation
-│   ├── components/chakra/            # SVG chart renderers
-│   ├── components/dasha/             # DashaTree component
-│   ├── components/ui/                # All UI components
-│   └── types/astrology.ts            # All TypeScript domain types
-├── __tests__/                        # Vitest engine tests
-├── ephe/                             # Swiss Ephemeris .se1 files
-└── scripts/
+│   │       ├── admin/
+│   │       │   ├── charts/             # Admin chart CRUD
+│   │       │   ├── revenue/            # Revenue data
+│   │       │   ├── stats/              # System metrics
+│   │       │   └── users/              # User admin
+│   │       ├── atlas/search/           # 5.1M location search
+│   │       ├── auth/
+│   │       │   ├── [...nextauth]/      # NextAuth handler
+│   │       │   ├── forgot-password/    # Request reset
+│   │       │   ├── refresh-plan/       # Session plan refresh
+│   │       │   ├── reset-password/     # Execute reset
+│   │       │   ├── signup/             # Email/password register
+│   │       │   └── verify-email/       # Verify token
+│   │       ├── chart/
+│   │       │   ├── astrocartography/   # ACG calculation
+│   │       │   ├── bulk-export/        # Bulk PDF ZIP (Plat.)
+│   │       │   ├── bulk-import/        # CSV/JSON import (Gold+)
+│   │       │   ├── calculate/          # Main chart calculation
+│   │       │   ├── delete/             # Owner-only delete
+│   │       │   ├── export/             # PDF export (Gold+)
+│   │       │   ├── export-xlsx/        # Excel export
+│   │       │   ├── list/               # Paginated chart list
+│   │       │   ├── notes/              # Per-chart annotations
+│   │       │   ├── public/             # GET by slug — no auth
+│   │       │   ├── relocate/           # Relocation chart
+│   │       │   ├── save/               # Save to MongoDB
+│   │       │   ├── send-email/         # Email chart (Gold+)
+│   │       │   ├── template/           # Chart templates
+│   │       │   ├── toggle-public/      # Share toggle
+│   │       │   └── varshaphal/         # Solar Return calc
+│   │       ├── clients/                # CRM API (Platinum)
+│   │       ├── consult/
+│   │       │   ├── admin/              # Consult admin
+│   │       │   ├── auth/               # Consult auth
+│   │       │   ├── bookings/           # Booking CRUD
+│   │       │   ├── categories/         # Service categories
+│   │       │   ├── dept/               # Departments
+│   │       │   ├── me/                 # My consults
+│   │       │   ├── practitioners/      # Practitioner profiles
+│   │       │   └── services/           # Services listing
+│   │       ├── cron/
+│   │       │   ├── consult-pending-cleanup/  # Stale bookings
+│   │       │   ├── consultation-complete/    # Auto-complete
+│   │       │   └── consultation-reminders/   # Email reminders
+│   │       ├── health/                 # System health check
+│   │       ├── muhurta/timeline/       # Muhurta timeline data
+│   │       ├── panchang/               # Daily Panchang
+│   │       ├── payment/
+│   │       │   ├── checkout/           # Razorpay order
+│   │       │   └── verify/             # Verify payment
+│   │       ├── transit/                # Transit data
+│   │       ├── transits/planets/       # Planet-specific transits
+│   │       ├── user/
+│   │       │   ├── default-chart/      # Default chart pref
+│   │       │   └── me/                 # Profile + prefs
+│   │       └── webhooks/razorpay/      # Subscription activation
+│   ├── lib/engine/                     # 🔑 Core Jyotish engine (43 modules)
+│   │   └── dasha/                      # Dasha subsystems
+│   ├── lib/db/models/                  # User, Chart, ChartCache, Subscription, etc.
+│   ├── lib/atlas/                      # Geo atlas SQLite + FTS5
+│   ├── lib/pdf/                        # PDF generation
+│   ├── components/
+│   │   ├── admin/                      # Admin UI components
+│   │   ├── chakra/                     # SVG chart renderers
+│   │   ├── consult/                    # Consultation UI
+│   │   ├── dasha/                      # DashaTree component
+│   │   ├── dashboard/                  # Dashboard widgets
+│   │   ├── home/                       # Landing page components
+│   │   ├── panchang/                   # Panchang UI
+│   │   ├── providers/                  # React context providers
+│   │   ├── reel/                       # Remotion reel components
+│   │   ├── shell/                      # Layout shell (header, nav, footer)
+│   │   └── ui/                         # All shared UI components
+│   └── types/astrology.ts              # All TypeScript domain types
+├── __tests__/                          # Vitest engine tests
+├── ephe/                               # Swiss Ephemeris .se1 files
+├── remotion/                           # Remotion video reel config
+└── scripts/                            # Utility scripts
 ```
 
 ---
@@ -219,21 +310,50 @@ Vedaansh/
 | `GET /api/chart/list` | ✅ | Paginated with search, authenticated user only |
 | `DELETE /api/chart/delete` | ✅ | Owner-only delete with auth check |
 | `GET/POST/DELETE /api/chart/notes` | ✅ | Per-chart annotations |
-| `GET /api/chart/public` | ⚠️ | Fetch public chart by slug — **route file at wrong path, move to `/api/chart/public/`** |
+| `GET /api/chart/public` | ✅ | Fetch public chart by slug |
 | `POST /api/chart/toggle-public` | ✅ | Toggle `isPublic`, generate/remove slug |
 | `POST /api/chart/varshaphal` | ✅ | Solar Return for given year — bisection search |
 | `POST /api/chart/export` | ✅ | PDF chart export (Gold+) |
 | `POST /api/chart/bulk-import` | ✅ | CSV/JSON batch import (Gold+) |
+| `POST /api/chart/bulk-export` | ✅ | Bulk PDF ZIP export (Platinum) |
+| `GET /api/chart/export-xlsx` | ✅ | Excel chart export |
+| `POST /api/chart/relocate` | ✅ | Relocation chart calculation |
+| `POST /api/chart/send-email` | ✅ | Email chart PDF (Gold+) |
+| `GET /api/chart/template` | ✅ | Chart template presets |
+| `POST /api/chart/astrocartography` | ✅ | ACG relocation lines computation |
 | `GET /api/panchang` | ✅ | Full Panchang for any date + location, Redis cached 24h |
 | `GET /api/atlas/search` | ✅ | Location typeahead — 5.1M GeoNames via SQLite FTS5 |
+| `GET /api/transit` | ✅ | Current transit positions |
+| `GET /api/transits/planets` | ✅ | Planet-specific transit details |
+| `GET /api/muhurta/timeline` | ✅ | Muhurta timeline windows |
 | `GET /api/user/me` | ✅ | User profile + personal chart + preferences |
 | `PATCH /api/user/me` | ✅ | Update user preferences |
+| `GET/PATCH /api/user/default-chart` | ✅ | Default chart preference |
 | `POST /api/auth/signup` | ✅ | Email/password registration with bcrypt |
-| `POST /api/auth/verify` | ✅ | Email verification token check |
+| `POST /api/auth/verify-email` | ✅ | Email verification token check |
+| `POST /api/auth/forgot-password` | ✅ | Password reset email request |
+| `POST /api/auth/reset-password` | ✅ | Execute password reset with token |
 | `POST /api/auth/refresh-plan` | ✅ | Refresh user plan in session after upgrade |
 | `POST /api/payment/checkout` | ✅ | Razorpay order creation for Gold/Platinum |
 | `POST /api/payment/verify` | ✅ | Verify Razorpay payment signature |
 | `POST /api/webhooks/razorpay` | ✅ | Activate subscription on payment success |
+| `GET/POST /api/clients` | ✅ | CRM client CRUD (Platinum) |
+| `GET /api/clients/[id]` | ✅ | Single client detail + session notes (Platinum) |
+| `GET /api/consult/categories` | ✅ | Consultation service categories |
+| `GET /api/consult/services` | ✅ | Services listing |
+| `GET /api/consult/practitioners` | ✅ | Practitioner profiles |
+| `POST /api/consult/bookings` | ✅ | Create booking |
+| `GET /api/consult/me` | ✅ | My consultations |
+| `GET /api/consult/admin` | ✅ | Consult admin panel |
+| `GET /api/consult/dept` | ✅ | Department listings |
+| `GET /api/health` | ✅ | System health endpoint |
+| `GET /api/admin/stats` | ✅ | System-wide metrics (Admin) |
+| `GET /api/admin/users` | ✅ | User management (Admin) |
+| `GET /api/admin/charts` | ✅ | All charts view (Admin) |
+| `GET /api/admin/revenue` | ✅ | Revenue analytics (Admin) |
+| `GET /api/cron/consultation-reminders` | ✅ | Auto-email reminders for upcoming consults |
+| `GET /api/cron/consultation-complete` | ✅ | Auto-complete stale consultations |
+| `GET /api/cron/consult-pending-cleanup` | ✅ | Cleanup abandoned bookings |
 
 ---
 
@@ -241,7 +361,7 @@ Vedaansh/
 
 | Issue | Severity | Status |
 |---|---|---|
-| `GET /api/chart/public` returns 404 | 🔴 Critical | ✅ Fixed — route correctly at `src/app/api/chart/public/route.ts` |
+| All major issues resolved | — | ✅ Stable |
 
 ---
 
@@ -310,24 +430,13 @@ Tolerances: ±0.005° for longitudes, ±1 day for Dasha dates, exact match for s
 | 5 — Gold Features | ✅ Complete | Razorpay, PDF export, bulk import, multi-device sync |
 | 6 — Platinum Launch | ✅ Complete | Nakshatra workspace, 41 vargas in UI, both paid tiers live |
 | 7 — Horā Core | ✅ Complete | Bhava Bala, Client CRM, White-label, Email Charts |
-| 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, i18n, PWA |
+| 8 — Scale + Polish | ✅ Complete | Astrocartography, Admin Dashboard, PWA, i18n (partial) |
 | 9 — Elite Analysis | ✅ Complete | Interactive Aspects, Prashna Professional, CRM v2 |
+| 10 — Sarvatobhadra & Ecosystem | ✅ Complete | SBC, Vastu, Jaimini, KP Engine, Consultation Portal, Upagrahas |
 
-### Phase 7 — Completed ✅
+### Remaining Work
 
-- [x] **Client Management Dashboard** — `/clients` page, CRM for Platinum users `[PLATINUM]`
-- [x] **White-label chart sharing** — `brandName` + `brandLogo` in preferences, rendered on share pages and PDFs `[PLATINUM]`
-- [x] **Bhava Bala engine + UI** — BPHS house strength: Adhipati, Dig, Drishti Bala; grid/table/bar-chart views `[ENGINE]`
-- [x] **Public chart route fix** — `/api/chart/public` correctly wired with branding injection
-- [x] **Email chart to client** — Resend-powered delivery from chart view; 1 API route + button `[GOLD]`
-- [x] **Bulk PDF export** — ZIP of multiple chart PDFs from My Charts library `[PLATINUM]`
-
-### Phase 8 — Scale + Polish 🚀
-
-- [x] **Admin Dashboard** — Internal metrics, user management, and system health `[PHASE 8]`
-- [x] **Astrocartography** — NASA-grade relocation mapping with Local Space (Azimuth) intelligence `[PHASE 8]`
-- [x] **PWA Support** — Offline resilience, manifest v3, and installable mobile experience `[PHASE 8]`
-- [ ] **Full i18n** — Hindi/Sanskrit rollout for all UI components and tables `[PHASE 8]`
+- [ ] **Full i18n** — Hindi/Sanskrit rollout for all UI components and tables
 
 ---
 
@@ -346,4 +455,4 @@ Private project — all rights reserved.
 ---
 
 *Jyotiṣa — The Eye of the Vedas*  
-*v2.6.0 · April 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
+*v2.6.0 · May 2026 · [Vedaansh Platform](https://github.com/abhishek081999/Vedaansh)*
