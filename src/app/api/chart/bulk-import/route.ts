@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
     if (isNaN(lng))  errors.push('Longitude must be a number')
     if (!timezone)   errors.push('Timezone is required (e.g. Asia/Kolkata)')
 
-    if (errors.length) {
+    if (errors.length || !birthDate || !birthTime) {
       results.push({ row: rowNum, name: name || `Row ${rowNum}`, status: 'error', message: errors.join('; ') })
       continue
     }
@@ -224,7 +224,7 @@ export async function POST(req: NextRequest) {
         userId,
         name,
         birthDate,
-        birthTime: birthTime!.length === 5 ? birthTime + ':00' : birthTime,
+        birthTime: birthTime.length === 5 ? `${birthTime}:00` : birthTime,
         birthPlace,
         latitude:  lat,
         longitude: lng,
